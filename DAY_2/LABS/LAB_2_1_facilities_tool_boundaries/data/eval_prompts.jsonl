@@ -1,0 +1,16 @@
+{"id": "P01", "context": "workplace_booking", "prompt": "Which conference rooms on floor 3 are free tomorrow 2-3pm and seat at least 8?", "correct": ["room.search"]}
+{"id": "P02", "context": "workplace_booking", "prompt": "I need a quiet room with a whiteboard this Thursday morning for 4 people, anything available?", "correct": ["room.search"]}
+{"id": "P03", "context": "workplace_booking", "prompt": "What's the seating capacity and AV equipment in Harbor 3?", "correct": ["room.get"]}
+{"id": "P04", "context": "workplace_booking", "prompt": "Is the Birch room wheelchair accessible, and which floor is it on?", "correct": ["room.get"]}
+{"id": "P05", "context": "workplace_booking", "prompt": "Pencil me into Harbor 3 for ten minutes while I check with my team - don't confirm anything yet", "correct": ["room.hold"]}
+{"id": "P06", "context": "workplace_booking", "prompt": "Lock in Harbor 3 for the all-hands rehearsal Friday 9-10, confirmed, and send the invites", "correct": ["booking.create"]}
+{"id": "P07", "context": "maintenance_desk", "prompt": "The projector in Harbor 3 keeps flickering, please open a repair request", "correct": ["ticket.create"]}
+{"id": "P08", "context": "maintenance_desk", "prompt": "Show me every unresolved maintenance request for building B", "correct": ["ticket.list_open"]}
+{"id": "P09", "context": "maintenance_desk", "prompt": "Add a note to ticket MT-2291: technician replaced the air filter, 45 minutes of labour", "correct": ["ticket.log"]}
+{"id": "P10", "context": "maintenance_desk", "prompt": "What's the warranty expiry and last service date of chiller unit CH-07?", "correct": ["asset.lookup"]}
+{"id": "P11", "context": "maintenance_desk", "prompt": "Who is our approved HVAC contractor and what is their emergency callout number?", "correct": ["vendor.lookup"]}
+{"id": "P12", "context": "maintenance_desk", "prompt": "Which asset carries tag PRJ-0042 and what is its installed condition?", "correct": ["asset.lookup"]}
+{"id": "P13", "context": "security_desk", "prompt": "Give new hire Dana Ortiz access to the 4th floor lab starting Monday", "correct": ["badge.grant"]}
+{"id": "P14", "context": "security_desk", "prompt": "The elevator technician from Lift-Co needs a temporary pass for the plant room for two days", "correct": ["badge.grant"]}
+{"id": "P15", "context": "security_desk", "prompt": "Is Lift-Co on the approved vendor list, and when does their insurance certificate expire?", "correct": ["vendor.lookup"]}
+{"id": "P16", "context": "security_desk", "prompt": "How many people does the server room hold and which floor is it on?", "correct": ["room.get"]}

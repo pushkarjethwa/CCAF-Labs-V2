@@ -1,0 +1,15 @@
+{
+  "note": "Ground truth meaning of each capability. A tool (or tool+action) provides exactly one capability.",
+  "capabilities": {
+    "room.search": "Find rooms that are free for a time window and match criteria (capacity, equipment, floor). Read-only. No specific room known yet.",
+    "room.get": "Facts about ONE known room: capacity, equipment, floor, accessibility, location. Read-only.",
+    "room.hold": "Temporary, auto-expiring hold (about 15 minutes) on a known room and slot. Not a confirmed booking; no invites.",
+    "booking.create": "Confirmed reservation of a known room and slot, with calendar invites. Binding.",
+    "ticket.create": "Open a NEW maintenance request for a fault that is not yet ticketed.",
+    "ticket.list_open": "List unresolved maintenance tickets (filter by building/status). Read-only.",
+    "ticket.log": "Append a work note / labour minutes to an EXISTING ticket id.",
+    "asset.lookup": "Facts about one tagged asset: warranty, service dates, condition, install location.",
+    "vendor.lookup": "Facts about approved vendors: trade, contact, emergency line, insurance expiry.",
+    "badge.grant": "Grant physical access (zones, date range) to a person - employee, hire or contractor."
+  }
+}
