@@ -56,6 +56,7 @@ The loop for every lab: read the README, edit `lab.py`, run `python check.py` un
 
 | Lab | What it is about | Time | Key needed |
 |---|---|---|---|
+| [2.0 Intro to tool use (new)](NEW_LABS/LAB_2_0_intro_to_tool_use) | Run-and-read walkthrough: why tools, how to create one, the full tool round trip. Do it before 2.1 | 20-25 min | lab.py |
 | [2.1 Facilities tool boundaries](DAY_2/LABS/LAB_2_1_facilities_tool_boundaries) | Fix overlapping tools: descriptions, consolidation, pruning, per-desk scoping; measure selection accuracy | 60-75 min | lab.py |
 | [2.2 Travel disruption tool loop](DAY_2/LABS/LAB_2_2_travel_disruption_tool_loop) | The tool loop: parallel reads, dependent writes, safe handling of failures | 35 min | lab.py |
 | [2.3 Payroll typed errors](DAY_2/LABS/LAB_2_3_payroll_typed_errors) | Typed tool errors, bounded retries, escalation of permission errors | 75-90 min | lab.py |
