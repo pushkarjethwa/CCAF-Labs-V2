@@ -1,0 +1,9 @@
+# One environment for every lab in STUDENT_V2. Install once: python -m pip install -r requirements.txt
+anthropic>=1.11,<2
+python-dotenv
+jsonschema>=4.20
+mcp>=2.3,<3
+httpx2
+httpx>=0.27
+uvicorn
+pydantic
