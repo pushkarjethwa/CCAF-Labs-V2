@@ -37,7 +37,7 @@ def cached_system():
     """Return the system prompt as a LIST of blocks, with the policy block marked for caching."""
     # TODO 1: return [{"type": "text", "text": ..., "cache_control": {"type": "ephemeral"}}] holding INSTRUCTIONS + POLICY.
     #   Only the block that carries cache_control (and everything before it) is cached.
-    return plain_system()  # DEFECT: a plain string cannot carry cache_control
+    return [{"type": "text", "text": plain_system()}]  # DEFECT: no cache_control, so nothing is cached
 
 
 # ---------------------------------------------------------------- STEP 3 (you): keep changing data OUT of the cached prefix
