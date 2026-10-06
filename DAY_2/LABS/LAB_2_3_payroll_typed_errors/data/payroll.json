@@ -1,0 +1,18 @@
+{
+  "approval_threshold_cents": 500000,
+  "currency": "USD",
+  "periods": {
+    "2026-07": "closed",
+    "2026-08": "closed",
+    "2026-09": "open",
+    "2026-10": "open"
+  },
+  "employees": {
+    "E1001": {"name": "Priya Nair", "department": "Finance", "status": "active"},
+    "E1002": {"name": "Marcus Webb", "department": "Operations", "status": "active"},
+    "E1004": {"name": "Chen Li", "department": "Engineering", "status": "active"},
+    "E1005": {"name": "Aisha Khan", "department": "Sales", "status": "active"},
+    "E1007": {"name": "Grace Okoro", "department": "Support", "status": "active"},
+    "E1008": {"name": "Liam Byrne", "department": "Logistics", "status": "active"}
+  }
+}

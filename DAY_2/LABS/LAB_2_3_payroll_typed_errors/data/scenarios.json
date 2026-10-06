@@ -1,0 +1,8 @@
+[
+ {"id": "S1", "title": "happy path, open period", "key": "ADJ-2001", "employee_id": "E1001", "period": "2026-09", "amount": "150.00", "reason": "missed shift differential", "lock": 0, "expected_status": "applied"},
+ {"id": "S2", "title": "closed period", "key": "ADJ-2002", "employee_id": "E1002", "period": "2026-08", "amount": "220.00", "reason": "late expense reimbursement", "lock": 0, "expected_status": "offer_next_period"},
+ {"id": "S3", "title": "typo in employee id", "key": "ADJ-2003", "employee_id": "E1044", "period": "2026-09", "amount": "75.00", "reason": "on-call stipend", "lock": 0, "expected_status": "needs_input"},
+ {"id": "S4", "title": "amount above approval threshold", "key": "ADJ-2004", "employee_id": "E1004", "period": "2026-09", "amount": "12500.00", "reason": "retention bonus true-up", "lock": 0, "expected_status": "escalated"},
+ {"id": "S5", "title": "transient lock, recovers", "key": "ADJ-2005", "employee_id": "E1005", "period": "2026-09", "amount": "80.00", "reason": "commission correction", "lock": 2, "expected_status": "applied"},
+ {"id": "S6", "title": "lock never clears", "key": "ADJ-2006", "employee_id": "E1007", "period": "2026-09", "amount": "45.00", "reason": "meal allowance", "lock": -1, "expected_status": "failed_transient"}
+]
