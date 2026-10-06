@@ -4,6 +4,16 @@ Hands-on labs for the **Claude Certified Architect - Foundations (CCA-F)** cours
 
 New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) first (5 minutes). Machine not set up yet? Follow [DAY_0_SETUP_GUIDE.md](DAY_0_SETUP_GUIDE.md) (about 45 minutes, before Day 1).
 
+## Where to find the labs and the trainer-demo versions
+
+Everything is in `NEW_LABS/` (new labs and the run-it-yourself versions of the trainer's demos) and in `DAY_1/LABS`, `DAY_2/LABS`. The demo versions let you re-run what the trainer showed:
+
+| Trainer demo | Your version | What you run |
+|---|---|---|
+| Day 1, Demo 1A: Model behavior tournament | [Lab 1A](NEW_LABS/LAB_1A_model_tournament) | `python demo.py --stage 0` ... `5` |
+| Day 1, Demo 1B: Prompt evolution workshop | [Lab 1B](NEW_LABS/LAB_1B_prompt_evolution) | `python demo.py --stage 0` ... `6`, `vault`, `gate` |
+| Day 2, Demo 2.0: Intro to tool use | [Lab 2.0](NEW_LABS/LAB_2_0_intro_to_tool_use) | `python lab.py --step 1` ... `3` |
+
 ## About the course
 
 A five-day course that prepares you for the CCA-F exam by building, breaking and measuring small systems on the Claude API. The exam domains and their weight:
@@ -46,6 +56,8 @@ The loop for every lab: read the README, edit `lab.py`, run `python check.py` un
 
 | Lab | What it is about | Time |
 |---|---|---|
+| [1A Model tournament (demo version)](NEW_LABS/LAB_1A_model_tournament) | Run the trainer's Demo 1A yourself: compare Haiku, Sonnet and Opus classes on 24 invoices, structured output, routing, cost for 100k records | 60-75 min |
+| [1B Prompt evolution (demo version)](NEW_LABS/LAB_1B_prompt_evolution) | Run the trainer's Demo 1B yourself: v0 to v6 prompts on 12 messy invoices, example leak, schema, model and cost comparison, prompt vault and regression gate | 60-75 min |
 | [1.1 HR roster classification](DAY_1/LABS/LAB_1_1_hr_roster_classification) | Compare model sizes on one task: which is good enough, and what does it cost at scale | 30 min |
 | [1.2 IT incident normalization](DAY_1/LABS/LAB_1_2_it_incident_normalization) | Evolve a prompt and a JSON schema step by step, and measure each change | 35 min |
 | [1.3 Warehouse receiving emails](DAY_1/LABS/LAB_1_3_warehouse_receiving_extraction) | Extract data, validate it, and retry with the error fed back to the model | 35 min |

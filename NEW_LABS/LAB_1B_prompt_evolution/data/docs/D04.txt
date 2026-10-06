@@ -1,0 +1,20 @@
+NORTHGATE FREIGHT LINES INC.
+88 Harbour Gate Rd, Dartmouth NS  B3B 1X2
+GST/HST 8271 55904 RT0001
+
+lnvoice # NF-88102                    Date: 2025-02-26
+Customer PO:  ---                     Due:  2025-03-28
+Shipment: Port of Halifax -> Montreal yard
+All amounts in CAD
+
+Qty  Service                                  Rate        Amount
+ 1   Ocean freight, 40ft container         2,140.00      2,140.00
+ 1   Terrninal handling (THC)                310.00        310.00
+ 2   Chassis rental, per day                  95.00        190.00
+ 1   Fue1 surcharge (12%)                    316.80        316.80
+
+                               Subtotal                  $2,956.80
+                               HST 15%                     $443.52
+                               Total                     $3,400.32
+
+Payment by EFT to Northgate Freight Lines Inc, transit 04812.

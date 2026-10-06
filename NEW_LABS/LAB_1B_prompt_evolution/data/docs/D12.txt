@@ -1,0 +1,22 @@
+SUNRISE LAB CONSUMABLES PVT. LTD.
+Plot 22, MIDC Industrial Area, Pune 411019
+GSTIN 27AABCS1429B1ZB
+
+TAX INVOICE
+
+Invoice No: TI/25-26/0481            Dt: 07-03-2025
+Buyer: Meridian Diagnostics LLP, Baner Road, Pune
+Place of supply: Maharashtra (27)
+
+Sl  Description                     HSN    Qty        Rate          Amount
+1   Nitrile gloves, M (box/100)     4015    50    Rs. 285.00   Rs. 14,250.00
+2   Sample vials 5ml (pack/50)      3923    30    Rs. 410.00   Rs. 12,300.00
+3   Pipette tips 200ul (pack/96)    3926    25    Rs. 360.00    Rs. 9,000.00
+
+                           Taxable value            Rs. 35,550.00
+                           CGST @ 9%                 Rs. 3,199.50
+                           SGST @ 9%                 Rs. 3,199.50
+                           Invoice Total            Rs. 41,949.00
+
+Amount in words: Forty One Thousand Nine Hundred Forty Nine Rupees Only
+E. & O.E.   Subject to Pune jurisdiction.

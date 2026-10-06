@@ -1,0 +1,20 @@
+KESTREL MARINE FREIGHT B.V.
+Waalhaven Z.z. 21, 3088 HH Rotterdam, Nederland
+BTW NL8123.45.678.B01
+
+Invoice # KM-30958                    Date: 2025-03-05
+Customer PO: NL-2209                  Due:  2025-04-04
+Shipment: Port of Rotterdam -> Duisburg yard
+Alle bedragen in EUR
+
+Qty  Service                                  Rate          Amount
+ 1   Ocean freight, 40ft container       1.980,00       1.980,00
+ 1   Terminal handling                     340,00         340,00
+ 3   Chassis rental, per day                90,00         270,00
+ 1   Fuel surcharge (10%)                  259,00         259,00
+
+                               Subtotaal                 € 2.849,00
+                               BTW 21%                     € 598,29
+                               Totaal                    € 3.447,29
+
+Betaling op rekening NL91 ABNA 0417 1643 00 t.n.v. Kestrel Marine Freight B.V.

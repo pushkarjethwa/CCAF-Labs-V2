@@ -1,0 +1,22 @@
+Shimizu Precision Parts Co., Ltd.
+2-8-14 Minami-ku, Hamamatsu, Shizuoka 432-8011, Japan
+Registration No. T4010001234567
+
+INVOICE / 請求書
+
+Invoice No:   SPP-250309-017
+Issue date:   2025/03/09
+Payment due:  2025/04/30
+PO No.:       25-0188
+Bill to:      Kitamura Robotics Inc.
+
+Item                         Qty     Unit Price        Amount
+Bearing 6204ZZ               120           ¥340       ¥40,800
+Shaft collar 20mm             60           ¥275       ¥16,500
+Linear guide rail 400mm        4        ¥12,900       ¥51,600
+
+                              Subtotal              ¥108,900
+                              Consumption tax (10%)  ¥10,890
+                              Total                 ¥119,790
+
+Remit by bank transfer: Hamamatsu Shinkin Bank, ordinary account 1182204.

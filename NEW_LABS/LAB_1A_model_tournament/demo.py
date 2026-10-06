@@ -1,0 +1,686 @@
+"""LAB 1A - Model tournament: which Claude model should classify 100,000 invoices?   (run-it-yourself version of Demo 1A)
+
+Run the stages in order, reading each stage's function first:
+    python demo.py --stage 0      the "before": dataset, scorer, legacy rules engine. NO Claude call, free
+    python demo.py --stage 1      one hard case, plain-text answer, three models side by side   (3 calls)
+    python demo.py --stage 2      strict structured output + the parameter traps that return errors (3 calls + free error demos)
+    python demo.py --stage 3      the tournament: 24 cases x 3 models                           (72 calls, roughly $0.3-0.6)
+    python demo.py --stage 4      cheap-first routing + recommendation for 100k records         (about 50 calls, ~$0.1-0.3)
+                                  add --sweep for the effort sweep (192 more calls, about $2 and 10 minutes)
+    python demo.py --stage 5      the hardened router: tier outages, audit trail, queues        (24 cases, ~$0.1-0.3)
+    python demo.py --stage failures   output-contract failure cases. NO Claude call, free
+    python check.py               checks your evidence files
+
+Add --limit N to any stage to use only the first N cases (cheaper). Stage 4 and 5 need stage 3 evidence for the full comparison.
+
+The story: Larkspur Components (fictional) must label every inbound invoice low / medium / high / hold before money moves.
+The rules engine gets 12 of 24 labelled test invoices right. The 24 cases include the ones that lose real money: a changed
+bank account, a duplicate invoice number, an amount just under the approval limit, a look-alike vendor.
+
+You will see: (1) tiers can disagree on a high-stakes case, (2) free text is not a contract, (3) extra money buys few cases,
+(4) the answer is usually an ARCHITECTURE (route by uncertainty), not the most expensive model.
+Honest caution: 24 cases is a tiny sample. Read the confidence intervals, and re-run: results vary between runs.
+"""
+import argparse
+import json
+import pathlib
+import re
+import textwrap
+import time
+from collections import Counter
+from dataclasses import dataclass, field
+
+import anthropic
+
+import ap_data as data
+from claude_client import MODEL_BALANCED, MODEL_FAST, MODEL_PREMIUM, PRICE_PER_MTOK, ask, cost_usd, get_client, text_of
+
+HERE = pathlib.Path(__file__).parent
+EVIDENCE = HERE / "evidence"
+TIERS = [("fast", "Haiku class", MODEL_FAST), ("balanced", "Sonnet class", MODEL_BALANCED), ("premium", "Opus class", MODEL_PREMIUM)]
+MODELS = {alias: model for alias, _klass, model in TIERS}
+BATCH_DISCOUNT = 0.5  # the Message Batches API costs half
+
+
+# ================================================================ PART A: the usage ledger (every call is recorded)
+CALLS = []
+
+
+def record(label, response, started):
+    """Store tokens, latency and cost of one call under a label. Returns the record."""
+    entry = {"label": label, "input": response.usage.input_tokens, "output": response.usage.output_tokens,
+             "latency_s": round(time.time() - started, 2), "cost_usd": cost_usd(response)}
+    CALLS.append(entry)
+    return entry
+
+
+def print_ledger():
+    totals = {}
+    for entry in CALLS:
+        row = totals.setdefault(entry["label"], [0, 0, 0, 0.0])
+        row[0] += 1
+        row[1] += entry["input"]
+        row[2] += entry["output"]
+        row[3] += entry["cost_usd"]
+    print("\nusage this run (est. USD from the price table in claude_client.py):")
+    for label, (calls, tokens_in, tokens_out, dollars) in sorted(totals.items()):
+        print(f"  {label:<22}{calls:>4} calls {tokens_in:>8} in {tokens_out:>7} out   ${dollars:.4f}")
+    print(f"  {'TOTAL':<22}{len(CALLS):>4} calls {sum(c['input'] for c in CALLS):>8} in {sum(c['output'] for c in CALLS):>7} out   ${sum(c['cost_usd'] for c in CALLS):.4f}")
+
+
+def per_100k(total_usd, n):
+    return total_usd / n * 100_000 if n else 0.0
+
+
+# ================================================================ PART B: the output contract (schema + validator)
+# The schema goes to the API as output_config.format. Range rules (confidence 0..1, 1-4 reasons) cannot be expressed in the
+# structured-output grammar, so they live in check_output(): the SEMANTIC layer. Both layers are needed.
+SCHEMA = {
+    "type": "object",
+    "properties": {"label": {"type": "string", "enum": list(data.LABELS)}, "reasons": {"type": "array", "items": {"type": "string"}},
+                   "confidence": {"type": "number"}},
+    "required": ["label", "reasons", "confidence"],
+    "additionalProperties": False,
+}
+OUTPUT_FORMAT = {"type": "json_schema", "schema": SCHEMA}
+
+
+def plain_system(policy):
+    return ("You are an accounts-payable risk analyst. Classify the document into exactly one risk label and explain briefly.\n"
+            "Labels:\n" + data.render_label_guide(policy))
+
+
+def structured_system(policy):
+    return ("You are an accounts-payable risk analyst. Classify the document into exactly one risk label.\n"
+            "Labels:\n" + data.render_label_guide(policy) + "\n"
+            "Return: label; reasons (1 to 4 short strings, each citing a specific fact from the document); "
+            "confidence (a probability between 0 and 1 that your label is the one an experienced AP manager would choose).")
+
+
+def parse_json_loose(text):
+    """Parse JSON, tolerating a ```json fence around it. Raises ValueError if it is not JSON."""
+    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip())
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError as error:
+        raise ValueError(str(error)) from error
+
+
+def schema_problems(obj):
+    """The structural layer (what the API grammar enforces). Returns a list of problem strings."""
+    if not isinstance(obj, dict):
+        return ["schema: not an object"]
+    problems = [f"schema required: {key}" for key in SCHEMA["required"] if key not in obj]
+    problems += [f"schema additionalProperties: {key}" for key in obj if key not in SCHEMA["properties"]]
+    if "label" in obj and obj["label"] not in data.LABELS:
+        problems.append(f"schema enum: label {obj['label']!r}")
+    if "reasons" in obj and not (isinstance(obj["reasons"], list) and all(isinstance(r, str) for r in obj["reasons"])):
+        problems.append("schema type: reasons")
+    if "confidence" in obj and (isinstance(obj["confidence"], bool) or not isinstance(obj["confidence"], (int, float))):
+        problems.append("schema type: confidence")
+    return problems
+
+
+@dataclass
+class Verdict:
+    structural_ok: bool = False
+    semantic_ok: bool = False
+    label: str | None = None
+    confidence: float | None = None
+    reasons: list = field(default_factory=list)
+    problems: list = field(default_factory=list)
+    normalised: bool = False
+
+    @property
+    def usable(self):
+        return self.structural_ok and self.semantic_ok
+
+
+def check_output(text, stop_reason="end_turn"):
+    """Both layers: parse, structure, then meaning. A schema-valid answer can still be unusable."""
+    verdict = Verdict()
+    if stop_reason in ("refusal", "max_tokens"):
+        verdict.problems.append(f"stop_reason={stop_reason}: output may not match the schema")
+        return verdict
+    try:
+        parsed = parse_json_loose(text)
+    except ValueError as error:
+        verdict.problems.append(f"parse: {error}")
+        return verdict
+    if isinstance(parsed, dict) and isinstance(parsed.get("label"), str) and parsed["label"] != parsed["label"].strip().lower():
+        parsed = dict(parsed, label=parsed["label"].strip().lower())  # enum capitalisation can drift without an error
+        verdict.normalised = True
+    verdict.problems += schema_problems(parsed)
+    verdict.structural_ok = not verdict.problems
+    if not verdict.structural_ok:
+        return verdict
+    verdict.label, verdict.confidence, verdict.reasons = parsed["label"], float(parsed["confidence"]), list(parsed["reasons"])
+    semantic = []
+    if not 0.0 <= verdict.confidence <= 1.0:
+        semantic.append(f"semantic confidence: {verdict.confidence:g} is outside 0..1")
+    if not 1 <= len(verdict.reasons) <= 4 or not all(reason.strip() for reason in verdict.reasons):
+        semantic.append(f"semantic reasons: need 1-4 non-empty strings, got {len(verdict.reasons)}")
+    verdict.problems += semantic
+    verdict.semantic_ok = not semantic
+    return verdict
+
+
+# ================================================================ PART C: one structured classification
+@dataclass
+class Result:
+    case_id: str
+    tier: str
+    effort: str | None
+    verdict: Verdict
+    stop_reason: str | None
+    input_tokens: int
+    output_tokens: int
+    latency_s: float
+    cost_usd: float
+
+    @property
+    def label(self):  # the label only counts when the output is fully usable
+        return self.verdict.label if self.verdict.usable else None
+
+    def to_dict(self):
+        v = self.verdict
+        return {"case_id": self.case_id, "tier": self.tier, "effort": self.effort, "label": v.label, "confidence": v.confidence,
+                "reasons": v.reasons, "structural_ok": v.structural_ok, "semantic_ok": v.semantic_ok, "problems": v.problems,
+                "normalised": v.normalised, "stop_reason": self.stop_reason, "input_tokens": self.input_tokens,
+                "output_tokens": self.output_tokens, "latency_s": self.latency_s, "cost_usd": self.cost_usd}
+
+
+def request_options(model, effort=None):
+    """What a model-agnostic caller may send. Never temperature. effort only on models that have it (not the fast tier)."""
+    output_config = {"format": OUTPUT_FORMAT}
+    if effort and model != MODEL_FAST:
+        output_config["effort"] = effort
+    return {"output_config": output_config}
+
+
+def classify(tier, model, case, policy, effort=None, max_tokens=4000, label=None):
+    """One structured classification of one invoice case."""
+    started = time.time()
+    response = ask([{"role": "user", "content": case.view}], system=structured_system(policy), model=model, max_tokens=max_tokens,
+                   **request_options(model, effort))
+    usage = record(label or tier, response, started)
+    return Result(case.case_id, tier, effort, check_output(text_of(response), response.stop_reason), response.stop_reason,
+                  usage["input"], usage["output"], usage["latency_s"], usage["cost_usd"])
+
+
+# ================================================================ PART D: stages
+def load_world(limit):
+    cases = data.load_cases()[:limit]
+    truth = {case.case_id: data.load_truth()[case.case_id] for case in cases}
+    return cases, truth, data.load_policy()
+
+
+def save_json(name, obj):
+    EVIDENCE.mkdir(exist_ok=True)
+    (EVIDENCE / name).write_text(json.dumps(obj, indent=2), encoding="utf-8")
+
+
+def load_json(name):
+    path = EVIDENCE / name
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def stage0(limit):
+    print("STAGE 0 - the 'before': dataset, scorer and the legacy rules engine. No Claude call.\n")
+    cases, truth, policy = load_world(limit)
+    vendors = data.load_vendors()
+    print(f"cases: {len(cases)}   labels: {dict(Counter(t['label'] for t in truth.values()))}")
+    print(f"strata: {dict(Counter(t['stratum'] for t in truth.values()))}\n")
+    sample = next((c for c in cases if c.case_id == "inv_017"), cases[0])
+    print(f"What a model is shown for {sample.case_id} (no ground truth, no hint):\n" + "-" * 78 + f"\n{sample.view}\n" + "-" * 78)
+    preds = {c.case_id: data.legacy_label(c.invoice, vendors, policy) for c in cases}
+    result = data.score(preds, truth, policy["error_weights"])
+    print(f"\nLegacy rules engine: {result.correct}/{result.n} correct ({data.pct(result.accuracy)}), hold recall "
+          f"{result.hold_caught}/{result.hold_total}, severity-weighted error {result.weighted_error}")
+    print(data.format_confusion(result))
+    print("misses:", ", ".join(f"{m['case_id']}({m['truth']}->{m['pred']})" for m in result.misses))
+    print("\nPrice table (USD per million tokens) from claude_client.py. One record = about 650 in + 140 out tokens (a planning guess, measured later):")
+    for alias, klass, model in TIERS:
+        price_in, price_out = PRICE_PER_MTOK[model]
+        record_cost = (650 * price_in + 140 * price_out) / 1_000_000
+        print(f"  {alias:<9}{klass:<13}in ${price_in:>5.2f}  out ${price_out:>5.2f}   ${record_cost:.6f}/record  ${record_cost * 1000:.2f}/1k  ${record_cost * 100_000:.0f}/100k")
+
+
+def naive_label(text):
+    """The 'obvious' consumer of free text: the first label word that appears. WRONG by design: see stage 1."""
+    hit = re.search(r"\b(low|medium|high|hold)\b", text, re.IGNORECASE)
+    return hit.group(1).lower() if hit else None
+
+
+def stage1(case_id):
+    cases = {c.case_id: c for c in data.load_cases()}
+    truth, policy = data.load_truth(), data.load_policy()
+    case = cases[case_id]
+    print(f"STAGE 1 - plain text, three tiers, one case: {case.case_id} (amount USD {case.amount_usd:,.2f})\n")
+    print("PREDICT first: 1. Which tier will say 'hold'?  2. Which is cheapest?  3. Can a script read the answers?\n")
+    results = []
+    for alias, klass, model in TIERS:
+        started = time.time()
+        response = ask([{"role": "user", "content": case.view}], system=plain_system(policy), model=model, max_tokens=2000)
+        usage = record(alias, response, started)
+        text = text_of(response)
+        results.append((alias, text))
+        print(f"--- {alias} ({klass}) ---\n{textwrap.fill(text, 100)}\n    tokens in/out: {usage['input']}/{usage['output']}   latency: {usage['latency_s']}s   cost: ${usage['cost_usd']:.5f}\n")
+    print("OBSERVE - what a naive script extracts (first label word in the reply):")
+    truth_label = truth[case_id]["label"]
+    print(f"{'tier':<10}{'naive label':<13}{'truth':<8}verdict")
+    for alias, text in results:
+        got = naive_label(text)
+        print(f"{alias:<10}{str(got):<13}{truth_label:<8}{'ok' if got == truth_label else 'WRONG'}")
+    print("\nTwo different problems: (1) the tiers can disagree on the risk; (2) even a right answer is not a contract:")
+    print("'not a routine low or medium item' contains the word 'low' before 'hold'. => Stage 2: make the answer machine-checkable.")
+    save_json("stage1.json", {"case_id": case_id, "truth": truth_label, "answers": {alias: text for alias, text in results},
+                              "naive_labels": {alias: naive_label(text) for alias, text in results}})
+
+
+def attempt(title, call):
+    """Run one deliberately wrong request and print how it fails."""
+    try:
+        call()
+        print(f"  [accepted] {title}")
+        return "accepted"
+    except TypeError as error:
+        print(f"  [TypeError, raised by the SDK before any network call] {title}\n      {str(error).split(' (')[0][:110]}")
+        return "TypeError"
+    except anthropic.BadRequestError as error:
+        print(f"  [HTTP {error.status_code} invalid_request_error] {title}\n      {error.message[:110]}")
+        return "400"
+
+
+def stage2(case_id):
+    cases = {c.case_id: c for c in data.load_cases()}
+    truth, policy = data.load_truth(), data.load_policy()
+    case = cases[case_id]
+    print(f"STAGE 2 PART A - schema-constrained answers for {case_id} (truth: {truth[case_id]['label']})")
+    print(f"{'tier':<10}{'label':<8}{'conf':>6}  {'struct':<7}{'semantic':<9}first reason")
+    part_a = {}
+    for alias, _klass, model in TIERS:
+        result = classify(alias, model, case, policy)
+        v = result.verdict
+        part_a[alias] = result.to_dict()
+        print(f"{alias:<10}{str(v.label):<8}{(v.confidence or 0):>6.2f}  {'ok' if v.structural_ok else 'FAIL':<7}{'ok' if v.semantic_ok else 'FAIL':<9}{(v.reasons or [''])[0][:60]}")
+    print("A script can now route on `label` and `confidence`; no regex over prose.")
+
+    print("\nSTAGE 2 PART B - deliberate failures (cost: zero tokens; the API rejects them)")
+    client = get_client()
+    ping = [{"role": "user", "content": "ping"}]
+    tool = {"name": "record_risk", "description": "Record the risk label.", "input_schema": {"type": "object", "properties": {"label": {"type": "string"}}, "required": ["label"]}}
+    outcomes = {}
+    print(" B1. temperature as a keyword argument:")
+    outcomes["temperature_kwarg"] = attempt("messages.create(temperature=0)", lambda: client.messages.create(model=MODEL_BALANCED, max_tokens=50, messages=ping, temperature=0))
+    print(" B2. temperature smuggled through extra_body (the old escape hatch):")
+    for alias, _klass, model in TIERS:
+        outcomes[f"extra_body_{alias}"] = attempt(f"{alias} tier + extra_body temperature", lambda m=model: client.messages.create(model=m, max_tokens=50, messages=ping, extra_body={"temperature": 0}))
+    print(" B3. forcing a tool to get structured data:")
+    for alias, _klass, model in TIERS:
+        outcomes[f"forced_tool_{alias}"] = attempt(f"{alias} tier + tool_choice forced", lambda m=model: client.messages.create(model=m, max_tokens=50, messages=ping, tools=[tool], tool_choice={"type": "tool", "name": "record_risk"}))
+    print("\nSTAGE 2 PART C - what request_options() sends (it never sends temperature, and drops effort on the fast tier)")
+    for alias, _klass, model in TIERS:
+        print(f"  {alias}: output_config keys = {sorted(request_options(model, effort='low')['output_config'])}")
+    print("\nFix = do not send what the model does not support. Determinism comes from the schema, explicit criteria and validation, not a sampling knob.")
+    print("Results differ by model and version: what you see above is what YOUR models do today.")
+    save_json("stage2.json", {"case_id": case_id, "part_a": part_a, "part_b": outcomes})
+
+
+@dataclass
+class TierSummary:
+    tier: str
+    klass: str
+    score: data.Score
+    struct_ok: int
+    sem_ok: int
+    avg_latency: float
+    avg_in: float
+    avg_out: float
+    total_cost: float
+    n: int
+
+    @property
+    def per_1k(self):
+        return self.total_cost / self.n * 1000 if self.n else 0.0
+
+    @property
+    def per_100k(self):
+        return per_100k(self.total_cost, self.n)
+
+
+def summarise(tier, klass, results, truth, policy):
+    preds = {r.case_id: (r.verdict.label if r.verdict.structural_ok else None) for r in results}  # tournament counts the label whenever the structure parsed
+    confidences = {r.case_id: r.verdict.confidence for r in results}
+    n = len(results)
+    return TierSummary(tier, klass, data.score(preds, truth, policy["error_weights"], confidences), sum(r.verdict.structural_ok for r in results),
+                       sum(r.verdict.usable for r in results), sum(r.latency_s for r in results) / n, sum(r.input_tokens for r in results) / n,
+                       sum(r.output_tokens for r in results) / n, sum(r.cost_usd for r in results), n)
+
+
+def stratum_costs(results, truth):
+    buckets = {}
+    for r in results:
+        buckets.setdefault(truth[r.case_id]["stratum"], []).append(r.cost_usd)
+    return {stratum: sum(costs) / len(costs) for stratum, costs in buckets.items()}
+
+
+def stage3(limit):
+    cases, truth, policy = load_world(limit)
+    print(f"STAGE 3 - MODEL TOURNAMENT: {len(cases)} cases x 3 tiers, structured output, default effort\n")
+    print("PREDICT: how many cases will each tier get right, and how many times more will Opus cost than Haiku?\n")
+    results = {}
+    for alias, _klass, model in TIERS:
+        print(f"  running {alias} ...")
+        results[alias] = [classify(alias, model, case, policy, label=alias) for case in cases]
+    summaries = {alias: summarise(alias, klass, results[alias], truth, policy) for alias, klass, _m in TIERS}
+    fast_cost = summaries["fast"].per_100k
+
+    print("\nTABLE 1 - QUALITY")
+    print(f"{'tier':<10}{'class':<13}{'correct':>8}{'accuracy':>10}{'95% CI':>10}{'hold recall':>13}{'wtd err':>9}{'struct':>8}{'semantic':>9}")
+    for alias, klass, _m in TIERS:
+        s = summaries[alias]
+        ci = f"{100 * s.score.ci[0]:.0f}-{100 * s.score.ci[1]:.0f}%"
+        print(f"{alias:<10}{klass:<13}{f'{s.score.correct}/{s.score.n}':>8}{data.pct(s.score.accuracy):>10}{ci:>10}{f'{s.score.hold_caught}/{s.score.hold_total}':>13}"
+              f"{s.score.weighted_error:>9}{f'{s.struct_ok}/{s.n}':>8}{f'{s.sem_ok}/{s.n}':>9}")
+    print("\nTABLE 2 - COST, TOKENS, SPEED")
+    print(f"{'tier':<10}{'avg lat s':>10}{'avg in':>8}{'avg out':>9}{'$/1k':>9}{'$/100k':>10}{'x fast':>8}")
+    for alias, _k, _m in TIERS:
+        s = summaries[alias]
+        print(f"{alias:<10}{s.avg_latency:>10.2f}{s.avg_in:>8.0f}{s.avg_out:>9.0f}{s.per_1k:>9.2f}{s.per_100k:>10.0f}{s.per_100k / fast_cost:>8.1f}")
+    print("\nTABLE 3 - PER-CASE MISSES (truth -> label returned, confidence)")
+    for alias, _k, _m in TIERS:
+        misses = summaries[alias].score.misses
+        print(f"{alias:<10}" + (", ".join(f"{m['case_id']} {m['truth']}->{m['pred']} ({m['confidence'] if m['confidence'] is not None else 0:.2f})" for m in misses) or "none"))
+    glitches = [(a, r.case_id, "; ".join(r.verdict.problems) or "label case normalised") for a in results for r in results[a] if r.verdict.problems or r.verdict.normalised]
+    print("\nTABLE 4 - OUTPUT GLITCHES CAUGHT BY THE VALIDATOR (the schema cannot forbid these)")
+    for alias, case_id, text in glitches:
+        print(f"{alias:<10}{case_id}  {text}")
+    if not glitches:
+        print("none")
+    fast, balanced, premium = summaries["fast"], summaries["balanced"], summaries["premium"]
+    print("\nMEASURE - what did the extra money buy?")
+    print(f"  balanced vs fast   : {balanced.score.correct - fast.score.correct:+d} cases for {balanced.per_100k / fast.per_100k:.1f}x the cost")
+    print(f"  premium vs balanced: {premium.score.correct - balanced.score.correct:+d} case(s) for {premium.per_100k / balanced.per_100k:.1f}x the cost")
+    print(f"  premium vs fast    : {premium.score.correct - fast.score.correct:+d} cases for {premium.per_100k / fast.per_100k:.1f}x the cost")
+    print(f"  caution: on {len(cases)} cases the 95% intervals overlap heavily (premium {100 * premium.score.ci[0]:.0f}-{100 * premium.score.ci[1]:.0f}%, "
+          f"balanced {100 * balanced.score.ci[0]:.0f}-{100 * balanced.score.ci[1]:.0f}%). One case is not evidence.")
+    print("  asymmetric risk: a missed 'hold' is paid out; an over-flag costs a phone call. Read hold recall and weighted error, not accuracy alone.")
+    save_json("tournament.json", {"n": len(cases), "tiers": {alias: {
+        "correct": summaries[alias].score.correct, "n": summaries[alias].n, "hold_recall": summaries[alias].score.hold_recall,
+        "weighted_error": summaries[alias].score.weighted_error, "per_100k_usd": round(summaries[alias].per_100k, 2),
+        "total_cost_usd": summaries[alias].total_cost, "stratum_cost_usd": stratum_costs(results[alias], truth),
+        "results": [r.to_dict() for r in results[alias]]} for alias, _k, _m in TIERS}})
+    print("\nsaved evidence/tournament.json")
+
+
+# ---------------------------------------------------------------- routing
+@dataclass(frozen=True)
+class RoutePolicy:
+    min_confidence: float = 0.75
+    high_value_usd: float = 10_000.0
+
+
+@dataclass
+class Routed:
+    case_id: str
+    final_label: str | None
+    path: list = field(default_factory=list)
+    reasons: list = field(default_factory=list)
+    results: list = field(default_factory=list)
+
+    @property
+    def cost_usd(self):
+        return sum(r.cost_usd for r in self.results)
+
+
+def escalation_reasons(first, amount_usd, rp):
+    reasons = []
+    if not first.verdict.usable:
+        reasons.append("unusable_output")
+    elif first.verdict.confidence < rp.min_confidence:
+        reasons.append("low_confidence")
+    if abs(amount_usd) >= rp.high_value_usd:
+        reasons.append("high_value")
+    return reasons
+
+
+def route_case(case, policy, rp):
+    """Cheap-first cascade: fast always; balanced if unsure, high-value or unusable; premium ONLY on a hold disagreement."""
+    first = classify("fast", MODELS["fast"], case, policy, label="routed:fast")
+    routed = Routed(case.case_id, first.label, ["fast"], [], [first])
+    escalation = escalation_reasons(first, case.amount_usd, rp)
+    if not escalation:
+        return routed
+    second = classify("balanced", MODELS["balanced"], case, policy, label="routed:balanced")
+    routed.results.append(second)
+    routed.path.append("balanced")
+    routed.reasons += escalation
+    routed.final_label = second.label if second.verdict.usable else first.label
+    labels = {first.label, second.label} - {None}
+    if first.verdict.usable and second.verdict.usable and first.label != second.label and "hold" in labels:
+        third = classify("premium", MODELS["premium"], case, policy, label="routed:premium")
+        routed.results.append(third)
+        routed.path.append("premium")
+        routed.reasons.append("hold_disagreement")
+        routed.final_label = third.label if third.verdict.usable else routed.final_label
+    return routed
+
+
+def strategy_row(name, correct, n, hold_recall, weighted_error, total_cost, stratum_cost, mix):
+    keys = [k for k in mix if k in stratum_cost]
+    weight = sum(mix[k] for k in keys)
+    mix_cost = sum(stratum_cost[k] * mix[k] for k in keys) / weight if weight else 0.0  # expected cost of ONE record under the ASSUMED mix
+    return {"name": name, "correct": correct, "n": n, "hold_recall": hold_recall, "weighted_error": weighted_error,
+            "cost_100k_set": per_100k(total_cost, n), "cost_100k_mix": mix_cost * 100_000, "cost_100k_mix_batch": mix_cost * 100_000 * BATCH_DISCOUNT}
+
+
+def recommend(strategies, min_hold_recall=1.0, max_weighted_error=0):
+    """Cheapest strategy that meets the RISK CONSTRAINT. Accuracy is never the tie-breaker; cost is."""
+    eligible = [s for s in strategies if s["hold_recall"] is not None and s["hold_recall"] >= min_hold_recall and s["weighted_error"] <= max_weighted_error]
+    eligible.sort(key=lambda s: s["cost_100k_mix"])
+    n = strategies[0]["n"] if strategies else 0
+    return {"choice": eligible[0] if eligible else None, "eligible": eligible,
+            "caveats": [f"the constraint was measured on only {n} labelled cases; re-measure on a stratified sample of 500+ labelled records with 50+ true holds before rollout",
+                        "the production stratum mix is an assumption (data/policy.json); replace it with your own stream's mix",
+                        "no model-only strategy can guarantee zero missed holds; keep deterministic duplicate/bank/vendor-status checks and a human queue for every hold"]}
+
+
+def rows_from_saved(saved_results, truth, policy):
+    """Rebuild score inputs from the results stored in evidence/tournament.json."""
+    preds = {r["case_id"]: r["label"] for r in saved_results}
+    confidences = {r["case_id"]: r["confidence"] for r in saved_results}
+    return data.score(preds, truth, policy["error_weights"], confidences)
+
+
+def stage4(limit, do_sweep):
+    cases, truth, policy = load_world(limit)
+    mix = {k: v for k, v in policy["production_mix_assumption"].items() if k != "note"}
+    rp = RoutePolicy()
+    print(f"STAGE 4 PART A - cheap-first routing (escalate if confidence < {rp.min_confidence}, amount >= USD {rp.high_value_usd:,.0f}, or output unusable; premium only on a 'hold' disagreement)\n")
+    print("PREDICT: how many cases reach the balanced tier? the premium tier? will the router beat premium-only?\n")
+    routed = [route_case(case, policy, rp) for case in cases]
+    print(f"{'case':<9}{'fast said':<16}{'path':<26}{'final':<8}{'truth':<8}why")
+    for d in routed:
+        if len(d.path) == 1:
+            continue
+        first = d.results[0]
+        said = f"{first.verdict.label} {first.verdict.confidence:.2f}" if first.verdict.confidence is not None else "unusable"
+        print(f"{d.case_id:<9}{said:<16}{' > '.join(d.path):<26}{str(d.final_label):<8}{truth[d.case_id]['label']:<8}{','.join(d.reasons)}")
+    n = len(routed)
+    to_balanced, to_premium = sum(len(d.path) >= 2 for d in routed), sum(len(d.path) == 3 for d in routed)
+    print(f"\nanswered by fast alone: {n - to_balanced}/{n}   reached balanced: {to_balanced}/{n}   reached premium: {to_premium}/{n}")
+    routed_score = data.score({d.case_id: d.final_label for d in routed}, truth, policy["error_weights"])
+    print(f"routed result: {routed_score.correct}/{routed_score.n} correct, hold recall {routed_score.hold_caught}/{routed_score.hold_total}, weighted error {routed_score.weighted_error}")
+    blind = [d.case_id for d in routed if d.results[0].verdict.usable and d.results[0].label != truth[d.case_id]["label"] and d.results[0].verdict.confidence >= rp.min_confidence]
+    if blind:
+        print(f"BLIND SPOT: the fast tier was wrong WITH confidence >= {rp.min_confidence} on: {', '.join(blind)}. Confidence alone would have let these through.")
+    else:
+        print("BLIND SPOT check: this run had no confident wrong answer from the fast tier. Run again: it is a tendency, not a certainty.")
+
+    strategies = []
+    fast_results = [d.results[0] for d in routed]
+    fast_summary = summarise("fast", "Haiku", fast_results, truth, policy)
+    strategies.append(strategy_row("Haiku-only", fast_summary.score.correct, fast_summary.n, fast_summary.score.hold_recall, fast_summary.score.weighted_error,
+                                   fast_summary.total_cost, stratum_costs(fast_results, truth), mix))
+    by_stratum = {}
+    for d in routed:
+        by_stratum.setdefault(truth[d.case_id]["stratum"], []).append(d.cost_usd)
+    strategies.append(strategy_row("ROUTED cascade", routed_score.correct, routed_score.n, routed_score.hold_recall, routed_score.weighted_error,
+                                   sum(d.cost_usd for d in routed), {k: sum(v) / len(v) for k, v in by_stratum.items()}, mix))
+    saved = load_json("tournament.json")
+    if saved and saved["n"] == len(cases):
+        for alias, label in (("balanced", "Sonnet-only"), ("premium", "Opus-only")):
+            tier = saved["tiers"][alias]
+            s = rows_from_saved(tier["results"], truth, policy)
+            strategies.append(strategy_row(label, s.correct, s.n, s.hold_recall, s.weighted_error, tier["total_cost_usd"], tier["stratum_cost_usd"], mix))
+    else:
+        print("\n(no matching evidence/tournament.json: run stage 3 with the same --limit to compare against Sonnet-only and Opus-only)")
+
+    sweep_summary = {}
+    print("\nSTAGE 4 PART B - effort sweep on the 5.5-generation tiers (the fast tier has no effort parameter)")
+    if not do_sweep:
+        print("  skipped (add --sweep: 192 calls, about $2 and 10 minutes). Effort is a cost dial, not a free upgrade.")
+    else:
+        for tier, klass in (("balanced", "Sonnet"), ("premium", "Opus")):
+            for effort in ("low", "medium", "high", "xhigh"):
+                results = [classify(tier, MODELS[tier], case, policy, effort=effort, max_tokens=8000 if effort == "xhigh" else 4000, label=f"{tier}@{effort}") for case in cases]
+                s = summarise(tier, klass, results, truth, policy)
+                sweep_summary[f"{tier}@{effort}"] = {"correct": s.score.correct, "hold_recall": s.score.hold_recall, "weighted_error": s.score.weighted_error, "per_100k": s.per_100k}
+                print(f"  {tier}@{effort:<7}{s.score.correct:>3}/{s.n}  hold {s.score.hold_caught}/{s.score.hold_total}  wtd err {s.score.weighted_error:>3}  avg out {s.avg_out:>5.0f} tok  ${s.per_100k:>7.0f}/100k")
+                strategies.append(strategy_row(f"{klass}-only @{effort}", s.score.correct, s.n, s.score.hold_recall, s.score.weighted_error, s.total_cost, stratum_costs(results, truth), mix))
+
+    print(f"\nSTAGE 4 PART C - which approach for {policy['production_records']:,} records? Risk constraint: hold recall = 100% and weighted error = 0 on the labelled set")
+    print(f"  mix assumption (NOT measured): {mix}")
+    rec = recommend(strategies)
+    print(f"{'strategy':<28}{'correct':>8}{'hold rec':>9}{'$/100k set':>12}{'$/100k mix':>12}{'batch mix':>11}  constraint")
+    for s in sorted(strategies, key=lambda row: row["cost_100k_mix"]):
+        print(f"{s['name']:<28}{s['correct']:>5}/{s['n']:<2}{data.pct(s['hold_recall']):>9}{s['cost_100k_set']:>12.0f}{s['cost_100k_mix']:>12.0f}{s['cost_100k_mix_batch']:>11.0f}  {'meets' if s in rec['eligible'] else 'FAILS'}")
+    choice = rec["choice"]
+    print()
+    if choice:
+        print(f"RECOMMENDATION: {choice['name']}, the cheapest option meeting the constraint (about USD {choice['cost_100k_mix']:,.0f} per 100k at the assumed mix, USD {choice['cost_100k_mix_batch']:,.0f} through the Batch API).")
+    else:
+        print("RECOMMENDATION: no strategy meets the constraint. Add a human queue or improve the prompt before scaling.")
+    for caveat in rec["caveats"]:
+        print(f"  caveat: {caveat}")
+    save_json("routing.json", {"n": n, "routed": {"correct": routed_score.correct, "hold_recall": routed_score.hold_recall, "weighted_error": routed_score.weighted_error,
+                                                   "to_balanced": to_balanced, "to_premium": to_premium, "cost_usd": sum(d.cost_usd for d in routed)},
+                               "strategies": strategies, "choice": choice["name"] if choice else None, "sweep": sweep_summary})
+    print("\nsaved evidence/routing.json")
+
+
+# ---------------------------------------------------------------- the hardened router
+def stage5(limit):
+    cases, truth, policy = load_world(limit)
+    rp = json.loads((HERE / "data" / "routing_policy.json").read_text(encoding="utf-8"))
+    print(f"STAGE 5 - hardened router over {len(cases)} cases (min_confidence {rp['min_confidence']}, high_value USD {rp['high_value_usd']:,.0f})")
+    print("Differences from stage 4: a tier outage never crashes the run, a failure never relaxes a hold, every decision is logged.\n")
+
+    def attempt_tier(tier, case):
+        """One tier call. Any API error becomes an unusable attempt instead of an exception."""
+        try:
+            return classify(tier, MODELS[tier], case, policy, max_tokens=rp["max_tokens"], label=f"final:{tier}"), None
+        except anthropic.APIError as error:
+            return None, f"{type(error).__name__}: {str(error)[:80]}"
+
+    decisions = []
+    EVIDENCE.mkdir(exist_ok=True)
+    with (EVIDENCE / "decisions.jsonl").open("w", encoding="utf-8") as log:
+        for case in cases:
+            attempts, path, reasons = [], [], []
+
+            def call(tier):
+                result, error = attempt_tier(tier, case)
+                path.append(tier)
+                attempts.append({"tier": tier, "usable": bool(result and result.verdict.usable), "label": result.label if result else None,
+                                 "confidence": result.verdict.confidence if result else None, "error": error,
+                                 "problems": result.verdict.problems if result else [], "cost_usd": result.cost_usd if result else 0.0})
+                return attempts[-1]
+
+            def finish(label, human=False):
+                return {"case_id": case.case_id, "final_label": label, "queue": rp["queues"]["none" if label is None else label], "path": list(path),
+                        "reasons": reasons, "needs_human": human or label is None, "attempts": attempts, "cost_usd": round(sum(a["cost_usd"] for a in attempts), 6)}
+
+            first = call(rp["tiers"]["first"])
+            if not first["usable"]:
+                reasons.append("unusable_output")
+            elif first["confidence"] < rp["min_confidence"]:
+                reasons.append("low_confidence")
+            if abs(case.amount_usd) >= rp["high_value_usd"]:
+                reasons.append("high_value")
+            if not reasons:
+                decision = finish(first["label"])
+            else:
+                second = call(rp["tiers"]["second"])
+                disagree = first["usable"] and second["usable"] and first["label"] != second["label"] and "hold" in (first["label"], second["label"])
+                if second["usable"] and not disagree:
+                    decision = finish(second["label"])
+                else:
+                    reasons.append("hold_disagreement" if second["usable"] else "second_tier_unusable")
+                    third = call(rp["tiers"]["adjudicator"])
+                    if third["usable"]:
+                        decision = finish(third["label"])
+                    else:
+                        reasons.append("adjudicator_unusable")
+                        usable = [a["label"] for a in attempts if a["usable"]]
+                        riskiest = max(usable, key=lambda lbl: data.RANK[lbl]) if usable else None  # a failure can never relax a hold
+                        decision = finish(riskiest, human=True)
+            decisions.append(decision)
+            log.write(json.dumps(decision, sort_keys=True) + "\n")
+
+    print(f"{'case':<9}{'path':<22}{'final':<8}{'queue':<30}{'human':<6}why")
+    for d in decisions:
+        print(f"{d['case_id']:<9}{'>'.join(t[0] for t in d['path']):<22}{str(d['final_label']):<8}{d['queue']:<30}{'yes' if d['needs_human'] else '-':<6}{','.join(d['reasons'])}")
+    result = data.score({d["case_id"]: d["final_label"] for d in decisions}, truth, policy["error_weights"])
+    total = sum(d["cost_usd"] for d in decisions)
+    lengths = Counter(len(d["path"]) for d in decisions)
+    print(f"\nstopped at fast: {lengths[1]}  reached balanced: {lengths[2] + lengths[3]}  reached premium: {lengths[3]}  needs_human: {sum(d['needs_human'] for d in decisions)}")
+    print(f"correct {result.correct}/{result.n}   hold recall {result.hold_caught}/{result.hold_total}   weighted error {result.weighted_error}   cost ${total:.4f}")
+    save_json("final_report.json", {"cases": len(decisions), "correct": result.correct, "hold_recall": result.hold_recall, "weighted_error": result.weighted_error,
+                                    "cost_usd": round(total, 6), "needs_human": sum(d["needs_human"] for d in decisions)})
+    print("audit trail: evidence/decisions.jsonl")
+
+
+def failures():
+    print("OUTPUT-CONTRACT FAILURE CASES (no model involved): why the contract needs a SEMANTIC layer\n")
+    rows = json.loads((HERE / "data" / "bad_outputs.json").read_text(encoding="utf-8"))
+    print(f"{'payload':<26}{'validator':<10}{'expected':<10}first problem")
+    mismatches = 0
+    for row in rows:
+        verdict = check_output(row["text"], row["stop_reason"])
+        same = verdict.usable == row["usable"]
+        mismatches += not same
+        print(f"{row['name']:<26}{'usable' if verdict.usable else 'REJECT':<10}{'usable' if row['usable'] else 'REJECT':<10}{(verdict.problems or ['-'])[0][:50]}{'' if same else '   <-- MISMATCH'}")
+    print(f"\nvalidator agrees with the expectations file: {'yes' if not mismatches else 'NO'}")
+    print("Note 'confidence_as_percent': it is valid against the schema (a number), but 95 is not a probability.")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", required=True, choices=["0", "1", "2", "3", "4", "5", "failures"])
+    parser.add_argument("--case", default="inv_017")
+    parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--sweep", action="store_true")
+    args = parser.parse_args()
+    print(f"models: fast={MODEL_FAST} balanced={MODEL_BALANCED} premium={MODEL_PREMIUM}\n")
+    if args.stage == "0":
+        stage0(args.limit)
+    elif args.stage == "1":
+        stage1(args.case)
+    elif args.stage == "2":
+        stage2(args.case)
+    elif args.stage == "3":
+        stage3(args.limit)
+    elif args.stage == "4":
+        stage4(args.limit, args.sweep)
+    elif args.stage == "5":
+        stage5(args.limit)
+    else:
+        failures()
+    if CALLS:
+        print_ledger()
+
+
+if __name__ == "__main__":
+    main()

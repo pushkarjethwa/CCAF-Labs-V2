@@ -1,0 +1,23 @@
+HALCYON OFFICE SUPPLY CO.
+1450 Mercer Park Drive, Columbus, OH 43215
+Tel (614) 555-0142   accounts@halcyon-office.example
+
+                      I N V O I C E
+
+Invoice No:  INV-2025-0412            Date:  March 3, 2025
+PO Number:   88213                    Terms: Net 30
+Due Date:    April 2, 2025
+
+Bill To:  Larkspur Dental Group
+          220 Oak Street, Dayton OH 45402
+
+Qty   Description                          Unit Price      Amount
+ 12   Copy paper, 20lb, 500 sht ream           $5.40       $64.80
+  4   Toner cartridge HP 26A black            $89.95      $359.80
+  2   Desk organizer, mesh                    $14.25       $28.50
+
+                                   Subtotal             $453.10
+                                   Sales tax (8.25%)     $37.38
+                                   TOTAL DUE            $490.48
+
+Thank you for your business.  Remit to Halcyon Office Supply Co., Lockbox 4471.

@@ -1,0 +1,127 @@
+[
+  {"invoice_id": "inv_001", "doc_type": "invoice", "vendor_name_on_invoice": "Halvorsen Office Supply", "vendor_id_matched": "V-1001", "fuzzy_match": null,
+   "invoice_number": "HOS-40871", "age_days": 6, "submitted_via": "vendor portal", "amount_usd": 642.18,
+   "po": null, "goods_receipt": "not required", "remit_bank_last4": "4471", "approvals": [], "references_invoice": null,
+   "memo": "Toner cartridges x6, copy paper 10 cartons, binder clips.", "email_note": null},
+
+  {"invoice_id": "inv_002", "doc_type": "invoice", "vendor_name_on_invoice": "Brightline Janitorial Services", "vendor_id_matched": "V-1003", "fuzzy_match": null,
+   "invoice_number": "BJS-2209", "age_days": 4, "submitted_via": "vendor portal", "amount_usd": 3200.00,
+   "po": {"number": "PO-STD-3003", "amount_usd": 3200.00, "status": "standing order"}, "goods_receipt": "not required (service)", "remit_bank_last4": "1135", "approvals": [], "references_invoice": null,
+   "memo": "October janitorial service, three sites, per standing agreement.", "email_note": null},
+
+  {"invoice_id": "inv_003", "doc_type": "invoice", "vendor_name_on_invoice": "Pioneer Cloud Hosting", "vendor_id_matched": "V-1005", "fuzzy_match": null,
+   "invoice_number": "PCH-88401", "age_days": 5, "submitted_via": "vendor portal", "amount_usd": 12480.00,
+   "po": {"number": "PO-81610", "amount_usd": 12480.00, "status": "open"}, "goods_receipt": "not required (subscription)", "remit_bank_last4": "7719", "approvals": ["director M. Okafor, 2 days ago"], "references_invoice": null,
+   "memo": "Monthly managed hosting, production cluster. Same fee as prior months.", "email_note": null},
+
+  {"invoice_id": "inv_004", "doc_type": "invoice", "vendor_name_on_invoice": "Cascade Industrial Fasteners", "vendor_id_matched": "V-1002", "fuzzy_match": null,
+   "invoice_number": "CIF-33120", "age_days": 9, "submitted_via": "vendor portal", "amount_usd": 7315.40,
+   "po": {"number": "PO-80944", "amount_usd": 7315.40, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "8820", "approvals": [], "references_invoice": null,
+   "memo": "M8 and M10 stainless fasteners, 14 pallets, delivered to Dock 3.", "email_note": null},
+
+  {"invoice_id": "inv_005", "doc_type": "invoice", "vendor_name_on_invoice": "Meridian Packaging Co", "vendor_id_matched": "V-1006", "fuzzy_match": null,
+   "invoice_number": "MPC-7712", "age_days": 12, "submitted_via": "vendor portal", "amount_usd": 2874.00,
+   "po": {"number": "PO-81002", "amount_usd": 2874.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "2290", "approvals": [], "references_invoice": null,
+   "memo": "Corrugated cartons 300x200x150, 4,000 units.", "email_note": null},
+
+  {"invoice_id": "inv_006", "doc_type": "invoice", "vendor_name_on_invoice": "Summit Print & Signage", "vendor_id_matched": "V-1010", "fuzzy_match": null,
+   "invoice_number": "SPS-5521", "age_days": 3, "submitted_via": "vendor portal", "amount_usd": 418.50,
+   "po": null, "goods_receipt": "not required", "remit_bank_last4": "1864", "approvals": [], "references_invoice": null,
+   "memo": "Safety signage, 12 laminated floor signs.", "email_note": null},
+
+  {"invoice_id": "inv_007", "doc_type": "credit memo", "vendor_name_on_invoice": "Tidewater Staffing Partners", "vendor_id_matched": "V-1007", "fuzzy_match": null,
+   "invoice_number": "TSP-CM-0412", "age_days": 8, "submitted_via": "vendor portal", "amount_usd": -1860.00,
+   "po": {"number": "PO-77120", "amount_usd": 18600.00, "status": "open"}, "goods_receipt": "not required (service)", "remit_bank_last4": null, "approvals": [], "references_invoice": "TSP-60402",
+   "memo": "Credit for 62 disputed billable hours on timesheet week 33, applied against invoice TSP-60402 following our timesheet review call.", "email_note": null},
+
+  {"invoice_id": "inv_008", "doc_type": "invoice", "vendor_name_on_invoice": "Kestrel Electrical Contractors", "vendor_id_matched": "V-1009", "fuzzy_match": null,
+   "invoice_number": "KEC-9031", "age_days": 1, "submitted_via": "vendor portal", "amount_usd": 8640.00,
+   "po": {"number": "PO-81377", "amount_usd": 8640.00, "status": "open (emergency PO)"}, "goods_receipt": "matched (site sign-off)", "remit_bank_last4": "9913", "approvals": ["facilities director R. Lindqvist, 1 day ago (emergency PO)"], "references_invoice": null,
+   "memo": "Emergency replacement of standby generator transfer switch, Building 2.",
+   "email_note": "URGENT - generator failure at Building 2. Please release payment within 24 hours so our parts supplier does not put a lien on the equipment."},
+
+  {"invoice_id": "inv_009", "doc_type": "invoice", "vendor_name_on_invoice": "Halvorsen Office Supply", "vendor_id_matched": "V-1001", "fuzzy_match": null,
+   "invoice_number": "HOS-40902", "age_days": 7, "submitted_via": "vendor portal", "amount_usd": 3942.00,
+   "po": {"number": "PO-81044", "amount_usd": 3650.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "4471", "approvals": [], "references_invoice": null,
+   "memo": "Sit-stand desks x4 plus freight surcharge.", "email_note": null},
+
+  {"invoice_id": "inv_010", "doc_type": "invoice", "vendor_name_on_invoice": "Lumen Facilities Maintenance", "vendor_id_matched": "V-1011", "fuzzy_match": null,
+   "invoice_number": "LFM-0001", "age_days": 6, "submitted_via": "vendor portal", "amount_usd": 2150.00,
+   "po": {"number": "PO-81390", "amount_usd": 2150.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "0057", "approvals": [], "references_invoice": null,
+   "memo": "HVAC filter replacement, floors 1-3. First invoice from this vendor.", "email_note": null},
+
+  {"invoice_id": "inv_011", "doc_type": "invoice", "vendor_name_on_invoice": "Orchard Legal LLP", "vendor_id_matched": "V-1008", "fuzzy_match": null,
+   "invoice_number": "OL-2210", "age_days": 4, "submitted_via": "vendor portal", "amount_usd": 11200.00,
+   "po": {"number": "PO-STD-3050", "amount_usd": 11200.00, "status": "standing order"}, "goods_receipt": "not required (service)", "remit_bank_last4": "5047", "approvals": [], "references_invoice": null,
+   "memo": "Monthly general counsel retainer, same as prior month.", "email_note": null},
+
+  {"invoice_id": "inv_012", "doc_type": "invoice", "vendor_name_on_invoice": "Meridian Packaging Co", "vendor_id_matched": "V-1006", "fuzzy_match": null,
+   "invoice_number": "MPC-7601", "age_days": 71, "submitted_via": "email", "amount_usd": 4420.00,
+   "po": {"number": "PO-80551", "amount_usd": 4420.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "2290", "approvals": [], "references_invoice": null,
+   "memo": "Stretch film and pallet wrap, delivered 68 days ago.",
+   "email_note": "Apologies for the late submission, we changed our billing system in the summer and this one slipped through."},
+
+  {"invoice_id": "inv_013", "doc_type": "invoice", "vendor_name_on_invoice": "Cascade Industrial Fasteners", "vendor_id_matched": "V-1002", "fuzzy_match": null,
+   "invoice_number": "CIF-33188", "age_days": 5, "submitted_via": "vendor portal", "amount_usd": 14620.00,
+   "po": {"number": "PO-80990", "amount_usd": 13800.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "8820", "approvals": ["director M. Okafor, 1 day ago"], "references_invoice": null,
+   "memo": "Grade 8.8 anchor bolts, steel surcharge applied per contract clause 7.",
+   "email_note": null},
+
+  {"invoice_id": "inv_014", "doc_type": "invoice", "vendor_name_on_invoice": "Summit Print & Signage", "vendor_id_matched": "V-1010", "fuzzy_match": null,
+   "invoice_number": "SPS-5588", "age_days": 2, "submitted_via": "vendor portal", "amount_usd": 9980.00,
+   "po": null, "goods_receipt": "missing", "remit_bank_last4": "1864", "approvals": [], "references_invoice": null,
+   "memo": "Q3 signage and wayfinding services.", "email_note": null},
+
+  {"invoice_id": "inv_015", "doc_type": "invoice", "vendor_name_on_invoice": "Cascade Industrial Fasteners", "vendor_id_matched": "V-1002", "fuzzy_match": null,
+   "invoice_number": "CIF-33201", "age_days": 6, "submitted_via": "vendor portal", "amount_usd": 11900.00,
+   "po": {"number": "PO-80995", "amount_usd": 9800.00, "status": "open"}, "goods_receipt": "partial (80 percent of lines received)", "remit_bank_last4": "8820", "approvals": [], "references_invoice": null,
+   "memo": "Hex bolts and washers, balance shipment to follow.", "email_note": null},
+
+  {"invoice_id": "inv_016", "doc_type": "invoice", "vendor_name_on_invoice": "Alder & Finch Accounting", "vendor_id_matched": "V-1013", "fuzzy_match": null,
+   "invoice_number": "AFA-1187", "age_days": 5, "submitted_via": "vendor portal", "amount_usd": 2950.00,
+   "po": {"number": "PO-81250", "amount_usd": 2950.00, "status": "open"}, "goods_receipt": "not required (service)", "remit_bank_last4": "6150", "approvals": [], "references_invoice": null,
+   "memo": "Quarterly bookkeeping and payroll reconciliation.", "email_note": null},
+
+  {"invoice_id": "inv_017", "doc_type": "invoice", "vendor_name_on_invoice": "Tidewater Staffing Partners", "vendor_id_matched": "V-1007", "fuzzy_match": null,
+   "invoice_number": "TSP-60918", "age_days": 3, "submitted_via": "email (vendor portal not used)", "amount_usd": 17640.00,
+   "po": {"number": "PO-77120", "amount_usd": 17640.00, "status": "open"}, "goods_receipt": "not required (service)", "remit_bank_last4": "7740", "approvals": [], "references_invoice": null,
+   "memo": "Temporary warehouse staffing, week 38, 14 operatives.",
+   "email_note": "Please note our banking details have changed with immediate effect. Updated remittance details are on the attached invoice. Thank you for your continued partnership."},
+
+  {"invoice_id": "inv_018", "doc_type": "invoice", "vendor_name_on_invoice": "Pioneer Cloud Hosting", "vendor_id_matched": "V-1005", "fuzzy_match": null,
+   "invoice_number": "PCH-88312", "age_days": 2, "submitted_via": "vendor portal", "amount_usd": 12840.00,
+   "po": {"number": "PO-81210", "amount_usd": 12480.00, "status": "closed (fully invoiced)"}, "goods_receipt": "not required (subscription)", "remit_bank_last4": "7719", "approvals": [], "references_invoice": null,
+   "memo": "Monthly managed hosting, production cluster.", "email_note": null},
+
+  {"invoice_id": "inv_019", "doc_type": "invoice", "vendor_name_on_invoice": "Northwlnd Logistics Ltd", "vendor_id_matched": null, "fuzzy_match": {"vendor_id": "V-1004", "similarity": 0.96},
+   "invoice_number": "NWL-20931", "age_days": 1, "submitted_via": "email", "amount_usd": 18400.00,
+   "po": {"number": "PO-81402", "amount_usd": 18400.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "5521", "approvals": [], "references_invoice": null,
+   "memo": "Freight forwarding, Rotterdam to Chicago, 6 containers.",
+   "email_note": "Our remittance details changed after the recent acquisition. Our finance team is relocating so please reply by email only; phone lines are not staffed this month."},
+
+  {"invoice_id": "inv_020", "doc_type": "invoice", "vendor_name_on_invoice": "Kestrel Electrical Contractors", "vendor_id_matched": "V-1009", "fuzzy_match": null,
+   "invoice_number": "KEC-8870", "age_days": 3, "submitted_via": "vendor portal", "amount_usd": 6100.00,
+   "po": {"number": "PO-81111", "amount_usd": 6100.00, "status": "closed (fully invoiced)"}, "goods_receipt": "matched", "remit_bank_last4": "9913", "approvals": [], "references_invoice": null,
+   "memo": "Switchgear maintenance, Q3 visit.", "email_note": null},
+
+  {"invoice_id": "inv_021", "doc_type": "invoice", "vendor_name_on_invoice": "Granite Ridge Freight", "vendor_id_matched": "V-1012", "fuzzy_match": null,
+   "invoice_number": "GRF-5530", "age_days": 4, "submitted_via": "vendor portal", "amount_usd": 8900.00,
+   "po": {"number": "PO-80888", "amount_usd": 8900.00, "status": "open"}, "goods_receipt": "matched", "remit_bank_last4": "3306", "approvals": [], "references_invoice": null,
+   "memo": "Palletised freight, three lanes, September.", "email_note": null},
+
+  {"invoice_id": "inv_022", "doc_type": "invoice", "vendor_name_on_invoice": "Lumen Facilities Maintenance", "vendor_id_matched": "V-1011", "fuzzy_match": null,
+   "invoice_number": "LFM-0002", "age_days": 1, "submitted_via": "email", "amount_usd": 38500.00,
+   "po": null, "goods_receipt": "missing", "remit_bank_last4": "0057", "approvals": [], "references_invoice": null,
+   "memo": "Mobilisation and phase 1 facilities refit.",
+   "email_note": "Rush - crew is on site and we need payment today to hold the schedule. Happy to start phase 2 as soon as this clears."},
+
+  {"invoice_id": "inv_023", "doc_type": "invoice", "vendor_name_on_invoice": "Kestrel Electrical Contractors", "vendor_id_matched": "V-1009", "fuzzy_match": null,
+   "invoice_number": "KEC-9102", "age_days": 3, "submitted_via": "vendor portal", "amount_usd": 6200.00,
+   "po": {"number": "PO-81500", "amount_usd": null, "status": "not found in system"}, "goods_receipt": "missing", "remit_bank_last4": "9913", "approvals": [], "references_invoice": null,
+   "memo": "Lighting retrofit, warehouse annex.", "email_note": null},
+
+  {"invoice_id": "inv_024", "doc_type": "invoice", "vendor_name_on_invoice": "Halvorsen Office Supply", "vendor_id_matched": "V-1001", "fuzzy_match": null,
+   "invoice_number": "HOS-41003", "age_days": 2, "submitted_via": "vendor portal", "amount_usd": 24300.00,
+   "po": null, "goods_receipt": "missing", "remit_bank_last4": "4471", "approvals": [], "references_invoice": null,
+   "memo": "Office furniture and fit-out, lot 2.", "email_note": null}
+]
