@@ -1,0 +1,34 @@
+{
+  "_note": "Mock airline/hotel/CRM world for Lab 2.2. Everything here is invented test data.",
+  "flight": {
+    "flight_no": "XA482", "route": "LHR-JFK", "scheduled_departure": "2026-10-03T18:20",
+    "status": "CANCELLED", "reason": "crew duty-time limit", "affected_pnrs": ["K7QD2L", "M3ZP9T", "R8WB4C"]
+  },
+  "travelers": {
+    "T-1001": {"name": "Mira Okafor", "pnr": "K7QD2L", "tier": "Gold", "phone": "+44-7700-900101"},
+    "T-1002": {"name": "Leo Brandt", "pnr": "M3ZP9T", "tier": "Silver", "phone": "+44-7700-900102"},
+    "T-1003": {"name": "Aiko Tanaka", "pnr": "R8WB4C", "tier": "Basic", "phone": "+44-7700-900103"}
+  },
+  "tier_perks": {
+    "Gold": {"fee_waived": true, "hotel_rate_cap_gbp": 180, "lounge": true, "priority_rebooking": true},
+    "Silver": {"fee_waived": true, "hotel_rate_cap_gbp": 140, "lounge": false, "priority_rebooking": false},
+    "Basic": {"fee_waived": false, "hotel_rate_cap_gbp": 110, "lounge": false, "priority_rebooking": false}
+  },
+  "rebooking_options": [
+    {"option_id": "OPT-A", "flight_no": "XA104", "departs": "2026-10-04T07:10", "arrives": "2026-10-04T10:05", "seats_left": 0, "change_fee_gbp": 0},
+    {"option_id": "OPT-B", "flight_no": "XA106", "departs": "2026-10-04T09:40", "arrives": "2026-10-04T12:35", "seats_left": 3, "change_fee_gbp": 0},
+    {"option_id": "OPT-C", "flight_no": "XA110", "departs": "2026-10-04T13:25", "arrives": "2026-10-04T16:20", "seats_left": 9, "change_fee_gbp": 60},
+    {"option_id": "OPT-D", "flight_no": "XA482", "departs": "2026-10-05T18:20", "arrives": "2026-10-05T21:15", "seats_left": 24, "change_fee_gbp": 0}
+  ],
+  "hotels": [
+    {"hotel_id": "HTL-PARKSIDE", "name": "Parkside Airport Inn", "rate_gbp": 128, "rooms_left": 4, "shuttle": true},
+    {"hotel_id": "HTL-RUNWAY", "name": "Runway Suites", "rate_gbp": 96, "rooms_left": 0, "shuttle": true},
+    {"hotel_id": "HTL-GRAND", "name": "Grand Terminal Hotel", "rate_gbp": 171, "rooms_left": 7, "shuttle": true},
+    {"hotel_id": "HTL-CITYLOFT", "name": "City Loft (off-airport)", "rate_gbp": 89, "rooms_left": 11, "shuttle": false}
+  ],
+  "latency_s": {
+    "flight_status": 0.12, "rebooking_options": 0.18, "hotel_availability": 0.15, "loyalty_tier": 0.10,
+    "rebook_flight": 0.15, "book_hotel": 0.12, "notify_traveler": 0.08
+  },
+  "faults": {"lose_ack_once": ["rebook_flight"]}
+}

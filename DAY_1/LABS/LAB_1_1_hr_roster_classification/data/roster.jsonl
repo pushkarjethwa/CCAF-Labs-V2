@@ -1,0 +1,40 @@
+{"id": "R001", "title": "Sr. Software Engnr", "department": "Eng - Platform", "note": "FTE 1.0", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L4", "employment_type": "FULL_TIME"}}
+{"id": "R002", "title": "jr. accountant", "department": "Fin/AP", "note": "", "hard": false, "truth": {"job_family": "FINANCE", "level": "L2", "employment_type": "FULL_TIME"}}
+{"id": "R003", "title": "Customer Support Agent", "department": "CX", "note": "0.5 FTE, shift B", "hard": false, "truth": {"job_family": "SUPPORT", "level": "L3", "employment_type": "PART_TIME"}}
+{"id": "R004", "title": "Summer Intern - Marketing", "department": "Mktg", "note": "ends Aug 30", "hard": false, "truth": {"job_family": "SALES_MARKETING", "level": "L1", "employment_type": "INTERN"}}
+{"id": "R005", "title": "Director of People Ops (interim)", "department": "HR", "note": "interim while search underway; substantive title: Sr. HR Business Partner", "hard": true, "truth": {"job_family": "PEOPLE_OPS", "level": "L4", "employment_type": "FULL_TIME"}}
+{"id": "R006", "title": "Account Exec", "department": "Sales-EMEA", "note": "FTE", "hard": false, "truth": {"job_family": "SALES_MARKETING", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R007", "title": "Sr. (acting) Engineering Manager", "department": "Eng", "note": "substantive role: Sr. SWE since 2021; covering EM on leave", "hard": true, "truth": {"job_family": "ENGINEERING", "level": "L4", "employment_type": "FULL_TIME"}}
+{"id": "R008", "title": "DevOps Engineer", "department": "IT Infra", "note": "contract-to-hire, 6 mo, conversion review in Jan", "hard": true, "truth": {"job_family": "ENGINEERING", "level": "L3", "employment_type": "CONTRACT_TO_HIRE"}}
+{"id": "R009", "title": "Legal Assistant", "department": "Legal", "note": "20 hrs/wk (0.5 FTE)", "hard": false, "truth": {"job_family": "LEGAL_COMPLIANCE", "level": "L1", "employment_type": "PART_TIME"}}
+{"id": "R010", "title": "Warehouse Associate", "department": "Ops-DC3", "note": "seasonal, agency (Adecco)", "hard": false, "truth": {"job_family": "OPERATIONS", "level": "L2", "employment_type": "CONTRACT"}}
+{"id": "R011", "title": "VP, Finance", "department": "Finance", "note": "FTE", "hard": false, "truth": {"job_family": "FINANCE", "level": "L6", "employment_type": "FULL_TIME"}}
+{"id": "R012", "title": "payroll specialist II", "department": "fin", "note": "", "hard": false, "truth": {"job_family": "FINANCE", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R013", "title": "HR Coordinator", "department": "People", "note": "c2h - converted to FTE 2024-03-01", "hard": true, "truth": {"job_family": "PEOPLE_OPS", "level": "L2", "employment_type": "FULL_TIME"}}
+{"id": "R014", "title": "Principal Data Scientist", "department": "Data & ML", "note": "1.0 FTE", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R015", "title": "Support Agent III", "department": "CX Tier2", "note": "", "hard": false, "truth": {"job_family": "SUPPORT", "level": "L4", "employment_type": "FULL_TIME"}}
+{"id": "R016", "title": "Sales Dev Rep (SDR)", "department": "Sales", "note": "temp-to-perm via Robert Half, perm offer pending", "hard": true, "truth": {"job_family": "SALES_MARKETING", "level": "L3", "employment_type": "CONTRACT_TO_HIRE"}}
+{"id": "R017", "title": "Compliance Analyst", "department": "Risk & Compliance", "note": "0.8 FTE (4 days/wk)", "hard": true, "truth": {"job_family": "LEGAL_COMPLIANCE", "level": "L3", "employment_type": "PART_TIME"}}
+{"id": "R018", "title": "Acting Head of Operations", "department": "Ops", "note": "acting since Feb; substantive title: Operations Manager", "hard": true, "truth": {"job_family": "OPERATIONS", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R019", "title": "Senior Counsel", "department": "Legal", "note": "FTE", "hard": false, "truth": {"job_family": "LEGAL_COMPLIANCE", "level": "L4", "employment_type": "FULL_TIME"}}
+{"id": "R020", "title": "Facilities Clerk", "department": "Ops", "note": "part-time, 15h", "hard": false, "truth": {"job_family": "OPERATIONS", "level": "L1", "employment_type": "PART_TIME"}}
+{"id": "R021", "title": "Backend Dev (contractor)", "department": "Eng", "note": "via Toptal, 12-mo SOW", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L3", "employment_type": "CONTRACT"}}
+{"id": "R022", "title": "Sr. Mgr, Customer Success", "department": "CX", "note": "FTE", "hard": false, "truth": {"job_family": "SUPPORT", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R023", "title": "Recruiting Coordinator", "department": "TA", "note": "1.0 FTE", "hard": false, "truth": {"job_family": "PEOPLE_OPS", "level": "L2", "employment_type": "FULL_TIME"}}
+{"id": "R024", "title": "Associate Product Marketer", "department": "Marketing", "note": "FTE", "hard": false, "truth": {"job_family": "SALES_MARKETING", "level": "L2", "employment_type": "FULL_TIME"}}
+{"id": "R025", "title": "Senior Director, Engineering", "department": "Eng", "note": "FTE", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L6", "employment_type": "FULL_TIME"}}
+{"id": "R026", "title": "QA Engineer II", "department": "Eng-QA", "note": "FTE", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R027", "title": "Fin Analyst intern", "department": "Finance", "note": "co-op, 20h/wk", "hard": false, "truth": {"job_family": "FINANCE", "level": "L1", "employment_type": "INTERN"}}
+{"id": "R028", "title": "Support Team Lead", "department": "CX", "note": "1.0", "hard": false, "truth": {"job_family": "SUPPORT", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R029", "title": "Logistics Planner", "department": "Ops", "note": "FTE", "hard": false, "truth": {"job_family": "OPERATIONS", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R030", "title": "HR Business Partner", "department": "People", "note": "consultant, 1099, 3 mo", "hard": false, "truth": {"job_family": "PEOPLE_OPS", "level": "L3", "employment_type": "CONTRACT"}}
+{"id": "R031", "title": "Lead Sales Engineer", "department": "Sales", "note": "FTE", "hard": false, "truth": {"job_family": "SALES_MARKETING", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R032", "title": "Staff Software Engineer", "department": "Eng", "note": "FTE", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R033", "title": "Accounts Payable Clerk", "department": "Fin", "note": "0.6 FTE", "hard": false, "truth": {"job_family": "FINANCE", "level": "L1", "employment_type": "PART_TIME"}}
+{"id": "R034", "title": "Chief Financial Officer", "department": "Exec", "note": "FTE", "hard": false, "truth": {"job_family": "FINANCE", "level": "L6", "employment_type": "FULL_TIME"}}
+{"id": "R035", "title": "Support Agent I", "department": "CX", "note": "probationary 3 mo; FTE", "hard": false, "truth": {"job_family": "SUPPORT", "level": "L2", "employment_type": "FULL_TIME"}}
+{"id": "R036", "title": "interim Sr. Recruiter", "department": "People", "note": "interim title while covering Recruiting Manager; substantive title: Recruiter II", "hard": true, "truth": {"job_family": "PEOPLE_OPS", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R037", "title": "Data Entry Clerk (temp)", "department": "Ops", "note": "2-week agency temp", "hard": false, "truth": {"job_family": "OPERATIONS", "level": "L1", "employment_type": "CONTRACT"}}
+{"id": "R038", "title": "Territory Sales Rep", "department": "Sales NA", "note": "FTE", "hard": false, "truth": {"job_family": "SALES_MARKETING", "level": "L3", "employment_type": "FULL_TIME"}}
+{"id": "R039", "title": "Contracts Manager", "department": "Legal", "note": "FTE", "hard": false, "truth": {"job_family": "LEGAL_COMPLIANCE", "level": "L5", "employment_type": "FULL_TIME"}}
+{"id": "R040", "title": "Jr. Systems Admin", "department": "IT", "note": "FTE", "hard": false, "truth": {"job_family": "ENGINEERING", "level": "L2", "employment_type": "FULL_TIME"}}

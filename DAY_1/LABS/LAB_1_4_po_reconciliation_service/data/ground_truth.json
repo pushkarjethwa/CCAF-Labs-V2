@@ -1,0 +1,325 @@
+{
+  "INV-0101": {
+    "invoice_id": "INV-0101",
+    "decision": "hold",
+    "matched_po": "PO-71000",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  },
+  "INV-0102": {
+    "invoice_id": "INV-0102",
+    "decision": "hold",
+    "matched_po": "PO-71001",
+    "rule_codes": [
+      "R-PRICE-01",
+      "R-QTY-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01, R-QTY-01."
+  },
+  "INV-0103": {
+    "invoice_id": "INV-0103",
+    "decision": "approve",
+    "matched_po": "PO-71002",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0104": {
+    "invoice_id": "INV-0104",
+    "decision": "hold",
+    "matched_po": "PO-71003",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  },
+  "INV-0105": {
+    "invoice_id": "INV-0105",
+    "decision": "approve",
+    "matched_po": "PO-71004",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0106": {
+    "invoice_id": "INV-0106",
+    "decision": "approve",
+    "matched_po": "PO-71005",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0107": {
+    "invoice_id": "INV-0107",
+    "decision": "reject",
+    "matched_po": "PO-71006",
+    "rule_codes": [
+      "R-VEND-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-VEND-01."
+  },
+  "INV-0108": {
+    "invoice_id": "INV-0108",
+    "decision": "approve",
+    "matched_po": "PO-71007",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0109": {
+    "invoice_id": "INV-0109",
+    "decision": "hold",
+    "matched_po": null,
+    "rule_codes": [
+      "R-NOPO-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-NOPO-01."
+  },
+  "INV-0110": {
+    "invoice_id": "INV-0110",
+    "decision": "approve",
+    "matched_po": "PO-71009",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0111": {
+    "invoice_id": "INV-0111",
+    "decision": "approve",
+    "matched_po": "PO-71010",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0112": {
+    "invoice_id": "INV-0112",
+    "decision": "hold",
+    "matched_po": "PO-71011",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  },
+  "INV-0113": {
+    "invoice_id": "INV-0113",
+    "decision": "hold",
+    "matched_po": "PO-71012",
+    "rule_codes": [
+      "R-FRT-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-FRT-01."
+  },
+  "INV-0114": {
+    "invoice_id": "INV-0114",
+    "decision": "approve",
+    "matched_po": "PO-71013",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0115": {
+    "invoice_id": "INV-0115",
+    "decision": "hold",
+    "matched_po": "PO-71014",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  },
+  "INV-0116": {
+    "invoice_id": "INV-0116",
+    "decision": "hold",
+    "matched_po": null,
+    "rule_codes": [
+      "R-NOPO-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-NOPO-01."
+  },
+  "INV-0117": {
+    "invoice_id": "INV-0117",
+    "decision": "reject",
+    "matched_po": "PO-71016",
+    "rule_codes": [
+      "R-DUP-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-DUP-01."
+  },
+  "INV-0118": {
+    "invoice_id": "INV-0118",
+    "decision": "approve",
+    "matched_po": "PO-71017",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0119": {
+    "invoice_id": "INV-0119",
+    "decision": "reject",
+    "matched_po": "PO-71018",
+    "rule_codes": [
+      "R-DUP-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-DUP-01."
+  },
+  "INV-0120": {
+    "invoice_id": "INV-0120",
+    "decision": "hold",
+    "matched_po": "PO-71019",
+    "rule_codes": [
+      "R-FRT-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-FRT-01."
+  },
+  "INV-0121": {
+    "invoice_id": "INV-0121",
+    "decision": "approve",
+    "matched_po": "PO-71020",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0122": {
+    "invoice_id": "INV-0122",
+    "decision": "approve",
+    "matched_po": "PO-71021",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0123": {
+    "invoice_id": "INV-0123",
+    "decision": "approve",
+    "matched_po": "PO-71022",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0124": {
+    "invoice_id": "INV-0124",
+    "decision": "approve",
+    "matched_po": "PO-71023",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0125": {
+    "invoice_id": "INV-0125",
+    "decision": "hold",
+    "matched_po": "PO-71024",
+    "rule_codes": [
+      "R-QTY-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-QTY-01."
+  },
+  "INV-0126": {
+    "invoice_id": "INV-0126",
+    "decision": "approve",
+    "matched_po": "PO-71025",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0127": {
+    "invoice_id": "INV-0127",
+    "decision": "hold",
+    "matched_po": "PO-71026",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  },
+  "INV-0128": {
+    "invoice_id": "INV-0128",
+    "decision": "hold",
+    "matched_po": "PO-71027",
+    "rule_codes": [
+      "R-QTY-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-QTY-01."
+  },
+  "INV-0129": {
+    "invoice_id": "INV-0129",
+    "decision": "approve",
+    "matched_po": "PO-71028",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0130": {
+    "invoice_id": "INV-0130",
+    "decision": "reject",
+    "matched_po": "PO-71029",
+    "rule_codes": [
+      "R-VEND-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-VEND-01."
+  },
+  "INV-0131": {
+    "invoice_id": "INV-0131",
+    "decision": "hold",
+    "matched_po": "PO-71030",
+    "rule_codes": [
+      "R-QTY-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-QTY-01."
+  },
+  "INV-0132": {
+    "invoice_id": "INV-0132",
+    "decision": "hold",
+    "matched_po": "PO-71031",
+    "rule_codes": [
+      "R-QTY-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-QTY-01."
+  },
+  "INV-0133": {
+    "invoice_id": "INV-0133",
+    "decision": "approve",
+    "matched_po": "PO-71032",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0134": {
+    "invoice_id": "INV-0134",
+    "decision": "hold",
+    "matched_po": "PO-71033",
+    "rule_codes": [
+      "R-FRT-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-FRT-01."
+  },
+  "INV-0135": {
+    "invoice_id": "INV-0135",
+    "decision": "approve",
+    "matched_po": "PO-71034",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0136": {
+    "invoice_id": "INV-0136",
+    "decision": "reject",
+    "matched_po": "PO-71035",
+    "rule_codes": [
+      "R-DUP-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-DUP-01."
+  },
+  "INV-0137": {
+    "invoice_id": "INV-0137",
+    "decision": "approve",
+    "matched_po": "PO-71036",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0138": {
+    "invoice_id": "INV-0138",
+    "decision": "approve",
+    "matched_po": "PO-71037",
+    "rule_codes": [],
+    "rationale": "Variance and freight are close to but inside the stated limits; approve."
+  },
+  "INV-0139": {
+    "invoice_id": "INV-0139",
+    "decision": "approve",
+    "matched_po": "PO-71038",
+    "rule_codes": [],
+    "rationale": "Matches PO within tolerance, quantities received, freight within cap."
+  },
+  "INV-0140": {
+    "invoice_id": "INV-0140",
+    "decision": "hold",
+    "matched_po": "PO-71039",
+    "rule_codes": [
+      "R-PRICE-01"
+    ],
+    "rationale": "Policy rule(s) fired: R-PRICE-01."
+  }
+}

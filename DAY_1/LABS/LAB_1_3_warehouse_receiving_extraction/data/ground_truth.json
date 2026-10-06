@@ -1,0 +1,428 @@
+{
+  "GR-001": {
+    "po_number": "PO-48201",
+    "carrier": "FedEx Freight",
+    "received_date": "2026-08-25",
+    "lines": [
+      {
+        "sku": "FST-BOLT-M8",
+        "qty_received": 2400,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "FST-NUT-M8",
+        "qty_received": 2400,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "FST-WSH-M8",
+        "qty_received": 5000,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-002": {
+    "po_number": "PO-48202",
+    "carrier": "UPS Freight",
+    "received_date": "2026-08-26",
+    "lines": [
+      {
+        "sku": "PKG-CTN-L",
+        "qty_received": 12,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "PKG-TAPE-48",
+        "qty_received": 144,
+        "uom": "ROLL",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-003": {
+    "po_number": "PO-48203",
+    "carrier": "XPO",
+    "received_date": "2026-08-30",
+    "lines": [
+      {
+        "sku": "LUB-OIL-5L",
+        "qty_received": 20,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "LUB-GRS-400",
+        "qty_received": 8,
+        "uom": "CASE",
+        "condition": "short",
+        "discrepancy_note": "8 cases (192 ea) counted against 240 ordered; BOL claimed 10 cases"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-004": {
+    "po_number": "PO-48204",
+    "carrier": "Old Dominion",
+    "received_date": "2026-09-01",
+    "lines": [
+      {
+        "sku": "ELC-CBL-3M",
+        "qty_received": 20,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "ELC-SW-16A",
+        "qty_received": 12,
+        "uom": "BOX",
+        "condition": "damaged",
+        "discrepancy_note": "two boxes crushed, cracked switch housing; photos in claim folder"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-005": {
+    "po_number": null,
+    "carrier": "DHL Freight",
+    "received_date": "2026-09-03",
+    "lines": [
+      {
+        "sku": "SAF-GLV-L",
+        "qty_received": 1200,
+        "uom": "PAIR",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "SAF-HAT-Y",
+        "qty_received": 150,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-006": {
+    "po_number": "PO-48205",
+    "carrier": "Estes",
+    "received_date": "2026-09-02",
+    "lines": [
+      {
+        "sku": "SAF-GLV-L",
+        "qty_received": 10,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "SAF-HAT-Y",
+        "qty_received": 150,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-007": {
+    "po_number": "PO-48206",
+    "carrier": "Orchard Direct",
+    "received_date": "2026-08-31",
+    "lines": [
+      {
+        "sku": "PLT-STD-48",
+        "qty_received": 30,
+        "uom": "BUNDLE",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-008": {
+    "po_number": "PO-48207",
+    "carrier": "FedEx Freight",
+    "received_date": "2026-09-05",
+    "lines": [
+      {
+        "sku": "FST-BOLT-M10",
+        "qty_received": 1800,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "FST-ANCH-12",
+        "qty_received": 400,
+        "uom": "EACH",
+        "condition": "over",
+        "discrepancy_note": "400 received vs 360 ordered (+40); extra held in overflow cage pending keep/return decision"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-009": {
+    "po_number": "PO-48208",
+    "carrier": "UPS Freight",
+    "received_date": "2026-09-08",
+    "lines": [
+      {
+        "sku": "LUB-OIL-20L",
+        "qty_received": 24,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "LUB-FLT-HX",
+        "qty_received": 8,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-010": {
+    "po_number": "PO-48209",
+    "carrier": "XPO",
+    "received_date": "2026-09-09",
+    "lines": [
+      {
+        "sku": "PKG-FILM-18",
+        "qty_received": 10,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "PKG-LBL-4X6",
+        "qty_received": 18,
+        "uom": "ROLL",
+        "condition": "short",
+        "discrepancy_note": "18 rolls (18,000 labels) vs 20,000 ordered; balance to ship next week"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-011": {
+    "po_number": "PO-48210",
+    "carrier": "Old Dominion",
+    "received_date": "2026-09-11",
+    "lines": [
+      {
+        "sku": "ELC-FUSE-10A",
+        "qty_received": 20,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "ELC-CBL-3M",
+        "qty_received": 10,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-012": {
+    "po_number": "PO-48207",
+    "carrier": "FedEx Freight",
+    "received_date": "2026-09-06",
+    "lines": [
+      {
+        "sku": "FST-BOLT-M10",
+        "qty_received": 1800,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "FST-ANCH-12",
+        "qty_received": 500,
+        "uom": "EACH",
+        "condition": "over",
+        "discrepancy_note": "500 received vs 360 ordered (+140)"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-013": {
+    "po_number": "PO-48202",
+    "carrier": "Estes",
+    "received_date": "2026-08-27",
+    "lines": [
+      {
+        "sku": "PKG-CTN-L",
+        "qty_received": 600,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "PKG-TAPE-48",
+        "qty_received": 4,
+        "uom": "CASE",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-014": {
+    "po_number": "PO-48205",
+    "carrier": "DHL Freight",
+    "received_date": "2026-09-04",
+    "lines": [
+      {
+        "sku": "SAF-GLV-L",
+        "qty_received": 5,
+        "uom": "CASE",
+        "condition": "short",
+        "discrepancy_note": "5 cases (600 pairs) vs 1,200 ordered; second pallet reportedly in transit"
+      },
+      {
+        "sku": "SAF-HAT-Y",
+        "qty_received": 150,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-015": {
+    "po_number": "PO-48207",
+    "carrier": "FedEx Freight",
+    "received_date": "2026-09-07",
+    "lines": [
+      {
+        "sku": "FST-ANCH-12",
+        "qty_received": 18,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "FST-BOLT-M10",
+        "qty_received": 36,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-016": {
+    "po_number": "PO-48203",
+    "carrier": "Old Dominion",
+    "received_date": "2026-09-10",
+    "lines": [
+      {
+        "sku": "LUB-GRS-400",
+        "qty_received": 240,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "LUB-OIL-5L",
+        "qty_received": 80,
+        "uom": "EACH",
+        "condition": "damaged",
+        "discrepancy_note": "one case (4 cans) leaking; pallet contaminated; claim needed"
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-017": {
+    "po_number": "PO-48204",
+    "carrier": "UPS Freight",
+    "received_date": "2026-09-11",
+    "lines": [
+      {
+        "sku": "ELC-CBL-3M",
+        "qty_received": 20,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-018": {
+    "po_number": null,
+    "carrier": "Hartwell fleet",
+    "received_date": "2026-09-09",
+    "lines": [
+      {
+        "sku": "PLT-STD-48",
+        "qty_received": 120,
+        "uom": "EACH",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": true
+  },
+  "GR-019": {
+    "po_number": "PO-48209",
+    "carrier": "UPS",
+    "received_date": "2026-09-10",
+    "lines": [
+      {
+        "sku": "PKG-FILM-18",
+        "qty_received": 60,
+        "uom": "ROLL",
+        "condition": "ok",
+        "discrepancy_note": null
+      },
+      {
+        "sku": "PKG-LBL-4X6",
+        "qty_received": 20,
+        "uom": "ROLL",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": false
+  },
+  "GR-020": {
+    "po_number": "PO-48210",
+    "carrier": "XPO",
+    "received_date": "2026-09-12",
+    "lines": [
+      {
+        "sku": "ELC-FUSE-10A",
+        "qty_received": 18,
+        "uom": "BOX",
+        "condition": "short",
+        "discrepancy_note": "18 boxes (1,800 ea) vs 2,000 ordered; reason not given by supplier"
+      },
+      {
+        "sku": "ELC-CBL-3M",
+        "qty_received": 10,
+        "uom": "BOX",
+        "condition": "ok",
+        "discrepancy_note": null
+      }
+    ],
+    "needs_followup": true
+  }
+}
