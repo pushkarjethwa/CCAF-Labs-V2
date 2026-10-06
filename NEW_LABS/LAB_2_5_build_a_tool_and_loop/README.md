@@ -20,3 +20,6 @@ python lab.py       # real Claude; 4 questions: needs one tool, the other, both,
 python check.py
 ```
 Read `claude_client.py` once (about 70 lines) to see where the key and the `messages.create` call live.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

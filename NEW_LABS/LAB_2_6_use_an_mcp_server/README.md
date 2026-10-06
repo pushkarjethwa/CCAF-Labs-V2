@@ -20,3 +20,6 @@ python check.py
 
 ## Notes
 `lab.py` starts the server itself as a child process over stdio. Written for MCP Python SDK 2.3.0 (`from mcp.server.mcpserver import MCPServer`). If an attribute name differs on your version, `pip show mcp` and check TODO 1 and 2 comments.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

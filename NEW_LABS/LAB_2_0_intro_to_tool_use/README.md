@@ -39,3 +39,6 @@ Before step 1: can Claude answer this? (No.) Before step 2C: did Claude run the 
 
 ## Next
 Lab 2.1: what happens when tool names and descriptions are bad. Lab 2.5: write a tool and the loop yourself.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

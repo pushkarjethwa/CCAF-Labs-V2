@@ -32,3 +32,6 @@ python check.py     # now also checks the evidence
 
 ## Expect
 Modern models handle many ambiguous tools better than older ones, so the legacy score may already be high. Read the confusion list and the lint output, and report the real numbers honestly. Pass bar: balanced >= 85%, fast >= 75%, no regression, no scope miss.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

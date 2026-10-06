@@ -19,3 +19,6 @@ python check.py
 
 ## What to look at
 The input-token list for run 1 climbs every call. Run 2 flattens once the budget is passed. The final question asks about reports 2 and 9: Claude can only answer because line 1 of each report (the FINDING) was kept. Decide what to keep BEFORE you compact.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

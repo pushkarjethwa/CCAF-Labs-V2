@@ -52,3 +52,6 @@ python check.py
 - The gate's thresholds (1 point overall, 5 points per field, 1 document, 0 leaks) are in `vault.py`. Real models may pass or fail the three candidates differently from the designed verdicts.
 - `check.py` verifies the lab ran sensibly. It does not grade model quality.
 - This version has not yet been run against the live API; tell your trainer if a stage fails.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

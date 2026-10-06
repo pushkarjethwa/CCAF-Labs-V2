@@ -20,3 +20,6 @@ python check.py
 `cache_write` on the first call (you pay 1.25x once), `cache_read` on the rest (0.1x). If `cache_read` stays 0, the prefix is not identical from character 1, or it is below the minimum size (512 tokens on Sonnet, 4096 on Haiku).
 
 Caches live for about 5 minutes and are refreshed on each hit. `lab.py` adds a unique first line per run, so one run never hits the cache of an earlier run.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

@@ -47,3 +47,6 @@ python check.py
 - Model names and some API rules change. If a call fails with "model not found", set `CLAUDE_MODEL_FAST` (or `_BALANCED`, `_PREMIUM`). The error demos in stage 2 show what YOUR models accept today.
 - `check.py` verifies the demo ran sensibly. It does not grade model quality.
 - This version has not yet been run against the live API; tell your trainer if a stage fails.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

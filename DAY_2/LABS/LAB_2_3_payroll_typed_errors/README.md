@@ -21,3 +21,6 @@ Scenarios: S1 happy path, S2 closed period, S3 wrong employee id, S4 amount over
 
 ## Notes
 Claude may behave sensibly in S2-S4 even with poor errors. The difference shows in DB attempt counts, wait time and escalations, which `lab.py` prints. Part A is what proves your policy holds when a model misbehaves.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

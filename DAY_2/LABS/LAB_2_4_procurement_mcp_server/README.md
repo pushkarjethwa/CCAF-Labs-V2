@@ -34,3 +34,6 @@ Written for MCP Python SDK 2.3.0 (`from mcp.server.mcpserver import MCPServer`, 
 
 ## Optional
 Connect the finished server to Claude Code over HTTP (`claude mcp add --transport http procurement http://127.0.0.1:8765/mcp --header "Authorization: Bearer <approver key>"`) and ask it to approve PO-2001, then PO-2005.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

@@ -1,0 +1,85 @@
+{
+  "type": "object",
+  "properties": {
+    "severity": {
+      "type": "string",
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "OUTAGE",
+        "PERFORMANCE",
+        "ACCESS",
+        "SECURITY",
+        "DATA",
+        "HARDWARE",
+        "OTHER"
+      ]
+    },
+    "affected_systems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "impact": {
+      "type": "object",
+      "properties": {
+        "users_affected": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "business_unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "users_affected",
+        "business_unit"
+      ],
+      "additionalProperties": false
+    },
+    "reported_at": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "needs_followup": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "severity",
+    "category",
+    "affected_systems",
+    "impact",
+    "reported_at",
+    "needs_followup"
+  ],
+  "additionalProperties": false
+}

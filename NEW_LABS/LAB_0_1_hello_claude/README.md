@@ -34,3 +34,6 @@ python check.py
 
 ## Files
 `lab.py` (you edit), `claude_client.py` (read it), `check.py`, `BREAK_IT.md`, `CHALLENGE.md`, `requirements.txt`.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

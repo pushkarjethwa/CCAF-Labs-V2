@@ -52,3 +52,6 @@ The starter prompt and schema are naive. You evolve them version by version (v0 
 
 ## Clean up
 Delete `evidence/` to reset. Never commit `.env`.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

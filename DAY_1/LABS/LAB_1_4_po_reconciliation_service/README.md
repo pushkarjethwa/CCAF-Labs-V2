@@ -48,3 +48,6 @@ A prototype exists and "works", but it re-sends the whole ~6,000-token policy at
 
 ## Clean up
 Delete `evidence/` to reset. Never commit `.env`.
+
+## Stuck?
+Try the lab first. If you need a hint or want to compare, open `SOLUTION/SOLUTION_GUIDE.md` (solutions, expected results, answers to BREAK_IT).

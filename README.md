@@ -98,6 +98,10 @@ cd NEW_LABS\LAB_0_1_hello_claude
 python claude_client.py             # should print a short greeting and a [usage] line
 ```
 
+## Solutions
+
+Every lab folder has a `SOLUTION/` folder with a `SOLUTION_GUIDE.md` (what the lab teaches, the solution for each TODO with the TODO text, what a passing `check.py` looks like, common mistakes, answers to BREAK_IT) and the complete reference solution file. For the run-it-yourself labs (1A, 1B and 2.0) the guide is an answer key for the PREDICT prompts and the expected shape of the output. Try the lab first. To test a reference solution, copy it over `lab.py` (or `toolset.py`, `security.py` and `server.py` for Labs 2.1 and 2.4) in a scratch copy of the lab folder. Trainers who do not want students to see solutions up front can delete the `SOLUTION/` folders before sharing.
+
 ## Cost and safety
 
 Your class key is capped at about USD 50 for the whole course, and each lab README states its cost (most are a few cents, Lab 2.1 under $1). Never put the key in code, chat, screenshots or a git repo. If it leaks, tell the trainer at once.
