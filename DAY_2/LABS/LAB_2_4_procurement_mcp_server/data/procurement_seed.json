@@ -1,0 +1,25 @@
+{
+  "spend_limits_cents": {"analyst": 0, "approver": 2500000, "director": 25000000},
+  "suppliers": [
+    {"id": "S-100", "name": "Northwind Industrial Supply", "category": "maintenance", "status": "active", "country": "US", "rating": 4.6, "bank_account": "DE89370400440532013000"},
+    {"id": "S-101", "name": "Kestrel Logistics GmbH", "category": "logistics", "status": "active", "country": "DE", "rating": 4.2, "bank_account": "GB29NWBK60161331926819"},
+    {"id": "S-102", "name": "Meridian Office Products", "category": "office", "status": "active", "country": "CA", "rating": 3.9, "bank_account": "FR1420041010050500013M02606"},
+    {"id": "S-103", "name": "Bluefin Cloud Services", "category": "it", "status": "suspended", "country": "IE", "rating": 2.8, "bank_account": "IE29AIBK93115212345678"},
+    {"id": "S-104", "name": "Halden Safety Equipment", "category": "maintenance", "status": "active", "country": "NO", "rating": 4.8, "bank_account": "NO9386011117947"},
+    {"id": "S-105", "name": "Orchid Catering Co", "category": "facilities", "status": "on_hold", "country": "SG", "rating": 3.5, "bank_account": "SG4811223344556677"},
+    {"id": "S-106", "name": "Vantage Freight Partners", "category": "logistics", "status": "active", "country": "NL", "rating": 4.0, "bank_account": "NL91ABNA0417164300"},
+    {"id": "S-107", "name": "Pioneer IT Hardware", "category": "it", "status": "active", "country": "US", "rating": 4.4, "bank_account": "US12345678901234"}
+  ],
+  "purchase_orders": [
+    {"id": "PO-2001", "supplier_id": "S-100", "amount_cents": 1840000, "currency": "USD", "status": "PENDING", "requested_by": "lee.buyer", "description": "Conveyor bearings, Q4 maintenance"},
+    {"id": "PO-2002", "supplier_id": "S-102", "amount_cents": 215000, "currency": "USD", "status": "APPROVED", "requested_by": "lee.buyer", "description": "Printer paper and toner"},
+    {"id": "PO-2003", "supplier_id": "S-101", "amount_cents": 920000, "currency": "USD", "status": "PENDING", "requested_by": "maya.approver", "description": "Pallet transport, Rotterdam lane"},
+    {"id": "PO-2004", "supplier_id": "S-103", "amount_cents": 500000, "currency": "USD", "status": "PENDING", "requested_by": "lee.buyer", "description": "Cloud credits top-up"},
+    {"id": "PO-2005", "supplier_id": "S-107", "amount_cents": 6400000, "currency": "USD", "status": "PENDING", "requested_by": "lee.buyer", "description": "Workstation refresh, 40 units"},
+    {"id": "PO-2006", "supplier_id": "S-104", "amount_cents": 24000000, "currency": "USD", "status": "PENDING", "requested_by": "ana.planner", "description": "Plant-wide safety equipment renewal"},
+    {"id": "PO-2007", "supplier_id": "S-106", "amount_cents": 31000000, "currency": "USD", "status": "PENDING", "requested_by": "ana.planner", "description": "Annual freight framework call-off"}
+  ],
+  "approvals": [
+    {"po_id": "PO-2002", "approver": "maya.approver", "role": "approver", "decision": "APPROVED", "comment": "Routine office supplies", "seq": 1}
+  ]
+}
