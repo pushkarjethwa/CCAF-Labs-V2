@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "procurement": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["${CLAUDE_PROJECT_DIR}/STUDENT_V2/DAY_2/LABS/LAB_2_4_procurement_mcp_server/lab.py", "--serve", "--auth", "on"],
+      "env": {
+        "PROC_KEY_ANALYST": "${PROC_KEY_ANALYST}",
+        "PROC_KEY_APPROVER": "${PROC_KEY_APPROVER}",
+        "PROC_API_KEY": "${PROC_API_KEY}"
+      }
+    }
+  }
+}

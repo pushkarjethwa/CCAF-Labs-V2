@@ -71,10 +71,10 @@ The loop for every lab: read the README, edit `lab.py`, run `python check.py` un
 | Lab | What it is about | Time | Key needed |
 |---|---|---|---|
 | [2.0 Intro to tool use (new)](NEW_LABS/LAB_2_0_intro_to_tool_use) | Run-and-read walkthrough: why tools, how to create one, the full tool round trip. Do it before 2.1 | 20-25 min | lab.py |
-| [2.1 Facilities tool boundaries](DAY_2/LABS/LAB_2_1_facilities_tool_boundaries) | Fix overlapping tools: descriptions, consolidation, pruning, per-desk scoping; measure selection accuracy | 60-75 min | lab.py |
-| [2.2 Travel disruption tool loop](DAY_2/LABS/LAB_2_2_travel_disruption_tool_loop) | The tool loop: parallel reads, dependent writes, safe handling of failures | 35 min | lab.py |
-| [2.3 Payroll typed errors](DAY_2/LABS/LAB_2_3_payroll_typed_errors) | Typed tool errors, bounded retries, escalation of permission errors | 75-90 min | lab.py |
-| [2.4 Procurement MCP server](DAY_2/LABS/LAB_2_4_procurement_mcp_server) | Build an MCP server with authentication (401 vs 403), safe logging, stdio and HTTP | 60 min | none |
+| [2.1 Facilities tool boundaries](DAY_2/LABS/LAB_2_1_facilities_tool_boundaries) | Follows Demo 2A: descriptions, consolidation, pruning, per-desk scoping and a gate; five stages | 35 min | `lab.py --stage 1` ... `5`, `gate` |
+| [2.2 Travel disruption tool loop](DAY_2/LABS/LAB_2_2_travel_disruption_tool_loop) | Follows Demo 2C: concurrent reads, ordered writes, a safe retry, an iteration guard | 35 min | `lab.py --stage 1` ... `5` |
+| [2.3 Payroll typed errors](DAY_2/LABS/LAB_2_3_payroll_typed_errors) | Follows Demo 2B: typed errors, bounded retries, escalation, preflight | 30 min | `lab.py --stage 1` ... `5` |
+| [2.4 Procurement MCP server](DAY_2/LABS/LAB_2_4_procurement_mcp_server) | Follows Demo 2D: stderr logging, resources, validated tools, config linter, authentication (401 vs 403), redaction | 40 min | `lab.py --stage 1` ... `6` (no key) |
 | [2.5 Build a tool and its loop (new)](NEW_LABS/LAB_2_5_build_a_tool_and_loop) | Write a tool schema, dispatcher and loop from the raw SDK | 45 min | lab.py |
 | [2.6 Use an MCP server (new)](NEW_LABS/LAB_2_6_use_an_mcp_server) | Be the MCP client: connect to a server and let Claude use its tools | 45 min | lab.py |
 

@@ -1,131 +1,166 @@
-"""Run while you work on lab.py.   python check.py
-Part A tests YOUR code with small hand-made inputs. No API key and no model needed.
-Part B reads evidence/evidence.json, which `python lab.py` writes after a real run. Exit code 0 means all passed."""
+"""Run while you work.   python check.py
+Part A tests YOUR code with hand-made calls: no API key, the mock airline with its latencies scaled down.
+Part B reads evidence/stageN.json from the stages you have run with Claude (python lab.py --stage N).
+Fails on the starter by design. Exit code 0 means every check passed."""
 import json
+import pathlib
+import re
 import sys
+import time
 from types import SimpleNamespace
 
 import lab
-from travel_services import TravelServices, analyse, load_scenario
+import travel_core as core
 
-HERE = lab.HERE
+HERE = pathlib.Path(__file__).parent
+EVIDENCE = HERE / "evidence"
 results = []
 
 
-def check(ok, description, detail=""):
+def check(description, test):
+    """Run a test function that returns (ok, detail). A TODO that is still a stub counts as a failure, not a crash."""
+    try:
+        ok, detail = test()
+    except NotImplementedError as stub:
+        ok, detail = False, str(stub)
+    except Exception as exc:  # noqa: BLE001 - show the student what broke
+        ok, detail = False, f"{type(exc).__name__}: {exc}"
     results.append(bool(ok))
     print(f"[{'PASS' if ok else 'FAIL'}] {description}" + (f" ({detail})" if detail else ""))
 
 
-def use(number, name, **arguments):
-    """A hand-made tool_use block (what Claude would send)."""
-    return SimpleNamespace(type="tool_use", id=f"toolu_{number}", name=name, input=arguments)
+def info(text):
+    print(f"[info] {text}")
 
 
-def body(result):
-    try:
-        return json.loads(result["content"])
-    except (ValueError, TypeError):
-        return {}
+def call(i, name, **args):
+    return SimpleNamespace(id=i, name=name, input=args)
 
 
-scenario = load_scenario(HERE / "data" / "scenario.json")
-pnr = scenario["travelers"]["T-1001"]["pnr"]
-option = next(o["option_id"] for o in scenario["rebooking_options"] if o["seats_left"] > 0)
-hotel = next(h["hotel_id"] for h in scenario["hotels"] if h["rooms_left"] > 0)
-SCALE = 0.3  # shrink the mock latencies so the tests run fast
-
-print("== Part A: your code on hand-made inputs (no API key needed) ==")
-names = [t["name"] for t in lab.TOOLS]
-tier = next((t for t in lab.TOOLS if t["name"] == "loyalty_tier"), None)
-check(tier is not None and len(tier["description"]) >= 60 and "read" in tier["description"].lower()
-      and tier["input_schema"].get("required") == ["traveler_id"] and tier["input_schema"].get("additionalProperties") is False,
-      "TODO 0: loyalty_tier tool is defined (read-only description, required traveler_id, additionalProperties false)")
-
-services = TravelServices(scenario, latency_scale=SCALE)
-reads = [use(1, "flight_status", flight_no="XA482"), use(2, "rebooking_options", pnr=pnr),
-         use(3, "hotel_availability", airport="LHR", date="2026-10-03"), use(4, "loyalty_tier", traveler_id="T-1001")]
-out = lab.run_tools(services, reads, lab.RunState())
-span = analyse(services.events, services.ledger())["read_phase_span_s"]
-total = sum(scenario["latency_s"][r.name] for r in reads) * SCALE
-check([r["tool_use_id"] for r in out] == [r.id for r in reads] and not any(r.get("is_error") for r in out),
-      "TODO B: four reads return four results, in request order, ids matching")
-check(span is not None and span < 0.7 * total, "TODO B: independent reads ran concurrently (total time close to the slowest read, not the sum)",
-      f"{span}s vs {total:.2f}s if one at a time")
-
-services, state = TravelServices(scenario, latency_scale=SCALE), lab.RunState()
-batch = [use(10, "rebook_flight", pnr=pnr, option_id=option),
-         use(11, "book_hotel", hotel_id=hotel, rebook_ref="RB-0001", nights=1, guest="Ana"),
-         use(12, "notify_traveler", traveler_id="T-1001", rebook_ref="RB-0001", hotel_ref="HB-0001")]
-out = lab.run_tools(services, batch, state)
-facts = analyse(services.events, services.ledger())
-check(out[1].get("is_error") and out[2].get("is_error") and facts["hotel_bookings"] == 0 and facts["notifications"] == 0 and facts["unverified_entries"] == 0,
-      "TODO B: dependent writes sent in the same batch as the rebooking are blocked (nothing booked on an unconfirmed reference)")
-check(body(out[1]).get("error") in ("PREREQUISITE_NOT_MET", "UNKNOWN_REFERENCE") and body(out[1]).get("hint"),
-      "TODO B: a blocked call returns a structured error (PREREQUISITE_NOT_MET or UNKNOWN_REFERENCE) with a hint")
-check(not facts["writes_overlap"] and not facts["order_violations"], "TODO B: writes never overlapped and never started before their prerequisite")
-
-first = body(out[0])
-check(out[0].get("is_error") and first.get("outcome_unknown") is True and first.get("retryable") is True and first.get("hint"),
-      "TODO C2: the timed-out rebooking returns a structured error (outcome_unknown, retryable, hint)", str(out[0]["content"])[:70])
-retry = lab.run_tools(services, [use(13, "rebook_flight", pnr=pnr, option_id=option)], state)
-facts = analyse(services.events, services.ledger())
-check(not retry[0].get("is_error") and facts["rebookings"] == 1 and facts["replays"] >= 1,
-      "TODO C1: retrying the identical rebooking is replayed, not repeated (exactly 1 rebooking in the ledger)", f"rebookings={facts['rebookings']}")
-later = lab.run_tools(services, [use(14, "book_hotel", hotel_id=hotel, rebook_ref=body(retry[0]).get("ref", "?"), nights=1, guest="Ana")], state)
-check(not later[0].get("is_error"), "TODO B: once the rebooking is confirmed, the hotel booking with the real reference goes through")
+print("== Part A: your code, tested directly (no API key) ==")
 
 
-def reply(stop_reason, *blocks):
-    return SimpleNamespace(stop_reason=stop_reason, content=list(blocks), usage=None)
+def t_loyalty_tool():
+    tool = lab.LOYALTY_TIER_TOOL
+    schema = tool["input_schema"]
+    ok = (tool["name"] == "loyalty_tier" and "read-only" in tool["description"].lower() and schema["required"] == ["traveler_id"]
+          and schema["additionalProperties"] is False and set(schema["properties"]) == {"traveler_id"})
+    return ok, ""
 
 
-runaway_calls = []
+def t_loyalty_description():
+    words = lab.LOYALTY_TIER_TOOL["description"].lower()
+    return all(w in words for w in ("tier", "hotel", "rate")) and len(words) > 60, ""
 
 
-def runaway(messages, **kw):
-    runaway_calls.append(1)
-    if len(runaway_calls) > 15:  # safety net so a loop WITHOUT a bound cannot hang this check
-        raise RuntimeError("model called more than 15 times: the loop is not bounded")
-    return reply("tool_use", use(len(messages), "flight_status", flight_no="XA482"))
+def t_concurrent():
+    def run_one(c):
+        time.sleep(0.15)
+        return {"tool_use_id": c.id}
+    calls = [call(f"c{i}", "flight_status") for i in range(4)]
+    started = time.perf_counter()
+    out = lab.run_concurrently(run_one, calls)
+    took = time.perf_counter() - started
+    return took < 0.35 and [b["tool_use_id"] for b in out] == ["c0", "c1", "c2", "c3"], f"{took:.2f}s for four 0.15s calls"
 
 
-calls = []
+def t_order():
+    out = lab.run_concurrently(lambda c: {"tool_use_id": c.id}, [call("a", "x"), call("b", "x"), call("c", "x")])
+    return [b["tool_use_id"] for b in out] == ["a", "b", "c"], ""
 
 
-def two_then_done(messages, **kw):
-    calls.append(list(messages))
-    if len(calls) == 1:
-        return reply("tool_use", use(20, "flight_status", flight_no="XA482"), use(21, "loyalty_tier", traveler_id="T-1001"))
-    return reply("end_turn", SimpleNamespace(type="text", text="done"))
+def state(succeeded=(), refs=()):
+    s = core.RunState()
+    s.succeeded, s.refs = set(succeeded), set(refs)
+    return s
 
 
-try:
-    loop = lab.run_agent(runaway, TravelServices(scenario, latency_scale=0), "go", max_turns=3)
-except RuntimeError as error:
-    loop = {"stopped": str(error), "turns": "unbounded"}
-check(loop["stopped"] == "max_turns" and loop["turns"] == 3, "TODO D: a model that never stops is cut off at max_turns", f"turns={loop['turns']} stopped={loop['stopped']}")
-lab.run_agent(two_then_done, TravelServices(scenario, latency_scale=0), "go")
-last = calls[1][-1] if len(calls) > 1 else {}
-check(last.get("role") == "user" and isinstance(last.get("content"), list) and [b["tool_use_id"] for b in last["content"]] == ["toolu_20", "toolu_21"],
-      "TODO A: both results of one assistant turn go back in ONE user message, ids matching")
+def t_gate_prereq():
+    problem = lab.gate("book_hotel", {"hotel_id": "H", "rebook_ref": "RB-0001"}, state())
+    return bool(problem) and problem["error"] == "PREREQUISITE_NOT_MET" and problem["retryable"] is False and len(problem["hint"]) > 15, str(problem)[:80]
 
-evidence_file = lab.EVIDENCE_FILE
-if not evidence_file.exists():
-    print("\n(Part B skipped: run `python lab.py` first)")
-    print(f"RESULT: {sum(results)}/{len(results)} checks passed")
-    sys.exit(0 if all(results) else 1)
 
-print("\n== Part B: your real run with Claude (evidence.json) ==")
-evidence = json.loads(evidence_file.read_text(encoding="utf-8"))
-analysis, run = evidence["analysis"], evidence["result"]
-check(run["stopped"] == "end_turn", "the run finished with end_turn (not max_turns)", run["stopped"])
-check(analysis["rebookings"] == 1 and analysis["hotel_bookings"] == 1 and analysis["notifications"] == 1, "exactly one rebooking, one hotel booking and one notification",
-      f"{analysis['rebookings']}/{analysis['hotel_bookings']}/{analysis['notifications']}")
-check(analysis["unverified_entries"] == 0 and not analysis["order_violations"] and not analysis["writes_overlap"], "no write used an unconfirmed reference and none overlapped")
-used = {r["tool"] for r in run["tool_results"]}
-check({"flight_status", "rebooking_options", "hotel_availability", "loyalty_tier"} <= used, "Claude used all four read tools (including your loyalty_tier)", str(sorted(used)))
-print("info: stop_reason sequence:", [t["stop_reason"] for t in run["trace"]])
+def t_gate_unknown_ref():
+    problem = lab.gate("book_hotel", {"hotel_id": "H", "rebook_ref": "RB-9999"}, state({"rebook_flight"}, {"RB-0001"}))
+    return bool(problem) and problem["error"] == "UNKNOWN_REFERENCE", str(problem)[:80]
 
-print(f"RESULT: {sum(results)}/{len(results)} checks passed")
+
+def t_gate_ok():
+    ok1 = lab.gate("book_hotel", {"hotel_id": "H", "rebook_ref": "RB-0001"}, state({"rebook_flight"}, {"RB-0001"})) is None
+    ok2 = lab.gate("rebook_flight", {"pnr": "K7QD2L", "option_id": "OPT-B"}, state()) is None
+    return ok1 and ok2, ""
+
+
+def t_gate_notify():
+    needs_both = lab.gate("notify_traveler", {"traveler_id": "T-1", "rebook_ref": "RB-0001", "hotel_ref": "HB-0001"}, state({"rebook_flight"}, {"RB-0001"}))
+    ok = lab.gate("notify_traveler", {"traveler_id": "T-1", "rebook_ref": "RB-0001", "hotel_ref": "HB-0001"}, state({"rebook_flight", "book_hotel"}, {"RB-0001", "HB-0001"}))
+    return bool(needs_both) and ok is None, ""
+
+
+def t_replay_batch():
+    measured, services = core.replay(core.RecordedBatch(), 3)
+    return (measured["unverified"] == 0 and not measured["order_violations"] and measured["hotels"] == 0 and measured["notifications"] == 0 and measured["rebookings"] == 1,
+            f"{measured}"[:110])
+
+
+def t_key_stable():
+    a = lab.key_for("rebook_flight", {"pnr": "K7QD2L", "option_id": "OPT-B"})
+    b = lab.key_for("rebook_flight", {"option_id": "OPT-B", "pnr": "K7QD2L"})
+    c = lab.key_for("rebook_flight", {"pnr": "K7QD2L", "option_id": "OPT-C"})
+    return a == b and a != c and re.fullmatch(r"[0-9a-f]{16}", a) is not None, a
+
+
+def t_timeout_result():
+    r = lab.timeout_result("rebook_flight", Exception("no acknowledgement"))
+    return (r.get("error") == "TIMEOUT" and r.get("retryable") is True and r.get("outcome_unknown") is True and "no acknowledgement" in r.get("message", "")
+            and "identical" in r.get("hint", "").lower()), str(r)[:90]
+
+
+def t_replay_retry():
+    measured, services = core.replay(core.RecordedRetry(), 4)
+    return measured["rebookings"] == 1 and measured["replays"] >= 1, f"rebookings {measured['rebookings']}, replays {measured['replays']}"
+
+
+def t_guard():
+    measured, services = core.replay(core.RecordedRunaway(), 4, max_turns=6)
+    return measured.get("stopped") == "max_turns" and measured.get("turns") == 6, str(measured)[:100]
+
+
+check("TODO 1: the loyalty_tier definition has the name, a read-only description and one required traveler_id", t_loyalty_tool)
+check("TODO 1: the description says what it returns (tier, hotel rate cap)", t_loyalty_description)
+check("TODO 2: four 0.15 s calls finish in well under 0.6 s (they overlap)", t_concurrent)
+check("TODO 2: the results come back in the order of the calls", t_order)
+check("TODO 3: a write whose prerequisite has not succeeded is refused (PREREQUISITE_NOT_MET, not retryable, with a hint)", t_gate_prereq)
+check("TODO 3: a reference no tool returned is refused (UNKNOWN_REFERENCE)", t_gate_unknown_ref)
+check("TODO 3: a ready write is allowed", t_gate_ok)
+check("TODO 3: notify_traveler needs both the rebooking and the hotel", t_gate_notify)
+check("TODO 3: the recorded batch leaves no unverified entry and no order violation", t_replay_batch)
+check("TODO 4: the key is the same for the same call whatever the argument order (16 hex characters)", t_key_stable)
+check("TODO 4: the timeout result says the outcome is unknown and a retry is safe", t_timeout_result)
+check("TODO 4: the recorded retry books ONE seat and the second call is replayed", t_replay_retry)
+check("TODO 5: a model that never stops is cut off at max_turns", t_guard)
+
+print("\n== Part B: your real runs with Claude (evidence/stageN.json) ==")
+found = sorted(EVIDENCE.glob("stage*.json")) if EVIDENCE.exists() else []
+if not found:
+    print("(Part B skipped: run `python lab.py --stage 1` and the later stages first)")
+data = {int(p.stem[5:]): json.loads(p.read_text(encoding="utf-8")) for p in found}
+for stage, d in sorted(data.items()):
+    m = d["live"]
+    print(f"\n-- stage {stage}: {core.STAGE_TITLES[stage]} --")
+    info(f"rebookings {m['rebookings']}, hotels {m['hotels']}, notices {m['notifications']}, unverified {m['unverified']}, "
+         f"order violations {len(m['order_violations'])}, read phase {m['read_span_s']}s, turns {m['turns']}")
+    if stage == 1:
+        info("stage 1 is the baseline: a second seat, no tier and a long read phase are expected here")
+    if stage >= 2 and 1 in data and m["read_span_s"] and data[1]["live"]["read_span_s"]:
+        info(f"read phase {data[1]['live']['read_span_s']}s in stage 1 against {m['read_span_s']}s now (it depends on how many reads the model batches)")
+    if stage in (3, 4):
+        check(f"stage {stage}: the recorded replay is safe with your code", lambda d=d: (d["replay_after"]["unverified"] == 0 and not d["replay_after"]["order_violations"], ""))
+    if stage >= 3:
+        check(f"stage {stage}: the live run has no unverified entries and no order violations", lambda m=m: (m["unverified"] == 0 and not m["order_violations"], ""))
+    if stage >= 4:
+        check(f"stage {stage}: the live run booked exactly one seat", lambda m=m: (m["rebookings"] == 1, f"{m['rebookings']} rebookings"))
+    if stage == 5:
+        check("stage 5: the runaway model was stopped by the guard", lambda d=d: (d["runaway"].get("stopped") == "max_turns", str(d["runaway"])[:80]))
+print(f"\nRESULT: {sum(results)}/{len(results)} checks passed")
 sys.exit(0 if all(results) else 1)

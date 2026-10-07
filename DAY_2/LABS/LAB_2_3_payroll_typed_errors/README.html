@@ -1,0 +1,323 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Make the Payroll Agent Fail Safely</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP</header><main><h1>Make the payroll agent fail safely</h1>
+<p>In Demo 2B, you watched a refund assistant crash on its first tool failure, retry a refund that had already been booked, and receive HTTP 400 for a malformed <code>tool_result</code>. The team fixed it in layers: typed errors, a bounded retry owned by the harness, an escalation for errors that no retry can fix, and a check before every request. In this lab, you do the same for a payroll adjustment agent.</p>
+<p>You will complete five pieces of <strong>lab.py</strong>, which add up to about 50 lines of code. The lab takes about 30 minutes, and this guide gives you every line. At the end, six payroll tickets run through the agent, a transient database lock is retried and recovered, a lock that never clears stops after a budget, and an adjustment above the approval threshold becomes a request for a human, with no retry.</p>
+<p>This lab continues Demo 2B, so you will recognize the following:</p>
+<ul>
+<li>The method: run the loop, read what the model was shown, and judge the run by the database calls and the ledger, not by the model's words.</li>
+<li>The fix order: first make the error readable (typed), then make the retry safe (bounded), then stop retrying what cannot be fixed (escalate), then check every request before it leaves (preflight).</li>
+<li>The tool_result contract: every <code>tool_use</code> id is answered once, in the next user message, with the results first.</li>
+</ul>
+<p>The payroll agent has three tools: <code>lookup_employee</code>, <code>check_pay_period</code> and <code>apply_adjustment</code>. A mock payroll database sits behind them, with a simulated clock, so waiting costs nothing. Six tickets cover the cases that matter: a happy path, a closed pay period, a typo in an employee id, an amount above the approval threshold, a database lock that recovers, and a lock that never clears.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_3_payroll_typed_errors</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Run the raw loop</h2>
+<p>In this section, you run the six tickets through the loop as it is before any fix. This needs no code from you.</p>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The model is shown a bare string such as <code>Error: Pay period 2026-08 is closed</code>. There is no category, no retryable flag and no hint.</li>
+<li>The harness treats every error as transient. It retries a closed period, a mistyped employee id and an approval requirement up to 12 times, and it waits a second between tries.</li>
+<li>The <code>db apply</code> column counts the write attempts that reached the database. The <code>wait s</code> column is the simulated waiting. The <code>runaway</code> column in the table at the bottom counts the calls that hit the safety cap.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: A strong model may still reach the right status on some tickets. Judge the run by the number of database calls and the waiting, which are the cost of the raw loop.</p>
+</blockquote>
+<h2>Make the errors typed</h2>
+<p>In this section, you describe each error so that the model, and the harness, can tell a closed period from a locked database.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 5</strong>. Below it is the line <code>ERROR_CATALOG = {}  # replace these lines in TODO 1</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code:</p>
+<div class="cb"><pre><code class="language-python">ERROR_CATALOG = {
+    &quot;PAY_PERIOD_CLOSED&quot;: {&quot;category&quot;: &quot;tool&quot;, &quot;retryable&quot;: False, &quot;action&quot;: &quot;offer the next open period&quot;,
+                          &quot;hint&quot;: &quot;Period {period} is closed and will not reopen. Do not retry. Tell the requester and offer the next open period, {next_open_period}.&quot;},
+    &quot;EMPLOYEE_NOT_FOUND&quot;: {&quot;category&quot;: &quot;input&quot;, &quot;retryable&quot;: False, &quot;action&quot;: &quot;ask the requester to correct the id&quot;,
+                           &quot;hint&quot;: &quot;No such employee. Do not retry the same id. Ask the requester to confirm the employee id.&quot;},
+    &quot;HR_APPROVAL_REQUIRED&quot;: {&quot;category&quot;: &quot;permission&quot;, &quot;retryable&quot;: False, &quot;action&quot;: &quot;escalate to an HR manager&quot;,
+                             &quot;hint&quot;: &quot;This amount needs HR_MANAGER approval. Do not retry or split the amount. An approval request was filed; report its id and stop.&quot;},
+    &quot;PAYROLL_DB_LOCKED&quot;: {&quot;category&quot;: &quot;environment&quot;, &quot;retryable&quot;: True, &quot;action&quot;: &quot;retry with backoff&quot;,
+                          &quot;hint&quot;: &quot;The ledger is temporarily locked. Retrying the same call with the same idempotency_key is safe.&quot;},
+    &quot;UNEXPECTED_ERROR&quot;: {&quot;category&quot;: &quot;tool&quot;, &quot;retryable&quot;: False, &quot;action&quot;: &quot;stop and report&quot;,
+                         &quot;hint&quot;: &quot;Unexpected failure. Do not retry. Report the problem to the requester and stop.&quot;},
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The category says who can fix the problem: the tool, the input, the permission or the environment.</li>
+<li>Only the lock is retryable. A closed period stays closed, so a retry is wasted work.</li>
+<li>The hint tells the model what to do, and <code>{next_open_period}</code> is filled from the error's details.</li>
+<li><code>UNEXPECTED_ERROR</code> is the fail-closed fallback for any code that you did not plan for.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 2 of 5</strong>. Below it is a function named <code>to_tool_result</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 2: build the structured tool_result&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    entry = ERROR_CATALOG.get(exc.code, ERROR_CATALOG[&quot;UNEXPECTED_ERROR&quot;])
+    details = {**exc.details, **(extra or {})}
+    return json.dumps({
+        &quot;error_code&quot;: exc.code,
+        &quot;category&quot;: entry[&quot;category&quot;],
+        &quot;retryable&quot;: entry[&quot;retryable&quot;] if retryable is None else retryable,
+        &quot;message&quot;: exc.message,
+        &quot;hint&quot;: hint if hint is not None else entry[&quot;hint&quot;].format_map(defaultdict(str, details)),
+        &quot;details&quot;: details,
+    }, sort_keys=True)
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The model receives one JSON object that it can branch on, instead of a sentence.</li>
+<li><code>format_map</code> with a <code>defaultdict</code> means that a placeholder with no value becomes an empty string instead of a crash.</li>
+<li><code>retryable</code> and <code>hint</code> can be overridden. The harness uses that in the next section, when a retry budget runs out.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The block under the table shows what the model saw on S2, now a JSON error with a hint.</li>
+<li>The harness makes one attempt per call, so the <code>db apply</code> and <code>wait s</code> columns fall sharply. The model decides alone whether to retry the lock, so S5 and S6 depend on how well it follows <code>retryable</code>.</li>
+<li>The progress table now has two rows. The first is the raw loop.</li>
+</ul>
+</li>
+</ol>
+<h2>Bound the retries</h2>
+<p>In this section, you move the retry decision from the model to the harness. A model has no clock and no count. The harness has both.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 3 of 5</strong>. Below it is the line <code>RETRY_POLICY = {}  # replace this line in TODO 3</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code:</p>
+<div class="cb"><pre><code class="language-python">RETRY_POLICY = {&quot;PAYROLL_DB_LOCKED&quot;: RetryPolicy(max_attempts=4, base_delay_s=1.0, factor=2.0, max_delay_s=8.0)}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>Only the lock is retried: 4 attempts in total, and a wait of 1 second, then 2, then 4. No wait is longer than 8 seconds.</li>
+<li>Every other code uses <code>DEFAULT_POLICY</code>, which is one attempt.</li>
+</ul>
+</li>
+<li>
+<p>A few lines below, in the function <code>policy_for</code>, replace the line <code>raise NotImplementedError(&quot;TODO 3: look the code up in RETRY_POLICY&quot;)  # replace this line in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return RETRY_POLICY.get(code, DEFAULT_POLICY)
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>An unknown error code gets the default policy, so it <strong>fails closed</strong>: one attempt, no retry.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 3:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>S5 (the lock that clears after two failures) now succeeds on the third attempt, and the wait grows between the tries.</li>
+<li>S6 (the lock that never clears) stops after four attempts. The model is told <code>retries_exhausted</code>, <code>retryable</code> false, and to stop.</li>
+<li>If the model repeats a call that already failed for good, the harness answers it without touching the database, and marks it <code>repeat_blocked</code>.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: The retry is safe here because <code>apply_adjustment</code> carries an idempotency key, and the same key never writes two rows. Without the key, the same retry would pay twice, which is the duplicate refund of Demo 2B.</p>
+</blockquote>
+<h2>Escalate what no retry can fix</h2>
+<p>In this section, you hand a human a complete request when an adjustment is above the approval threshold.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 4 of 5</strong>. Below it is a function named <code>build_approval_request</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 4: build the approval request&quot;)  # replace these lines in TODO 4</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return {
+        &quot;type&quot;: &quot;hr_approval_request&quot;,
+        &quot;request_id&quot;: &quot;HRA-&quot; + args[&quot;idempotency_key&quot;],
+        &quot;status&quot;: &quot;PENDING&quot;,
+        &quot;error_code&quot;: exc.code,
+        &quot;required_role&quot;: exc.details.get(&quot;required_role&quot;),
+        &quot;employee_id&quot;: args[&quot;employee_id&quot;],
+        &quot;period&quot;: args[&quot;period&quot;],
+        &quot;amount_cents&quot;: args[&quot;amount_cents&quot;],
+        &quot;currency&quot;: &quot;USD&quot;,
+        &quot;threshold_cents&quot;: exc.details.get(&quot;threshold_cents&quot;),
+        &quot;reason&quot;: args[&quot;reason&quot;],
+        &quot;requested_by&quot;: &quot;payroll-agent&quot;,
+        &quot;original_call&quot;: {&quot;tool&quot;: tool_name, &quot;idempotency_key&quot;: args[&quot;idempotency_key&quot;]},
+    }
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The request id is built from the idempotency key, so asking twice files one request.</li>
+<li>The request is complete enough that the approver needs nothing else: who, how much, why, which role, and which call to replay once it is approved.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>S4 (the 12,500 dollar adjustment) makes one database call, and the <code>escal</code> column shows one approval request.</li>
+<li>The model is told the request id and to stop. It cannot split the amount or retry its way around the rule.</li>
+</ul>
+</li>
+</ol>
+<h2>Check every request before it is sent</h2>
+<p>In this section, you write the check that Demo 2B added last. A tool_result mistake costs a failed request, so you refuse the mistake locally.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 5 of 5</strong>. Below it is a function named <code>preflight</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 5: check the tool_use and tool_result ids&quot;)  # replace these lines in TODO 5</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    problems = []
+    for i, message in enumerate(messages):
+        if message[&quot;role&quot;] != &quot;assistant&quot;:
+            continue
+        asked = [b[&quot;id&quot;] for b in message[&quot;content&quot;] if isinstance(b, dict) and b.get(&quot;type&quot;) == &quot;tool_use&quot;] if isinstance(message[&quot;content&quot;], list) else []
+        reply = messages[i + 1][&quot;content&quot;] if i + 1 &lt; len(messages) and isinstance(messages[i + 1][&quot;content&quot;], list) else []
+        answered = [b.get(&quot;tool_use_id&quot;) for b in reply if b.get(&quot;type&quot;) == &quot;tool_result&quot;]
+        if sorted(asked) != sorted(answered):
+            problems.append(f&quot;message {i}: tool_use ids {asked} but tool_result ids {answered}&quot;)
+        if answered and reply[0].get(&quot;type&quot;) != &quot;tool_result&quot;:
+            problems.append(f&quot;message {i + 1}: tool_result blocks must come first&quot;)
+    return problems
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The function returns a list of problems, and an empty list means the conversation is fine.</li>
+<li>One comparison catches three of the four mistakes: an orphan result (nothing was asked), a wrong id, and a missing result for a parallel call. The second check catches text placed before a result.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 5:</p>
+<div class="cb"><pre><code>python lab.py --stage 5
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The first table replays four broken conversations and one correct one through your preflight. Each broken one should be caught, with no API call.</li>
+<li>The agent loop now calls your preflight before every request, so a malformed message stops locally with a clear reason.</li>
+<li>The last line is the gate: at least 5 of the 6 tickets right, no runaway retries, and a correct preflight table.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 33/33 checks passed</code>.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Part A of the checker tests your code with hand-made failures and needs no key. Part B reads the stages you ran with Claude, and it reports model variance as <code>[info]</code> lines, not failures.</p>
+</blockquote>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the piece to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: The TODO for that stage is not done yet. Stage 1 needs none.</li>
+<li><strong>Stage 3 shows no retries</strong>: <code>RETRY_POLICY</code> still holds the starter line.</li>
+<li><strong>S6 ends as <code>failed</code> instead of <code>failed_transient</code></strong>: This is the model's wording. Read the <code>details</code> the model saw. If <code>retries_exhausted</code> is there, your code is right.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your numbers differ from a classmate's</strong>: This is normal. Models answer differently between runs. The database calls and the waiting are the stable evidence.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2B used a refund assistant, injected a timeout that happens after the refund is booked, and fixed it with an idempotency key. The old version of this lab, with nine open edits, is archived.</li>
+<li>The next lab, Lab 2.2, is about the loop itself: reading in parallel, and writing in order.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

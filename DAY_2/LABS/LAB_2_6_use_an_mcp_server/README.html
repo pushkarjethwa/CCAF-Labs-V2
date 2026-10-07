@@ -1,0 +1,312 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Use an MCP Server from Your Own Agent</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP (optional extension lab)</header><main><h1>Use an MCP server from your own agent</h1>
+<p>The team keeps its notes behind a small MCP server: an on-call rotation, an expense policy and a release checklist. In Lab 2.5, you wrote the tool schemas and the tool functions yourself. In this lab, you are the MCP client. The server describes its own tools, you hand those descriptions to Claude, and you forward Claude's requests to the server. In Demo 2D, you watched a client list a server's tools and call one, and you saw that descriptions are advice while the client does the enforcing.</p>
+<p>You will complete six pieces of <strong>lab.py</strong>, which add up to about 25 lines of code. The lab takes about 25 to 30 minutes, and this guide gives you every line. It is an optional extension after Labs 2.1 to 2.4. At the end, your client connects to the server, Claude answers three questions from the notes, a missing note comes back as an error that Claude can read, and a newer server that adds a dangerous <code>delete_note</code> tool cannot make your client delete anything.</p>
+<p>This lab continues Demo 2D, so you will recognize the following:</p>
+<ul>
+<li>The client handshake: start the server, <code>initialize</code>, <code>list_tools</code>, then <code>call_tool</code>.</li>
+<li>An MCP tool carries the same three things that Claude needs: a name, a description and an input schema.</li>
+<li>A tool error is data. The server returns it with <code>is_error</code> set, and the session stays alive.</li>
+<li>The server is not the policy. The client decides which tools Claude may use, and it enforces the decision.</li>
+</ul>
+<p>The server is <strong>notes_server.py</strong> (given), and it starts as a child process of your program over stdio. It offers two read-only tools: <code>search_notes</code> and <code>get_note</code>. Stage 4 uses <strong>notes_server_plus.py</strong> (given), the same server one release later, with an extra admin tool named <code>delete_note</code>.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_6_use_an_mcp_server</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: This lab uses the MCP Python SDK version 2.3.0, which is pinned in <strong>requirements.txt</strong>.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Connect to the server</h2>
+<p>In this section, you write the connection. Stage 1 makes no model call: it lists the server's tools and calls one by hand.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 6</strong>. Below it is the function <code>open_session</code>, which holds two lines: a <code>raise NotImplementedError(...)</code> line and a <code>yield</code> line.</p>
+</li>
+<li>
+<p>Replace both of those lines with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    from mcp import ClientSession, StdioServerParameters, stdio_client
+
+    server = StdioServerParameters(command=sys.executable, args=[str(core.HERE / server_file)])
+    async with stdio_client(server) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            yield session
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>StdioServerParameters</code> says how to start the server: this Python, running the server file.</li>
+<li><code>stdio_client</code> starts the process and gives you its two pipes. The server's standard input and output are the MCP channel, which is why a server must never print to standard output.</li>
+<li><code>ClientSession</code> speaks MCP over those pipes, and <code>initialize()</code> is the handshake. Nothing else works before it.</li>
+<li>The <code>yield</code> hands the ready session to the code that called <code>open_session</code>.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 1:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The server describes its two tools, with their names, arguments and descriptions. You wrote none of them.</li>
+<li><code>search_notes('pager')</code> returns a JSON list that holds the on-call note, <code>N-1</code>.</li>
+<li><code>get_note('N-9')</code> comes back with <code>is_error=True</code> and the server's message. The call did not crash your program.</li>
+<li>The last line reads <code>RESULT: 2 tools discovered, one call answered, one error carried as data (no crash)</code>.</li>
+</ul>
+</li>
+</ol>
+<h2>Give Claude the server's tools</h2>
+<p>In this section, you convert what the server describes into what Claude reads.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 2 of 6</strong>. Below it is the function <code>mcp_tool_to_claude</code>, with the line <code>return {}  # replace these lines in TODO 2</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    return {
+        &quot;name&quot;: tool.name,
+        &quot;description&quot;: tool.description or &quot;&quot;,
+        &quot;input_schema&quot;: tool.input_schema,
+    }
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>Claude wants exactly three keys: <code>name</code>, <code>description</code> and <code>input_schema</code>. The API rejects unknown fields, so do not copy the whole tool object.</li>
+<li>On MCP SDK 2.3.0 the schema is <code>tool.input_schema</code>. Older SDKs called it <code>inputSchema</code>.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The first block lists the tools Claude will read, with their required arguments.</li>
+<li>For each question, Claude stops with <code>stop_reason: tool_use</code> and names a tool from the server, with the arguments it chose. Nothing is forwarded to the server yet.</li>
+<li>The last line reads <code>RESULT: 3/3 questions made Claude ask for a server tool (nothing was forwarded)</code>.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Which tool Claude asks for first on the second and third question is its own choice. The result only counts that it asked for a tool that the server offers.</p>
+</blockquote>
+<h2>Forward Claude's requests to the server</h2>
+<p>In this section, you write the two conversions and the forwarding step. Claude asks, the server answers, and Claude replies.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 3 of 6</strong>. Below it is the function <code>result_to_text</code>, with the line <code>return &quot;&quot;, False  # replace these lines in TODO 3</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    texts = [item.text for item in result.content if item.type == &quot;text&quot;]
+    return &quot;\n&quot;.join(texts) or &quot;(empty result)&quot;, result.is_error
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>A result holds a list of content items. Only the items of type <code>text</code> have a <code>.text</code>, so the others are skipped.</li>
+<li>The function returns the text and the error flag together, which is what a <code>tool_result</code> block needs.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 4 of 6</strong>. It sits inside the function <code>answer</code>, in the <code>for block in tool_calls_of(response)</code> loop. Find the line <code>pass  # replace these lines in TODO 4</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the twelve-space indent, because the code sits inside two loops:</p>
+<div class="cb"><pre><code class="language-python">            try:
+                result = await session.call_tool(block.name, dict(block.input))
+                text, is_error = result_to_text(result)
+            except Exception as exc:
+                text, is_error = f&quot;The call to the server failed: {exc}&quot;, True
+            tools_used.append(block.name)
+            results.append({&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;content&quot;: text, &quot;is_error&quot;: is_error})
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>session.call_tool(name, arguments)</code> is the only line that reaches the server. The loop around it is the loop you wrote in Lab 2.5.</li>
+<li>The <code>tool_result</code> carries <code>block.id</code>, the same id as the request. All results of one turn go back in one user message, which the code after your lines already does.</li>
+<li>If the call itself raises an exception, for example because the server went away, Claude gets an error result and the loop continues.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 3:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The on-call and expense questions each use the server twice: a search, then a read of the note. The answers hold <code>555-0142</code> and <code>75</code>.</li>
+<li>The question about note <code>N-9</code> shows <code>errors flagged: 1</code>. The server's error reached Claude, which says that the note does not exist.</li>
+<li>The last line reads <code>RESULT: 3/3 questions answered from the server</code>.</li>
+</ul>
+</li>
+</ol>
+<h2>Do not hand over every tool</h2>
+<p>In this section, you fence the client. A server can add tools after you wrote your client, and a model can ask for a tool that you never offered, because of a mistake or because of text inside a note. Stage 4 uses the newer server, and a recorded model that asks for <code>delete_note</code>. The recorded part makes no model call.</p>
+<ol>
+<li>
+<p>Run stage 4 before you write any code, by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The newer server offers three tools, and your client hands Claude all three.</li>
+<li>The recorded request for <code>delete_note('N-3')</code> is forwarded to the server, and the note count falls from 3 to 2.</li>
+<li>The last line reads <code>RESULT: Claude offered 3 of 3 tools, delete_note FORWARDED and a note was DELETED (notes 3 -&gt; 2)</code>.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 5 of 6</strong>. It sits inside the function <code>answer</code>, at the top of the <code>for block in tool_calls_of(response)</code> loop. Find the line <code># TODO 5: the guard goes here  # replace this line in TODO 5</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the twelve-space indent, because the code sits inside two loops:</p>
+<div class="cb"><pre><code class="language-python">            if block.name not in ALLOWED_TOOLS:
+                results.append({&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;content&quot;: f&quot;The tool {block.name} is not allowed.&quot;, &quot;is_error&quot;: True})
+                continue
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The guard runs before the forwarding, so a refused request never reaches the server.</li>
+<li>The request still gets exactly one <code>tool_result</code> with its id, flagged as an error, so the conversation stays valid.</li>
+<li><code>ALLOWED_TOOLS</code> is still empty, so for now the guard refuses everything. This is deny by default.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4 again:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line now reads <code>RESULT: Claude offered 3 of 3 tools, delete_note REFUSED (notes 3 -&gt; 3)</code>. The note is safe, but Claude is still offered <code>delete_note</code>, and a real question would be refused too.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 6 of 6</strong>. Below it are the line <code>ALLOWED_TOOLS = set()  # replace this line in TODO 6</code>, and a function named <code>offer</code> with the line <code>return claude_tools  # replace this line in TODO 6</code>.</p>
+</li>
+<li>
+<p>Replace the <code>ALLOWED_TOOLS</code> line with the following code:</p>
+<div class="cb"><pre><code class="language-python">ALLOWED_TOOLS = {&quot;search_notes&quot;, &quot;get_note&quot;}
+</code></pre></div>
+</li>
+<li>
+<p>Replace the line <code>return claude_tools  # replace this line in TODO 6</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return [tool for tool in claude_tools if tool[&quot;name&quot;] in ALLOWED_TOOLS]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The allow-list names the tools you approved. A tool the server adds later is not on it, so it is neither offered nor forwarded.</li>
+<li><code>offer</code> is the first fence: Claude never sees <code>delete_note</code>. The guard from TODO 5 is the second fence, for a request that comes anyway. A description is advice. Your client is the enforcement.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4 a third time:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the output now says <code>your client hands Claude 2 of them: ['get_note', 'search_notes']</code>, and that the last line reads <code>RESULT: Claude offered 2 of 3 tools, delete_note REFUSED (notes 3 -&gt; 3)</code>.</p>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 29/29 checks passed</code>.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Part A of the checker tests your code with fake MCP objects and hand-made model replies, so it needs no key and no MCP server. Part B reads the stages you ran, and it reports model variance as <code>[info]</code> lines, not failures. If you ran fewer than four stages, the total is lower.</p>
+</blockquote>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong><code>ModuleNotFoundError: No module named 'mcp'</code></strong>: Run <code>pip install -r requirements.txt</code> in this folder.</li>
+<li><strong><code>TODO 1: connect to the MCP server</code></strong> or <strong><code>TODO 2 is not done</code></strong>: The placeholder for that TODO is still in <strong>lab.py</strong>. Paste the snippet from the guide.</li>
+<li><strong>A TODO check fails</strong>: Read the line next to the failed check. It names the piece to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. The TODO 1, 2, 3 and 6 code sits inside a function (four spaces), and the TODO 4 and 5 code sits inside two loops (twelve spaces).</li>
+<li><strong>Stage 3 shows <code>server calls: none</code></strong>: The starter line <code>pass</code> from TODO 4 is still in the loop.</li>
+<li><strong>Stage 1 hangs</strong>: The server is waiting for the handshake. Check that <strong>TODO 1</strong> calls <code>await session.initialize()</code> before it yields the session.</li>
+<li><strong>The server prints garbage and the session fails</strong>: Never add a <code>print</code> to a stdio server, because standard output is the protocol channel.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>An attribute name differs on your MCP version</strong>: Run <code>pip show mcp</code>. This lab was written for 2.3.0.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private. The server processes end when each stage ends.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2D built an MCP server step by step and ended with authentication and roles. The allow-list in this lab is the client's half of the same idea: the server says what exists, and the client says what Claude may use.</li>
+<li>Lab 2.4 builds a server. Lab 2.6 uses one. Together they cover both sides of MCP.</li>
+<li>The old version of this lab, with a single run and no stages, is archived.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

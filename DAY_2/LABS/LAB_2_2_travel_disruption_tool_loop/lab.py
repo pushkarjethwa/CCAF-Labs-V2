@@ -1,182 +1,113 @@
-"""LAB 2.2 - Travel disruption assistant: the tool loop, parallel reads, and safe writes.
+"""Lab 2.2 - Travel disruption assistant: run the tool calls of one turn safely, one stage at a time.
 
-Run:   python lab.py                 (needs an API key; ~6 short turns, a few cents)
-Check: python check.py               (Part A tests YOUR code with no API key; Part B reads evidence/evidence.json)
+This lab continues Demo 2C (the same method: run the loop, make it faster, break it, harden it, and read the ledger), on a
+flight-disruption assistant. Flight XA482 was cancelled. For one traveler the assistant READS (flight status, alternatives, hotels,
+loyalty tier) and then WRITES three dependent things: rebook, book a hotel with the new reference, and notify.
 
-Scenario: flight XA482 was cancelled. For traveler T-1001 the assistant checks the flight, lists alternatives, checks
-airport hotels and looks up the loyalty tier (four INDEPENDENT reads), then does rebook -> book hotel -> notify
-(three DEPENDENT writes: each needs the reference returned by the one before).
+WHAT YOU EDIT (five places, each marked "TODO n of 5"; the guide in README.md gives the exact code for each)
+  TODO 1  LOYALTY_TIER_TOOL  -> stage 2: the one tool definition that is missing
+  TODO 2  run_concurrently   -> stage 2: run a turn's reads at the same time
+  TODO 3  gate               -> stage 3: dependent writes only run in order, on references a tool really returned
+  TODO 4  key_for, timeout_result -> stage 4: a retried write must be replayed, not repeated
+  TODO 5  the loop guard     -> stage 5: a model that never stops is cut off
 
-The starter loop is wrong in four ways (your TODOs):
-  A  it sends tool results back one message at a time           -> the API rejects the next turn (400)
-  B  it runs every tool call at once, even dependent writes     -> a hotel is booked with a reference that does not exist yet
-  C  a timed-out write is retried without an idempotency key    -> the traveler is rebooked twice
-  D  `while True` with no iteration guard                       -> a model that never stops loops forever
-and one tool definition you write yourself (TODO 0).
-
-Files: travel_services.py is the mock airline/hotel/CRM (read it, do not edit). claude_client.py talks to Claude.
+HOW TO RUN (in order)
+  python lab.py --stage 1      one tool call after the other: the baseline (needs no code from you)
+  python lab.py --stage 2      concurrent reads
+  python lab.py --stage 3      the write gate (a recorded batch is replayed, then a live run)
+  python lab.py --stage 4      idempotent writes (a recorded retry is replayed, then a live run)
+  python lab.py --stage 5      the iteration guard and the final run
+  python check.py              pass/fail in plain words
 """
+import argparse
 import hashlib
 import json
-import pathlib
 from concurrent.futures import ThreadPoolExecutor
 
-from claude_client import text_of, tool_calls_of
-from travel_services import PREREQ, READ_TOOLS, ServiceTimeout, TravelServices, analyse, load_scenario
+import travel_core as core
+from claude_client import ask
 
-HERE = pathlib.Path(__file__).parent
-EVIDENCE_FILE = HERE / "evidence" / "evidence.json"
-DEFAULT_MAX_TURNS = 10
-
-READ_ONLY = frozenset(READ_TOOLS)  # no side effects: safe to run at the same time
-DEPENDS_ON = dict(PREREQ)          # a write may only run after the listed tools have SUCCEEDED
-
-SYSTEM = """You are the disruption desk assistant for an airline. A flight was cancelled; rebook the traveler,
-book a hotel within their tier's hotel rate cap, and notify them. Check status, alternatives, hotels and loyalty
-tier first (they are independent - request them together). Writes depend on each other: the hotel needs the
-confirmed rebooking reference, the notification needs both references. Use only references that tool results
-returned. If a tool result says the outcome is unknown, retry with IDENTICAL arguments. Finish with one short summary."""
+DEPENDS_ON = core.DEPENDS_ON
 
 
-# ----------------------------------------------------------------------------------------------
-# STEP 1: tool definitions. This text is ALL Claude knows about each tool.
-# ----------------------------------------------------------------------------------------------
-def _object(properties, required):
-    return {"type": "object", "properties": properties, "required": required, "additionalProperties": False}
+# ======================================================================================
+# TODO 1 of 5 - the missing tool definition (stage 2).
+# The assistant needs the traveler's tier to know the hotel rate cap, but the toolset has no tool for it. Write the definition of
+# `loyalty_tier`: a dict with name, description and input_schema. The description must say that the tool is READ-ONLY, what it
+# returns (the tier and its perks: fee waiver, hotel rate cap, priority) and when to use it. The input is one required string,
+# `traveler_id`, and no other property is allowed.
+# ======================================================================================
+LOYALTY_TIER_TOOL = None  # replace these lines in TODO 1
 
 
-TEXT = {"type": "string"}
-
-# TODO 0: write the definition of the `loyalty_tier` tool (it is the one tool missing below).
-#   - name "loyalty_tier"; a description that says it is READ-ONLY, what it returns (tier and perks: fee waiver,
-#     hotel rate cap, priority) and when to use it; input_schema requiring one string `traveler_id`; additionalProperties False.
-LOYALTY_TIER_TOOL = None  # replace None with your tool definition (a dict)
-
-TOOLS = [tool for tool in [
-    {"name": "flight_status", "description": "Read-only. Current status and reason for one flight number. Use first to confirm the cancellation. Does not change anything.",
-     "input_schema": _object({"flight_no": TEXT}, ["flight_no"])},
-    {"name": "rebooking_options", "description": "Read-only. Alternative flights (with seats left and change fee) for a PNR whose flight was cancelled. Does not rebook.",
-     "input_schema": _object({"pnr": TEXT}, ["pnr"])},
-    {"name": "hotel_availability", "description": "Read-only. Hotels near an airport for a date with rate, rooms left and shuttle. Does not book.",
-     "input_schema": _object({"airport": TEXT, "date": TEXT}, ["airport", "date"])},
-    LOYALTY_TIER_TOOL,
-    {"name": "rebook_flight", "description": "WRITE. Rebook the PNR onto a chosen option_id. Returns a confirmation ref (RB-...). Needed before any hotel or notification. May time out; the outcome is then unknown.",
-     "input_schema": _object({"pnr": TEXT, "option_id": TEXT}, ["pnr", "option_id"])},
-    {"name": "book_hotel", "description": "WRITE. Book one hotel for the stranded traveler. Requires the confirmed rebook_ref returned by rebook_flight; never guess it.",
-     "input_schema": _object({"hotel_id": TEXT, "rebook_ref": TEXT, "nights": {"type": "integer"}, "guest": TEXT}, ["hotel_id", "rebook_ref", "nights", "guest"])},
-    {"name": "notify_traveler", "description": "WRITE. Send the traveler the final itinerary. Requires both the rebook_ref and the hotel_ref returned by the earlier writes.",
-     "input_schema": _object({"traveler_id": TEXT, "rebook_ref": TEXT, "hotel_ref": TEXT, "channel": TEXT}, ["traveler_id", "rebook_ref", "hotel_ref"])},
-] if tool]
+# ======================================================================================
+# TODO 2 of 5 - the concurrent executor (stage 2).
+# `run_one(call)` runs ONE tool call and returns its tool_result block. Run all the calls at the same time on a thread pool with up to
+# 8 workers, and return the results in the SAME ORDER as the calls (the API needs every result, matched by id, in one message).
+# ======================================================================================
+def run_concurrently(run_one, calls):
+    raise NotImplementedError("TODO 2: run the calls on a thread pool")  # replace these lines in TODO 2
 
 
-def request_text(scenario):
-    traveler = scenario["travelers"]["T-1001"]
-    return (f"Flight {scenario['flight']['flight_no']} ({scenario['flight']['route']}) is cancelled. Traveler T-1001 {traveler['name']}, "
-            f"PNR {traveler['pnr']}. Rebook them, book a hotel at LHR for 2026-10-03 (1 night), and notify them.")
+# ======================================================================================
+# TODO 3 of 5 - the write gate (stage 3).
+# Called before every WRITE. `name` and `args` are the call, `state.succeeded` holds the tools that already returned OK, and
+# `state.refs` holds the references that tools returned. DEPENDS_ON says which tools a write needs first.
+# Return None when the call may run. Otherwise return a dict with error, retryable (False), message and hint:
+#   error "PREREQUISITE_NOT_MET"  when a tool in DEPENDS_ON[name] has not succeeded yet;
+#   error "UNKNOWN_REFERENCE"     when an argument whose name ends in _ref is not a reference that a tool returned.
+# ======================================================================================
+def gate(name, args, state):
+    raise NotImplementedError("TODO 3: check the prerequisites and the references")  # replace these lines in TODO 3
 
 
-# ----------------------------------------------------------------------------------------------
-# STEP 2: running the tools Claude asked for
-# ----------------------------------------------------------------------------------------------
-class RunState:
-    """Facts about this conversation (provided). `succeeded`: tool names that returned OK. `refs`: references tools returned."""
-
-    def __init__(self):
-        self.succeeded = set()
-        self.refs = set()
-
-
-def tool_result(tool_call, content, is_error=False):
-    """One tool_result block. tool_use_id MUST equal the id of the tool_use block it answers."""
-    block = {"type": "tool_result", "tool_use_id": tool_call.id, "content": content if isinstance(content, str) else json.dumps(content)}
-    if is_error:
-        block["is_error"] = True
-    return block
+# ======================================================================================
+# TODO 4 of 5 - the idempotency key and the timeout result (stage 4).
+# key_for(name, args): the same tool with the same arguments must always give the same key, whatever the order of the arguments.
+# Hash json.dumps({"tool": name, "args": args}, sort_keys=True) with SHA-256 and keep the first 16 hex characters.
+# timeout_result(name, error): a dict with error "TIMEOUT", retryable True, outcome_unknown True, message (the error text) and a hint
+# that says the write may or may not have been applied, and that a retry with IDENTICAL arguments is safe.
+# ======================================================================================
+def key_for(name, args):
+    raise NotImplementedError("TODO 4: build the idempotency key")  # replace these lines in TODO 4
 
 
-def idempotency_key(name, args):
-    """Same tool + same arguments -> same key, so a retry of an unacknowledged write is replayed, not repeated."""
-    canonical = json.dumps({"tool": name, "args": args}, sort_keys=True)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+def timeout_result(name, error):
+    raise NotImplementedError("TODO 4: build the structured timeout result")  # replace these lines in TODO 4
 
 
-def call_one(services, tool_call, state):
-    try:
-        # TODO C1: a timed-out write may or may not have been applied. Retrying the same arguments must not book
-        #          twice. Pass a deterministic idempotency_key= to services.call (use idempotency_key() above, for writes only).
-        output = services.call(tool_call.name, dict(tool_call.input))
-        state.succeeded.add(tool_call.name)
-        if isinstance(output, dict) and output.get("ref"):
-            state.refs.add(output["ref"])
-        return tool_result(tool_call, output)
-    except ServiceTimeout as error:
-        # TODO C2: return a STRUCTURED error that tells the model the outcome is unknown and that retrying with
-        #          identical arguments is safe. Keys: error, retryable, outcome_unknown, message, hint. is_error=True.
-        return tool_result(tool_call, f"Error: {error}", True)
-    except Exception as error:
-        return tool_result(tool_call, {"error": type(error).__name__, "retryable": False, "message": str(error)}, True)
-
-
-
-
-def run_tools(services, tool_calls, state):
-    """Return ONE tool_result block per tool_use, in the order the tool_use blocks were requested."""
-    # TODO B: the starter runs EVERYTHING at once. Run READ_ONLY tools concurrently, but run writes one at a time in
-    #         request order, and only when every tool in DEPENDS_ON[tool] already succeeded AND every *_ref argument is
-    #         a reference a tool actually returned (state.refs). Otherwise do NOT call the service: return an is_error
-    #         result with error PREREQUISITE_NOT_MET (or UNKNOWN_REFERENCE) and a hint.
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = [pool.submit(call_one, services, c, state) for c in tool_calls]
-        return [f.result() for f in futures]
-
-
-# ----------------------------------------------------------------------------------------------
-# STEP 3: the loop. `create` is claude_client.ask (or any function with the same signature).
-# ----------------------------------------------------------------------------------------------
-def run_agent(create, services, user_text, max_turns=None):
-    max_turns = max_turns or DEFAULT_MAX_TURNS
+# ======================================================================================
+# THE AGENT LOOP (given, except TODO 5)
+# take_turn makes one model call and, when the model asked for tools, answers ALL of them in ONE user message.
+# ======================================================================================
+def run_agent(create, services, user_text, stage, max_turns=10):
+    state, log = core.RunState(), core.new_log()
     messages = [{"role": "user", "content": user_text}]
-    trace, tool_results = [], []
-    state = RunState()
+    # ======================================================================================
+    # TODO 5 of 5 - the iteration guard (stage 5).
+    # The loop below can run forever if the model never stops asking for tools. Run at most max_turns turns, and when the
+    # limit is reached return {"turns": max_turns, "stopped": "max_turns", "final_text": "", **log}.
+    # ======================================================================================
     turn = 0
-    while True:  # TODO D: bound the loop by max_turns and return stopped="max_turns" when it is reached
+    while True:
         turn += 1
-        response = create(messages, system=SYSTEM, tools=TOOLS, max_tokens=1024)
-        tool_calls = tool_calls_of(response)
-        trace.append({"turn": turn, "stop_reason": response.stop_reason, "tools": [c.name for c in tool_calls]})
-        if response.stop_reason != "tool_use" or not tool_calls:
-            return {"turns": turn, "stopped": "end_turn", "final_text": text_of(response), "trace": trace,
-                    "tool_results": tool_results, "messages": messages}
-        messages.append({"role": "assistant", "content": response.content})
-        results = run_tools(services, tool_calls, state)
-        names_by_id = {c.id: c.name for c in tool_calls}
-        for result in results:
-            tool_results.append({"turn": turn, "tool": names_by_id.get(result["tool_use_id"], "?"), "tool_use_id": result["tool_use_id"],
-                                 "is_error": bool(result.get("is_error")), "content": result["content"]})
-        # TODO A: ALL results of one assistant turn go back in ONE user message (tool_result blocks first).
-        for result in results:
-            messages.append({"role": "user", "content": [result]})
+        done = core.take_turn(create, services, state, messages, log, stage, turn)
+        if done:
+            return done
+
+
+# ======================================================================================
+# PLUMBING - do not edit below this line
+# ======================================================================================
+core.configure(loyalty_tool=LOYALTY_TIER_TOOL, run_concurrently=run_concurrently, gate=gate, key_for=key_for,
+               timeout_result=timeout_result, run_agent=run_agent)
 
 
 def main():
-    from claude_client import ask
-
-    scenario = load_scenario(HERE / "data" / "scenario.json")
-    services = TravelServices(scenario)
-    result = run_agent(ask, services, request_text(scenario))
-    analysis = analyse(services.events, services.ledger())
-
-    print("turn trace:")
-    for step in result["trace"]:
-        print(f"  turn {step['turn']}: stop_reason={step['stop_reason']:<9} tools={step['tools']}")
-    print("\nfinal answer:", result["final_text"])
-    print("\nledger:", {k: len(v) for k, v in services.ledger().items()})
-    print("analysis:", analysis)
-
-    EVIDENCE_FILE.parent.mkdir(exist_ok=True)
-    EVIDENCE_FILE.write_text(json.dumps({"result": {k: v for k, v in result.items() if k != "messages"}, "analysis": analysis,
-                                         "ledger": services.ledger()}, indent=2, default=str), encoding="utf-8")
-    print("\nsaved evidence/evidence.json - now run: python check.py")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--stage", required=True, choices=["1", "2", "3", "4", "5"])
+    args = parser.parse_args()
+    core.run_stage(int(args.stage))
 
 
 if __name__ == "__main__":

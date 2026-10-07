@@ -1,225 +1,99 @@
-"""LAB 2.3 - Payroll agent: typed tool errors, bounded retries, escalation.
+"""Lab 2.3 - Payroll agent: make tool failures typed, bounded and safe, one stage at a time.
 
-Run:   python lab.py [--only S4]     (needs an API key; 6 short agent runs, a few cents)
-Check: python check.py               (Part A needs NO key: it tests your code directly)
+This lab continues Demo 2B (the same method: run the loop, break it, harden it, and read the ledger), on the payroll adjustment agent.
+The agent applies one-off pay adjustments. Its first version shows the model a bare error string and retries every failure blindly.
 
-What you build (search for TODO):
-  Section 2  TODO 1-5  error catalog, retry policy table, structured tool_result, approval request
-  Section 3  TODO A-D  execute_with_policy: bounded retry, no repeats, escalate permission errors
-Sections 1 and 4 are given: the tools and the agent loop (read them, they are short).
-payroll_db.py is a mock back end (do not edit); its clock is simulated, so waiting costs nothing.
+WHAT YOU EDIT (five places, each marked "TODO n of 5"; the guide in README.md gives the exact code for each)
+  TODO 1  ERROR_CATALOG          -> stage 2: one typed entry per error code
+  TODO 2  to_tool_result         -> stage 2: the JSON the model sees instead of a bare string
+  TODO 3  RETRY_POLICY, policy_for -> stage 3: which errors are retried, how often, how long to wait
+  TODO 4  build_approval_request -> stage 4: the request a human approver receives
+  TODO 5  preflight              -> stage 5: check a conversation before it is sent
+
+HOW TO RUN (in order)
+  python lab.py --stage 1      the raw loop: the baseline (needs no code from you)
+  python lab.py --stage 2      typed errors
+  python lab.py --stage 3      bounded retry
+  python lab.py --stage 4      escalation
+  python lab.py --stage 5      preflight, and the final gate
+  python check.py              pass/fail in plain words
+Add --only S4 to run one ticket only.
 """
 import argparse
 import json
-import pathlib
-from dataclasses import dataclass, field
+from collections import defaultdict
 
-from claude_client import MODEL_BALANCED, ask, text_of, tool_calls_of, print_usage
-from payroll_db import PayrollDB, PayrollError, SimClock
-
-HERE = pathlib.Path(__file__).parent
-RUNAWAY_CAP = 12  # safety net so the starter ends; a correct policy never needs it
+import payroll_core as core
+from payroll_core import RetryPolicy
 
 
-# ---------------------------------------------------------------- 1. TOOLS (given)
-def _schema(props, required):
-    return {"type": "object", "properties": props, "required": required, "additionalProperties": False}
+# ======================================================================================
+# TODO 1 of 5 - the error catalog (stage 2).
+# One entry per error code: category (tool | input | permission | environment), retryable (True or False),
+# action (a short verb phrase) and hint. The hint tells the MODEL what to do, and may contain {placeholders}
+# that are filled from the error's details, for example {next_open_period}.
+# ======================================================================================
+ERROR_CATALOG = {}  # replace these lines in TODO 1
 
 
-S = {"type": "string"}
-TOOL_SCHEMAS = [
-    {"name": "lookup_employee",
-     "description": "Look up one employee by id (format E####). Returns name, department and status. Read-only and safe to repeat.",
-     "input_schema": _schema({"employee_id": S}, ["employee_id"])},
-    {"name": "check_pay_period",
-     "description": "Return the status (open|closed) of a pay period (YYYY-MM) and the next open period that can still accept adjustments. Read-only.",
-     "input_schema": _schema({"period": S}, ["period"])},
-    {"name": "apply_adjustment",
-     "description": ("Apply a one-off pay adjustment (positive = pay, negative = deduction) to an employee for an open pay period. "
-                     "Writes to the payroll ledger. Safe to retry ONLY with the same idempotency_key. "
-                     "Errors come back as JSON with error_code, category, retryable, hint."),
-     "input_schema": _schema({"employee_id": S, "period": S, "amount_cents": {"type": "integer"}, "reason": S, "idempotency_key": S},
-                             ["employee_id", "period", "amount_cents", "reason", "idempotency_key"])},
-]
+# ======================================================================================
+# TODO 2 of 5 - the structured tool_result (stage 2).
+# exc is a PayrollError with .code, .message and .details. Return json.dumps of a dict with the keys
+# error_code, category, retryable, message, hint and details, with sort_keys=True.
+# `extra` is merged into details. `retryable` and `hint`, when given, override the catalog (the harness uses them when retries run out).
+# An unknown code uses the UNEXPECTED_ERROR entry, and a hint placeholder with no value must not crash.
+# ======================================================================================
+def to_tool_result(exc, extra=None, retryable=None, hint=None):
+    raise NotImplementedError("TODO 2: build the structured tool_result")  # replace these lines in TODO 2
 
 
-# ---------------------------------------------------------------- 2. ERROR TAXONOMY (you)
-@dataclass(frozen=True)
-class RetryPolicy:
-    """max_attempts counts the first try. Wait before retry k (k = attempts so far, from 1)
-    is min(base_delay_s * factor ** (k - 1), max_delay_s)."""
-    max_attempts: int = 1
-    base_delay_s: float = 0.0
-    factor: float = 2.0
-    max_delay_s: float = 0.0
-
-
-def delay_before_retry(policy, attempts_made):
-    return min(policy.base_delay_s * policy.factor ** (attempts_made - 1), policy.max_delay_s)
-
-
-# TODO 1: one entry per error code: {"category": tool|input|permission|environment, "retryable": bool, "action": short verb phrase, "hint": template}
-#   Codes: PAY_PERIOD_CLOSED, EMPLOYEE_NOT_FOUND, HR_APPROVAL_REQUIRED, PAYROLL_DB_LOCKED, and UNEXPECTED_ERROR (fail-closed fallback).
-#   A hint may contain {placeholders} filled from exc.details, e.g. {next_open_period}. Write hints that tell the model WHAT TO DO.
-ERROR_CATALOG = {}
-
-# TODO 2: retry table. Which codes are worth retrying, how many attempts in total, what backoff? Everything else gets DEFAULT_POLICY.
-RETRY_POLICY = {}
+# ======================================================================================
+# TODO 3 of 5 - the retry table (stage 3).
+# RETRY_POLICY maps an error code to a RetryPolicy(max_attempts, base_delay_s, factor, max_delay_s). Only the transient code
+# PAYROLL_DB_LOCKED is worth retrying: 4 attempts in total, waiting 1 second, then 2, then 4 (never more than 8).
+# policy_for returns the policy of a code, and an unknown code must FAIL CLOSED: one attempt, no retry (DEFAULT_POLICY).
+# ======================================================================================
 DEFAULT_POLICY = RetryPolicy(max_attempts=1)
+RETRY_POLICY = {}  # replace this line in TODO 3
 
 
 def policy_for(code):
-    # TODO 3: look the code up in RETRY_POLICY. An unknown code must FAIL CLOSED (one attempt, no retry).
-    return RetryPolicy(max_attempts=10**6, base_delay_s=1.0, factor=1.0, max_delay_s=1.0)  # DEFECT: retries anything
+    raise NotImplementedError("TODO 3: look the code up in RETRY_POLICY")  # replace this line in TODO 3
 
 
-def to_tool_result(exc, extra=None, retryable=None, hint=None):
-    """Turn a PayrollError into the JSON string the model sees as tool_result content.
-    extra is merged into "details"; retryable / hint override the catalog (used when retries run out)."""
-    # TODO 4: return json.dumps of {"error_code", "category", "retryable", "message", "hint", "details"}, sort_keys=True.
-    #   Unknown codes use the UNEXPECTED_ERROR entry. Fill the hint template from exc.details (missing keys must not crash).
-    return f"Error: {exc.message}"  # DEFECT: a bare string, nothing the model can branch on
-
-
+# ======================================================================================
+# TODO 4 of 5 - the approval request (stage 4).
+# When an adjustment is above the approval threshold, the harness hands a human approver a COMPLETE request. Return a dict with
+# type "hr_approval_request", request_id "HRA-" + the call's idempotency_key, status "PENDING", error_code, required_role,
+# employee_id, period, amount_cents, currency "USD", threshold_cents, reason, requested_by "payroll-agent",
+# and original_call {tool, idempotency_key}. The amounts and the role are in exc.details.
+# ======================================================================================
 def build_approval_request(tool_name, args, exc):
-    """The structured request handed to a human approver when a permission error happens."""
-    # TODO 5: return a COMPLETE dict. Keys: type "hr_approval_request", request_id "HRA-" + idempotency_key, status "PENDING",
-    #   error_code, required_role, employee_id, period, amount_cents, currency "USD", threshold_cents, reason,
-    #   requested_by "payroll-agent", original_call {tool, idempotency_key}.
-    return {}
+    raise NotImplementedError("TODO 4: build the approval request")  # replace these lines in TODO 4
 
 
-# ---------------------------------------------------------------- 3. EXECUTION POLICY (you)
-@dataclass
-class RunContext:
-    """Per-scenario recorder (given)."""
-    scenario_id: str
-    trace: list = field(default_factory=list)  # one entry per attempt that reached the DB
-    results: list = field(default_factory=list)  # what the model saw
-    escalations: list = field(default_factory=list)
-    final_failures: dict = field(default_factory=dict)  # canonical call -> final error content
-    runaway: bool = False
+# ======================================================================================
+# TODO 5 of 5 - the preflight (stage 5).
+# Return a list of problems with a conversation BEFORE it is sent (an empty list means it is fine). The tool_result contract:
+# after an assistant message, the next user message must answer exactly the tool_use ids that the assistant asked for, one
+# tool_result each, and the tool_result blocks must come first in that message. Messages hold either a string or a list of blocks.
+# ======================================================================================
+def preflight(messages):
+    raise NotImplementedError("TODO 5: check the tool_use and tool_result ids")  # replace these lines in TODO 5
 
 
-def run_tool(db, name, args):
-    """Run one tool call on the mock DB. Never raises. Returns (content, is_error, exception or None)."""
-    handlers = {"lookup_employee": db.lookup_employee, "check_pay_period": db.check_pay_period, "apply_adjustment": db.apply_adjustment}
-    try:
-        if name not in handlers:
-            raise PayrollError(f"Unknown tool {name}")
-        return json.dumps(handlers[name](**args), sort_keys=True), False, None
-    except PayrollError as exc:
-        return to_tool_result(exc), True, exc
-    except TypeError as exc:  # the model sent bad arguments
-        wrapped = PayrollError(f"Invalid arguments for {name}: {exc}")
-        return to_tool_result(wrapped), True, wrapped
-
-
-def execute_with_policy(db, clock, name, args, ctx):
-    """Run one tool call under the retry policy. Returns (tool_result content, is_error)."""
-    # TODO A: if this exact call already failed for good (ctx.final_failures), do NOT touch the DB: return the stored error with details.repeat_blocked = true.
-    # TODO B: retry only codes whose policy allows it; wait clock.sleep(delay_before_retry(...)) between attempts; stop at policy.max_attempts.
-    # TODO C: when the budget is spent, return the error with retryable=False, details {attempts, retries_exhausted: true} and a hint telling the model to stop.
-    # TODO D: permission errors are NEVER retried: build_approval_request(...), append to ctx.escalations, put its request_id in details.approval_request_id.
-    attempt = 0
-    while True:
-        attempt += 1
-        content, is_error, exc = run_tool(db, name, args)
-        ctx.trace.append({"tool": name, "attempt": attempt, "kind": "db", "error_code": exc.code if exc else None})
-        if not is_error:
-            return content, False
-        if attempt >= RUNAWAY_CAP:  # DEFECT: every error is treated as "maybe transient"
-            ctx.runaway = True
-            return content, True
-        clock.sleep(1.0)
-
-
-# ---------------------------------------------------------------- 4. AGENT LOOP (given)
-SYSTEM = """You are the payroll adjustment agent. Apply the requested adjustment with the tools.
-Tool failures arrive as is_error tool_results containing JSON: error_code, category, retryable, message, hint, details.
-Rules: follow the hint; never repeat a call whose error says retryable=false; never work around an approval requirement.
-Use the ticket key as idempotency_key and convert dollars to cents. When done, reply with ONE JSON object and nothing else:
-{"status": "applied|offer_next_period|needs_input|escalated|failed_transient|failed", "summary": "<one sentence>",
- "next_period": "<YYYY-MM or null>", "approval_request_id": "<id or null>"}"""
-
-
-def request_text(sc):
-    return (f"Payroll ticket {sc['key']}: apply a ${sc['amount']} adjustment ({sc['reason']}) "
-            f"to employee {sc['employee_id']} for pay period {sc['period']}.")
-
-
-def run_agent(db, clock, ctx, user_text, max_turns=8):
-    """Standard manual tool loop: call Claude, run each tool_use through execute_with_policy, send ALL results back in ONE user message."""
-    messages = [{"role": "user", "content": user_text}]
-    for turn in range(1, max_turns + 1):
-        response = ask(messages, system=SYSTEM, tools=TOOL_SCHEMAS, model=MODEL_BALANCED, max_tokens=2048)
-        calls = tool_calls_of(response)
-        if response.stop_reason != "tool_use" or not calls:
-            return {"turns": turn, "stopped": "end_turn", "final_text": text_of(response)}
-        messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in response.content]})
-        results = []
-        for call in calls:
-            content, is_error = execute_with_policy(db, clock, call.name, dict(call.input), ctx)
-            ctx.results.append({"tool": call.name, "is_error": is_error, "content": content})
-            block = {"type": "tool_result", "tool_use_id": call.id, "content": content}
-            if is_error:
-                block["is_error"] = True
-            results.append(block)
-        messages.append({"role": "user", "content": results})
-    return {"turns": max_turns, "stopped": "max_turns", "final_text": ""}
-
-
-def parse_final(text):
-    try:
-        start, end = text.index("{"), text.rindex("}") + 1
-        obj = json.loads(text[start:end])
-        return obj if isinstance(obj, dict) else {}
-    except ValueError:
-        return {}
-
-
-def export_catalog():
-    return {"errors": {c: {k: v for k, v in e.items() if k != "hint"} for c, e in sorted(ERROR_CATALOG.items())},
-            "retry_table": {c: {"max_attempts": p.max_attempts, "base_delay_s": p.base_delay_s, "factor": p.factor, "max_delay_s": p.max_delay_s}
-                            for c, p in sorted(RETRY_POLICY.items())}}
+# ======================================================================================
+# PLUMBING - do not edit below this line
+# ======================================================================================
+core.configure(to_tool_result=to_tool_result, policy_for=policy_for, build_approval_request=build_approval_request, preflight=preflight)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--only")
+    parser.add_argument("--stage", required=True, choices=["1", "2", "3", "4", "5"])
+    parser.add_argument("--only", help="run one ticket only, for example S4")
     args = parser.parse_args()
-    scenarios = json.loads((HERE / "data" / "scenarios.json").read_text(encoding="utf-8"))
-    clock = SimClock()
-    db = PayrollDB(clock)
-    out = {"scenarios": {}, "matrix": []}
-    print(f"model: {MODEL_BALANCED}")
-    for sc in scenarios:
-        if args.only and sc["id"] != args.only:
-            continue
-        db.arm_lock(sc["lock"])
-        calls0, sleeps0 = len(db.calls), len(clock.sleeps)
-        ctx = RunContext(sc["id"])
-        run = run_agent(db, clock, ctx, request_text(sc))
-        final = parse_final(run["final_text"])
-        status = final.get("status", "unparseable" if run["stopped"] == "end_turn" else "max_turns")
-        db_calls = [list(c) for c in db.calls[calls0:]]
-        sleeps = clock.sleeps[sleeps0:]
-        out["scenarios"][sc["id"]] = {"title": sc["title"], "expected_status": sc["expected_status"], "status": status, "final": final,
-                                      "turns": run["turns"], "trace": ctx.trace, "results": ctx.results, "db_calls": db_calls,
-                                      "sleeps": sleeps, "escalations": ctx.escalations, "runaway": ctx.runaway}
-        out["matrix"].append({"scenario": sc["id"], "db_calls": len(db_calls), "sleep_total_s": round(sum(sleeps), 2),
-                              "status": status, "expected": sc["expected_status"], "escalations": len(ctx.escalations)})
-        db.arm_lock(0)
-    out["db_final"] = {"adjustment_keys": sorted(db.adjustments)}
-    out["catalog"] = export_catalog()
-    print(f"\n{'scn':<4}{'db_calls':>9}{'sleep_s':>9}  {'status':<18}{'expected':<18}esc")
-    for r in out["matrix"]:
-        print(f"{r['scenario']:<4}{r['db_calls']:>9}{r['sleep_total_s']:>9.2f}  {r['status']:<18}{r['expected']:<18}{r['escalations']}")
-    print(f"\nadjustments written: {out['db_final']['adjustment_keys']}")
-    evidence = HERE / "evidence" / "evidence.json"
-    evidence.parent.mkdir(exist_ok=True)
-    evidence.write_text(json.dumps(out, indent=2), encoding="utf-8")
-    print("saved evidence/evidence.json - now run: python check.py")
+    core.run_stage(int(args.stage), args.only)
 
 
 if __name__ == "__main__":

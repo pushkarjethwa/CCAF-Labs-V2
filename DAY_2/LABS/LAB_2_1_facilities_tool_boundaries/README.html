@@ -1,0 +1,337 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Fix the Tool Boundaries of the Facilities Assistant</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP</header><main><h1>Fix the tool boundaries of the facilities assistant</h1>
+<p>In Demo 2A, you watched a retailer's assistant with 12 overlapping tools pick the wrong tool for requests that any person would route correctly. The team did not change the model or the prompt. They measured the problem on 20 prompts, and then fixed the tools in steps: they rewrote the descriptions, consolidated duplicates behind enum parameters, removed what duplicated another tool, and gave each desk only the tools it needs. After every step, the same prompts were sent again and the score was printed. In this lab, you make the same five changes to the campus facilities assistant, and you write five small pieces along the way.</p>
+<p>You will complete five pieces of <strong>lab.py</strong>, which add up to 51 lines of code. The lab takes about 35 minutes, and this guide gives you every line. At the end, the assistant has six tools instead of eleven, each desk sees two to four of them, and a gate fails the build if someone adds the old duplicates back.</p>
+<p>This lab continues Demo 2A, so you will recognize the following:</p>
+<ul>
+<li>The method: the same prompts every stage, <code>tool_choice</code> set to <code>auto</code> (never forced), the tool that the model picked graded against the expected one, and a list of confusion pairs after each run.</li>
+<li>The fix order: descriptions first, then consolidation, then removal, then scoping. Each step is cheaper to undo than the next.</li>
+<li>The new failure that scoping brings: if a request lands at a desk that does not have the right tool, it cannot be answered.</li>
+<li>The gate: a change to tools is a code change, and it needs the eval.</li>
+</ul>
+<p>The facilities assistant has 11 tools, most with two-word descriptions such as &quot;Look up a room.&quot; and &quot;Open a ticket.&quot; There are 16 prompts across three desks: workplace booking, the maintenance desk, and the security desk. The eval grades the capability that the chosen tool reaches (for example <code>room.search</code> or <code>ticket.log</code>), so you may rename and merge tools freely.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_1_facilities_tool_boundaries</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Write the call that every stage uses</h2>
+<p>In this section, you write the Claude API call with tools. Every stage sends each prompt, together with that stage's tools, through this function.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 5</strong>. Below it is a function named <code>ask_with_tools</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 1: call Claude with the tools&quot;)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    return get_client().messages.create(
+        model=model,
+        max_tokens=1024,
+        system=core.SYSTEM,
+        tools=tools,
+        tool_choice={&quot;type&quot;: &quot;auto&quot;},
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: prompt}],
+    )
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>tools</code> is a list of tool definitions. The model sees only each tool's <code>name</code>, <code>description</code> and <code>input_schema</code>. It never sees your code.</li>
+<li><code>tool_choice={&quot;type&quot;: &quot;auto&quot;}</code> lets the model decide which tool to call, or none. A forced choice is rejected by the 5.5 models, and it would hide the confusion that you are measuring.</li>
+<li>The reply holds <code>tool_use</code> blocks. The harness reads the first one and grades the capability that it reaches.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the five <strong>TODO 1</strong> checks pass. The other checks still fail.</p>
+</li>
+</ol>
+<h2>Run stage 1: the baseline</h2>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each row is one prompt. For each model, it shows the tool that was picked and whether the capability was right.</li>
+<li>The confusion pairs list what was expected and what was picked. Each pair is a backlog item.</li>
+<li>The lint line counts structural problems that need no model: descriptions without &quot;when not to use&quot;, two tools for one capability, too many tools.</li>
+<li>Modern models handle many ambiguous tools better than older ones, so the score may already be high. Read the confusion pairs and the lint, and report the real numbers.</li>
+</ul>
+</li>
+</ol>
+<h2>Rewrite the descriptions</h2>
+<p>In this section, you rewrite the description of each legacy tool. A tool is a small piece of documentation that happens to be executable, so the description is the cheapest lever. Each new description says what the tool does, when to use it, and when not to, and it names the sibling tool to use instead.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 5</strong>. Below it is the line <code>DESCRIPTIONS = {}</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>DESCRIPTIONS = {}  # replace these lines in TODO 2</code> with the following code:</p>
+<div class="cb"><pre><code class="language-python">DESCRIPTIONS = {
+    &quot;room_lookup&quot;: &quot;Read the facts of ONE named room: seating capacity, AV equipment, wheelchair accessibility and which floor it is on. Use when the request names a room such as Harbor 3 or Birch and asks about its facilities. Do NOT use to find rooms that are free (use space_search), to hold or book a room (use reserve_slot or book_room), or for tagged equipment (use asset_lookup).&quot;,
+    &quot;space_search&quot;: &quot;Search for rooms that are free in a time window and match criteria such as minimum seats, whiteboard or floor. Use when no specific room is named and the user wants options to choose from. Do NOT use for facts about one named room (use room_lookup), or to hold or confirm a booking (use reserve_slot or book_room).&quot;,
+    &quot;find_room&quot;: &quot;Resolve ONE room from a partial or misspelled name and return the matching room with its facts. Use when the name given is only approximate, for example 'the big harbor room'. Do NOT use when the exact room name is known (use room_lookup) or to search by time window or capacity (use space_search).&quot;,
+    &quot;book_room&quot;: &quot;Create a confirmed, binding reservation for a named room and time slot, and send calendar invites. Use when the user explicitly wants the booking locked in, confirmed or finalized. Do NOT use for tentative holds or pencil-ins (use reserve_slot), for searching free rooms (use space_search), or for room facts (use room_lookup).&quot;,
+    &quot;reserve_slot&quot;: &quot;Place a tentative hold of about 15 minutes on a named room and slot; it expires by itself and sends no invites. Use when the user wants to pencil a room in while they check with others. Do NOT use for a confirmed reservation (use book_room) or to search for rooms (use space_search).&quot;,
+    &quot;ticket_create&quot;: &quot;Open a NEW repair request for a fault that has no ticket yet, with a summary, a location and a severity. Use when something is broken or faulty, for example a flickering projector. Do NOT use to list existing tickets (use ticket_open), to add a note to a ticket (use maintenance_log), or to look up equipment history (use asset_lookup).&quot;,
+    &quot;ticket_open&quot;: &quot;List every unresolved (open) maintenance ticket for a building. Use when someone asks what is outstanding, unresolved or still open in a building. Do NOT use to create a new ticket (use ticket_create) or to add a note to an existing ticket id (use maintenance_log).&quot;,
+    &quot;maintenance_log&quot;: &quot;Append a work note and labour minutes to an EXISTING ticket id. Use when a technician reports work performed on a ticket such as MT-2291. Do NOT use to open a new ticket (use ticket_create) or to list open tickets (use ticket_open).&quot;,
+    &quot;asset_lookup&quot;: &quot;Look up ONE tagged piece of equipment by asset tag or unit name: warranty expiry, last service date, installed condition and install location. Use when the question is about the history or status of a chiller, projector or other tagged asset. Do NOT use to report a fault (use ticket_create), to find a contractor (use vendor_lookup), or for facts about a room (use room_lookup).&quot;,
+    &quot;vendor_lookup&quot;: &quot;Look up approved vendors and contractors: trade, contact, emergency callout number, approval status and insurance certificate expiry. Use when someone needs to know who the approved contractor is for a trade, or whether a named company is approved and insured. Do NOT use to give a contractor building access (use badge_grant) or to log work (use maintenance_log).&quot;,
+    &quot;badge_grant&quot;: &quot;Grant physical building access to a person for named zones and a date range: new hires, employees changing floors, and visiting technicians or contractors. Use when someone must be able to enter a floor, lab or plant room. Do NOT use to check whether a vendor is approved (use vendor_lookup) or to read room facts (use room_lookup).&quot;,
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The names and parameters of the tools do not change. Only the descriptions do.</li>
+<li><code>ticket_open</code> is a misleading name: it lists unresolved tickets, and it does not open one. The description says so.</li>
+<li>Every &quot;Do NOT use&quot; names the sibling tool to use instead. That is what separates two tools that sound alike.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 2:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The lint count rises, because the three description checks now pass. The tool count and the duplicate checks still fail.</li>
+<li>The definition tokens per request rise too. Better descriptions cost tokens on every request, which is the price of clarity.</li>
+</ul>
+</li>
+</ol>
+<h2>Consolidate the duplicates</h2>
+<p>In this section, you merge the room tools and the ticket tools into two tools, each with an <code>action</code> enum. When two tools do the same kind of operation on a different key, one tool with an enum gives the model one decision instead of four. The binding <code>book_room</code> stays separate, because it is the one action that commits a reservation and sends invites.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 5</strong>. Below it are the lines <code>CONSOLIDATED = []</code> and <code>CONSOLIDATED_MAP = {}</code>.</p>
+</li>
+<li>
+<p>Replace the two lines <code>CONSOLIDATED = []  # replace these lines in TODO 3</code> and <code>CONSOLIDATED_MAP = {}</code> with the following code:</p>
+<div class="cb"><pre><code class="language-python">CONSOLIDATED = [
+    core.tool(
+        &quot;space&quot;,
+        &quot;Read and hold meeting rooms and spaces. Use when someone wants to find rooms that are free for a time window and match criteria, to read facts about one known room (seating capacity, AV equipment, accessibility, which floor), or to pencil in a tentative hold on a known room. Do NOT use this tool to confirm a reservation or send invites (use book_room), to report broken equipment (use maintenance_ticket), or to look up tagged equipment (use asset_lookup).&quot;,
+        {&quot;action&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;search&quot;, &quot;get&quot;, &quot;hold&quot;],
+                    &quot;description&quot;: &quot;search: find free rooms for a time window by minimum seats, whiteboard or floor, when no room is named; get: facts about one named room; hold: tentative auto-releasing hold on a named room, never confirmed&quot;},
+         &quot;room&quot;: S, &quot;start&quot;: S, &quot;end&quot;: S, &quot;min_capacity&quot;: {&quot;type&quot;: &quot;integer&quot;}, &quot;floor&quot;: S, &quot;equipment&quot;: S},
+        [&quot;action&quot;]),
+    core.tool(
+        &quot;maintenance_ticket&quot;,
+        &quot;Work with facility repair requests. Use when something is broken and needs a new repair request, when someone wants every unresolved request for a building, or when a technician note or labour minutes must be added to an existing ticket id. Do NOT use this tool to look up warranty or service history of equipment (use asset_lookup), to find a contractor (use vendor_lookup), or to book rooms.&quot;,
+        {&quot;action&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;enum&quot;: [&quot;create&quot;, &quot;list_open&quot;, &quot;log&quot;],
+                    &quot;description&quot;: &quot;create: open a new repair request for a fault; list_open: list unresolved requests for a building; log: append a technician note and labour minutes to an existing ticket id&quot;},
+         &quot;summary&quot;: S, &quot;location&quot;: S, &quot;severity&quot;: S, &quot;building&quot;: S, &quot;ticket_id&quot;: S, &quot;note&quot;: S, &quot;minutes&quot;: {&quot;type&quot;: &quot;integer&quot;}},
+        [&quot;action&quot;]),
+]
+CONSOLIDATED_MAP = {
+    &quot;space:search&quot;: &quot;room.search&quot;,
+    &quot;space:get&quot;: &quot;room.get&quot;,
+    &quot;space:hold&quot;: &quot;room.hold&quot;,
+    &quot;maintenance_ticket:create&quot;: &quot;ticket.create&quot;,
+    &quot;maintenance_ticket:list_open&quot;: &quot;ticket.list_open&quot;,
+    &quot;maintenance_ticket:log&quot;: &quot;ticket.log&quot;,
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>core.tool(name, description, properties, required)</code> builds a tool definition in the Messages API shape.</li>
+<li>The <code>action</code> enum gives each operation a name: <code>search</code>, <code>get</code> and <code>hold</code> for rooms, and <code>create</code>, <code>list_open</code> and <code>log</code> for tickets.</li>
+<li><code>CONSOLIDATED_MAP</code> tells the grader which capability each <code>tool:action</code> reaches. When you rename or merge a tool, its map must follow, or the eval grades the wrong thing.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 3:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The model now sees 13 tools: the 11 old ones and your two new ones. Adding without removing is the sprawl that makes a toolset worse, and the confusion pairs may show the old and new tools competing.</li>
+<li>The definition tokens are the highest of all stages.</li>
+</ul>
+</li>
+</ol>
+<h2>Remove the old duplicates</h2>
+<p>In this section, you remove the seven legacy tools that the two consolidated tools replace. Every tool you keep is a candidate for every request, including requests it has nothing to do with.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 5</strong>. Below it is the line <code>REMOVE = []</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>REMOVE = []  # replace this line in TODO 4</code> with the following code:</p>
+<div class="cb"><pre><code class="language-python">REMOVE = [&quot;room_lookup&quot;, &quot;space_search&quot;, &quot;find_room&quot;, &quot;reserve_slot&quot;, &quot;ticket_create&quot;, &quot;ticket_open&quot;, &quot;maintenance_log&quot;]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The removed tools' map entries go too, so the map never points at a tool that does not exist.</li>
+<li>After this stage the toolset is <code>space</code>, <code>maintenance_ticket</code>, <code>book_room</code>, <code>asset_lookup</code>, <code>vendor_lookup</code> and <code>badge_grant</code>.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 4:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>All the lint checks now pass: every capability has exactly one route, and no two descriptions say the same thing.</li>
+<li>The definition tokens fall, and the model has six decisions to make instead of 13.</li>
+</ul>
+</li>
+</ol>
+<h2>Scope the tools per desk</h2>
+<p>In this section, you give each desk only the tools that it needs. A smaller list makes a wrong pick less likely and cuts the tokens of every request.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 5 of 5</strong>. Below it is the line <code>SCOPES = {}</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>SCOPES = {}  # replace these lines in TODO 5</code> with the following code:</p>
+<div class="cb"><pre><code class="language-python">SCOPES = {
+    &quot;workplace_booking&quot;: [&quot;space&quot;, &quot;book_room&quot;],
+    &quot;maintenance_desk&quot;: [&quot;maintenance_ticket&quot;, &quot;asset_lookup&quot;, &quot;vendor_lookup&quot;, &quot;space&quot;],
+    &quot;security_desk&quot;: [&quot;badge_grant&quot;, &quot;vendor_lookup&quot;, &quot;space&quot;],
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The keys are the three desks that the eval prompts come from.</li>
+<li><code>space</code> appears in all three desks, because the security desk also asks about rooms, such as how many people the server room holds. If you leave it out, that prompt becomes impossible to answer. That is the new failure that scoping brings.</li>
+<li>Each desk has two to four tools, and the limit is seven.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 5:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 5
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The tools offered per request fall to two to four, and the definition tokens fall with them.</li>
+<li>The progress table at the bottom shows every stage: the score, the tools, the tokens and the lint. The score may not have moved much with a strong model. The tools, the tokens and the lint did.</li>
+<li>A scope miss means that the right tool was not offered at that desk.</li>
+</ul>
+</li>
+</ol>
+<h2>Run the gate</h2>
+<ol>
+<li>
+<p>Run the gate by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage gate
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The gate scores the final toolset against the bar (85 percent for the balanced model and 75 percent for the fast model), and it fails on any scope miss or lint failure.</li>
+<li>A teammate then re-adds three legacy tools. The lint catches it with no model call, because two tools now reach the same capability. A change to tools is a code change, and it needs the eval.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 35/35 checks passed</code>.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: TODO 1 is not done yet.</li>
+<li><strong>Stage 3 shows no new tools</strong>: TODO 3 still holds the starter lines.</li>
+<li><strong>A prompt is a scope miss in stage 5</strong>: A desk is missing a tool that its prompts need. Check that <code>space</code> is in all three desks.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your scores differ from a classmate's</strong>: This is normal. Models give different answers between runs, and 16 prompts is a small sample. One prompt is more than six points.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2A used a retailer with 12 tools and 20 prompts, and its last step was a validated dispatch that refuses tools outside the desk, bad arguments and double refunds. The old version of this lab, with all the guesswork, is in <strong>_ARCHIVE_before_demo_alignment</strong>.</li>
+<li>The next lab, Lab 2.2, is about what happens after the model picks a tool: the loop, parallel reads, and safe writes.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

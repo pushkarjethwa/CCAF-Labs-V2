@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "procurement-literal-secret": {
+      "type": "http",
+      "url": "http://procurement.internal.example.com/mcp",
+      "headers": { "Authorization": "Bearer prk_approver_this_is_a_fake_literal_do_not_commit" }
+    },
+    "procurement-legacy-sse": {
+      "type": "sse",
+      "url": "https://procurement.internal.example.com/sse"
+    },
+    "procurement-stdio-literal": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["lab.py", "--serve"],
+      "env": { "PROC_API_KEY": "prk_approver_another_fake_literal_value" }
+    }
+  }
+}

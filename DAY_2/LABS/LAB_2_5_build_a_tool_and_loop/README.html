@@ -1,0 +1,282 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build a Tool and the Tool Loop</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP (optional extension lab)</header><main><h1>Build a tool and the tool loop</h1>
+<p>A library assistant needs facts that Claude cannot know: where a book is shelved and when a member's loan is due. In Demos 2B and 2C, you watched the tool-use loop as a state machine (<code>AWAITING_MODEL</code>, <code>EXECUTING_TOOLS</code>, <code>DONE</code>), you saw two tool results go back in one message, and you saw what happens when a tool fails. In this lab, you build one small version of that loop yourself, with the plain Anthropic SDK and no framework.</p>
+<p>You will complete four pieces of <strong>lab.py</strong>, which add up to about 30 lines of code. The lab takes about 25 to 30 minutes, and this guide gives you every line. It is an optional extension after Labs 2.1 to 2.4. At the end, four library questions run through your loop, Claude asks for the right tool, your code runs it, the answers are grounded in the data, and a failing tool or a model that never stops asking cannot break the loop.</p>
+<p>This lab continues Demos 2B and 2C, so you will recognize the following:</p>
+<ul>
+<li>The loop as a state machine. Each stage prints the states the loop went through, for example <code>AWAITING_MODEL -&gt; EXECUTING_TOOLS -&gt; AWAITING_MODEL -&gt; DONE</code>.</li>
+<li>Claude only asks for a tool. Your program runs it and sends the result back.</li>
+<li>Every <code>tool_use</code> is answered with one <code>tool_result</code> that carries the same id, and all results of one turn go back in one user message.</li>
+<li>A failing tool is a result that the model can read, flagged with <code>is_error</code>. It is not an exception that kills the run.</li>
+</ul>
+<p>The assistant has two tools: <code>find_book</code> (given, with its schema) and <code>check_due_date</code> (you write its schema). The data is tiny on purpose: two books and two loans.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_5_build_a_tool_and_loop</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Ask without tools</h2>
+<p>In this section, you ask the four questions with no tools at all. This needs no code from you.</p>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Claude cannot know a shelf code or a due date. It says so, or it guesses.</li>
+<li>The last line reads <code>RESULT: 1/4 answers grounded (no tools)</code>. Only the question about France is grounded, because it needs no tool.</li>
+<li>This is the number that your loop must move to 4 of 4.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the tool schema</h2>
+<p>In this section, you describe the second tool. The description is all that Claude knows about it, so it must say when to use the tool.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor, and read <strong>FIND_BOOK_TOOL</strong>. It is a finished example. Notice that its description says when to use it, and that it names the required input.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 4</strong>. Below it is the line <code>CHECK_DUE_DATE_TOOL = {}  # replace these lines in TODO 1</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code:</p>
+<div class="cb"><pre><code class="language-python">CHECK_DUE_DATE_TOOL = {
+    &quot;name&quot;: &quot;check_due_date&quot;,
+    &quot;description&quot;: &quot;Look up the due date of the book that one library member has on loan. Use when someone asks when a loan is due or when a book must come back. Read-only.&quot;,
+    &quot;input_schema&quot;: {
+        &quot;type&quot;: &quot;object&quot;,
+        &quot;properties&quot;: {&quot;member_id&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;Member id, e.g. M-100&quot;}},
+        &quot;required&quot;: [&quot;member_id&quot;],
+    },
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The <code>name</code> is what Claude sends back when it wants the tool, so it must match the function name your dispatcher will use.</li>
+<li>The <code>description</code> has two jobs: what the tool returns, and when to use it.</li>
+<li><code>required</code> tells Claude that a call without a <code>member_id</code> is not valid.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>For each question, Claude stops with <code>stop_reason: tool_use</code> and names the tool it wants, with the arguments it chose. The France question gets <code>end_turn</code> and no tool.</li>
+<li>The last line reads <code>RESULT: 4/4 first requests right (nothing was executed)</code>. Nothing ran. Claude only asked.</li>
+<li>The question about member M-100 may ask for one tool first or for both at once. Both are fine, and the loop in the next section handles either.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: If you see <code>TODO 1 is not done</code>, the placeholder line is still in <strong>lab.py</strong>. Stage 1 is the only stage that runs without TODO 1.</p>
+</blockquote>
+<h2>Run the tools and write the loop</h2>
+<p>In this section, you write the two pieces that turn a request into an answer: the dispatcher that runs the function, and the loop that sends the result back.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 2 of 4</strong>. Below it is a function named <code>run_tool</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 2: run the function Claude asked for&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    if name == &quot;find_book&quot;:
+        return find_book(**tool_input)
+    if name == &quot;check_due_date&quot;:
+        return check_due_date(**tool_input)
+    return {&quot;error&quot;: &quot;unknown_tool&quot;, &quot;name&quot;: name}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>**tool_input</code> turns the dictionary Claude sent, for example <code>{&quot;title&quot;: &quot;Dune&quot;}</code>, into the keyword arguments of the function.</li>
+<li>An unknown name returns an error result instead of raising an exception. Claude can read it, and your program keeps running.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 3 of 4</strong>. Below it is the function <code>answer</code>, and inside its <code>for</code> loop is the line <code>return {&quot;answer&quot;: text_of(response), &quot;turns&quot;: turn, &quot;tools_used&quot;: tools_used}  # replace these lines in TODO 3</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the eight-space indent, because the code sits inside the loop:</p>
+<div class="cb"><pre><code class="language-python">        if response.stop_reason != &quot;tool_use&quot;:
+            return {&quot;answer&quot;: text_of(response), &quot;turns&quot;: turn, &quot;tools_used&quot;: tools_used}
+        messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+        results = []
+        for block in tool_calls_of(response):
+            content, is_error = run_tool_safely(block.name, block.input)
+            tools_used.append(block.name)
+            results.append({&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;content&quot;: content, &quot;is_error&quot;: is_error})
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>When <code>stop_reason</code> is not <code>tool_use</code>, Claude has written its answer and the loop ends. This is the <code>DONE</code> state.</li>
+<li>Otherwise the loop is in <code>EXECUTING_TOOLS</code>. It first appends Claude's own message, because the next request must show the <code>tool_use</code> that each <code>tool_result</code> answers.</li>
+<li>Each <code>tool_result</code> carries <code>block.id</code> as its <code>tool_use_id</code>. A different id makes the API answer with HTTP 400.</li>
+<li>All results go in <strong>one</strong> user message, even when Claude asked for two tools at once. This is the parallel rule from Demo 2C.</li>
+<li>The <code>for turn in range(1, MAX_TURNS + 1)</code> line that is already there is the exit. A loop must always be able to stop.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 3:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each question shows the tools your loop ran, the number of turns, and whether the answer is grounded.</li>
+<li>The state trace of the &quot;needs both&quot; question reads <code>AWAITING_MODEL -&gt; EXECUTING_TOOLS -&gt; AWAITING_MODEL -&gt; DONE</code>.</li>
+<li>The last line reads <code>RESULT: 4/4 answers grounded (tools run by your loop)</code>. In stage 1 it was 1 of 4.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: A strong model may phrase an answer differently between runs, for example <code>October 8</code> instead of <code>2026-10-08</code>. The check accepts both spellings.</p>
+</blockquote>
+<h2>Make the loop survive failures</h2>
+<p>In this section, you make the loop safe. Tools fail: a book that is not in the catalog, a member with no loan, or a bug inside the tool. A failure must reach Claude as a readable result, not stop the program.</p>
+<ol>
+<li>
+<p>Run stage 4 now, before you write any code, by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>In part 1, the two failing questions show <code>tool errors flagged is_error: 0</code>. The tool returned an error, but nothing told Claude that the call had failed.</li>
+<li>In part 2, the tool that crashes on a bad argument would have crashed the program. This part is recorded and makes no model call.</li>
+<li>In part 3, a recorded model asks for a missing book again and again. The loop stops after 6 turns, because of the exit you already have.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 4 of 4</strong>. Below it is the function <code>run_tool_safely</code>, and its line <code>return json.dumps(run_tool(name, tool_input)), False  # replace these lines in TODO 4</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    try:
+        result = run_tool(name, tool_input)
+    except Exception as exc:
+        return json.dumps({&quot;error&quot;: &quot;tool_crashed&quot;, &quot;detail&quot;: str(exc)}), True
+    return json.dumps(result), &quot;error&quot; in result
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>A crash becomes a result with the error code <code>tool_crashed</code>. The loop sends it to Claude, which can tell the member what went wrong.</li>
+<li>A result with an <code>error</code> key, such as <code>book_not_found</code>, is flagged <code>is_error=True</code>. Claude then knows that the call failed and does not present the error as a fact.</li>
+<li>This is the same idea as the typed errors of Demo 2B and Lab 2.3, in its smallest form: an error code, and a flag that says the call failed.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4 again:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Part 1 now shows <code>tool errors flagged is_error: 1</code> for each question, and Claude tells the member that the book or the loan was not found.</li>
+<li>Part 2 shows <code>run_tool_safely returned is_error=True</code> with a <code>tool_crashed</code> result, instead of a crash.</li>
+<li>The last line reads <code>RESULT: 2 live tool errors flagged, crash caught: yes, runaway loop stopped: yes</code>.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 25/25 checks passed</code>.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Part A of the checker tests your code with hand-made model replies and needs no key. Part B reads the stages you ran with Claude, and it reports model variance as <code>[info]</code> lines, not failures. If you ran fewer than four stages, the total is lower.</p>
+</blockquote>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong><code>TODO 1 is not done</code></strong>: The line <code>CHECK_DUE_DATE_TOOL = {}</code> is still in <strong>lab.py</strong>. Paste the snippet from TODO 1.</li>
+<li><strong>A TODO check fails</strong>: Read the line next to the failed check. It names the piece to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. The TODO 2 and TODO 4 code sits inside a function (four spaces), and the TODO 3 code sits inside a loop (eight spaces).</li>
+<li><strong><code>NotImplementedError</code> when you run stage 3</strong>: TODO 2 is not done yet.</li>
+<li><strong>Stage 3 shows <code>grounded: no</code> and no tools run</strong>: The loop still holds the starter line from TODO 3.</li>
+<li><strong>HTTP 400 about <code>tool_use_id</code></strong>: A <code>tool_result</code> has an id that does not match its <code>tool_use</code>. Use <code>block.id</code>.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your numbers differ from a classmate's</strong>: This is normal. Models word answers differently between runs. The grounded count and the flagged errors are the stable evidence.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2B showed the loop as a state machine on a refund assistant, and Demo 2C showed parallel tool calls and why all results go back in one message.</li>
+<li>The next lab, Lab 2.6, uses the same loop with a tool server. The schemas and the functions come from an MCP server, and your code only forwards the calls.</li>
+<li>The old version of this lab, with a single run and no stages, is archived.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

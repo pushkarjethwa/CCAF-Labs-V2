@@ -1,0 +1,293 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Run the Tool Calls of One Turn Safely</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP</header><main><h1>Run the tool calls of one turn safely</h1>
+<p>In Demo 2C, you watched an order desk assistant get faster when its five lookups ran at the same time, and then charge a customer twice when its three dependent writes ran at the same time too. The team fixed it in layers: concurrent reads, writes that stay in order, a key that makes a retry safe, and a limit on the loop. In this lab, you do the same for an airline disruption assistant.</p>
+<p>You will complete five pieces of <strong>lab.py</strong>, which add up to about 40 lines of code. The lab takes about 35 minutes, and this guide gives you every line. At the end, the assistant reads flight status, alternatives, hotels and the loyalty tier at the same time, books a hotel only with a reference that a tool really returned, books one seat even when the first rebooking times out, and stops a model that never stops.</p>
+<p>This lab continues Demo 2C, so you will recognize the following:</p>
+<ul>
+<li>The method: run the loop, read the ledger, and judge the result by what was booked, not by what the model said.</li>
+<li>The split of duties: the model decides how many tool calls to put in a turn, and your code decides whether they overlap.</li>
+<li>The fix order: overlap the reads, order the writes, make a retry safe, and bound the loop.</li>
+<li>The replays: when a strong model does not make the mistake by itself, a recorded model makes it for you, so the failure is repeatable.</li>
+</ul>
+<p>Flight XA482 was cancelled. For traveler T-1001, the assistant reads four independent things (flight status, alternatives, airport hotels and the loyalty tier) and then writes three dependent things: rebook the flight, book a hotel with the rebooking reference, and notify the traveler with both references. The mock airline loses the acknowledgement of the first rebooking: the seat is booked, and the call times out.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_2_travel_disruption_tool_loop</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Run the baseline</h2>
+<p>In this section, you run the whole disruption with a harness that runs one tool call after the other. This needs no code from you.</p>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The read phase is the sum of the read latencies, because nothing overlaps.</li>
+<li>The assistant has no loyalty tool, so it cannot know the hotel rate cap of the traveler.</li>
+<li>The first rebooking times out and the model sees only a string. If the model retries, as the system prompt tells it to, the ledger shows two rebookings: the traveler has two seats.</li>
+<li>The last table has one row. Each stage adds a row.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: A model may or may not retry the rebooking in a single run. Stage 4 replays a recorded retry, so the lesson does not depend on luck.</p>
+</blockquote>
+<h2>Add the missing tool and overlap the reads</h2>
+<p>In this section, you write the tool definition that the assistant lacks, and the executor that runs a turn's calls at the same time.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 5</strong>. Below it is the line <code>LOYALTY_TIER_TOOL = None  # replace these lines in TODO 1</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code:</p>
+<div class="cb"><pre><code class="language-python">LOYALTY_TIER_TOOL = {
+    &quot;name&quot;: &quot;loyalty_tier&quot;,
+    &quot;description&quot;: &quot;Read-only. The loyalty tier of one traveler and its perks: change-fee waiver, hotel rate cap, lounge and priority rebooking. Use it before choosing a hotel, to learn the rate cap. Does not change anything.&quot;,
+    &quot;input_schema&quot;: {&quot;type&quot;: &quot;object&quot;, &quot;properties&quot;: {&quot;traveler_id&quot;: {&quot;type&quot;: &quot;string&quot;}}, &quot;required&quot;: [&quot;traveler_id&quot;], &quot;additionalProperties&quot;: False},
+}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The description says that the tool is read-only, what it returns, and when to use it. That text is all that the model knows about the tool.</li>
+<li><code>additionalProperties</code> is <code>False</code>, so the model cannot invent an argument.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 2 of 5</strong>. Below it is a function named <code>run_concurrently</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 2: run the calls on a thread pool&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(run_one, calls))
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>pool.map</code> returns the results in the order of the calls, which is what the API needs: every <code>tool_use</code> id answered, in one user message.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The read phase falls from the sum of the latencies to about the slowest one, when the model puts the reads in one turn.</li>
+<li>The progress table now has two rows, so you can compare the read phase across stages.</li>
+</ul>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: This executor runs every call of a turn at the same time. That is fine for reads. The next section shows what it does to writes.</p>
+</blockquote>
+<h2>Keep the dependent writes in order</h2>
+<p>In this section, you write the gate that runs before every write. A recorded model asks for the rebooking, the hotel and the notification in one turn, with a made-up reference, and you compare the stage 2 executor with your gate.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 3 of 5</strong>. Below it is a function named <code>gate</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 3: check the prerequisites and the references&quot;)  # replace these lines in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    missing = [tool for tool in DEPENDS_ON.get(name, ()) if tool not in state.succeeded]
+    if missing:
+        return {&quot;error&quot;: &quot;PREREQUISITE_NOT_MET&quot;, &quot;retryable&quot;: False, &quot;message&quot;: f&quot;{name} needs {', '.join(missing)} to succeed first&quot;,
+                &quot;hint&quot;: &quot;Call the missing tool first and wait for its result. Do not guess references.&quot;}
+    unknown = [key for key, value in args.items() if key.endswith(&quot;_ref&quot;) and value not in state.refs]
+    if unknown:
+        return {&quot;error&quot;: &quot;UNKNOWN_REFERENCE&quot;, &quot;retryable&quot;: False, &quot;message&quot;: f&quot;{', '.join(unknown)} was not returned by any tool&quot;,
+                &quot;hint&quot;: &quot;Use only references that a tool result returned.&quot;}
+    return None
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The gate returns <code>None</code> when the call may run, and an error dictionary when it may not. The harness runs the writes one at a time, in the order requested, and asks the gate before each one.</li>
+<li>The first check reads the dependencies that the business knows, and that no schema shows: the hotel needs the rebooking, and the notification needs both.</li>
+<li>The second check refuses a reference that no tool returned. A model can make one up.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 3:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The replay through the stage 2 executor books a hotel with an unverified reference, and the order violations column is not zero.</li>
+<li>The replay through your gate books no hotel and sends no notification. The rebooking timed out, so the hotel was refused, and nothing was booked on a guess.</li>
+<li>The live run follows with the same gate.</li>
+</ul>
+</li>
+</ol>
+<h2>Make a retry safe</h2>
+<p>In this section, you write the key and the timeout result that turn a retry into a replay. A recorded model rebooks, sees the timeout, and retries with identical arguments.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 4 of 5</strong>. Below it is a function named <code>key_for</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 4: build the idempotency key&quot;)  # replace these lines in TODO 4</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    canonical = json.dumps({&quot;tool&quot;: name, &quot;args&quot;: args}, sort_keys=True)
+    return hashlib.sha256(canonical.encode(&quot;utf-8&quot;)).hexdigest()[:16]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>sort_keys=True</code> makes the key the same for the same call, whatever the order of the arguments.</li>
+<li>The harness builds the key, never the model.</li>
+</ul>
+</li>
+<li>
+<p>A few lines below, in the function <code>timeout_result</code>, replace the line <code>raise NotImplementedError(&quot;TODO 4: build the structured timeout result&quot;)  # replace these lines in TODO 4</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return {&quot;error&quot;: &quot;TIMEOUT&quot;, &quot;retryable&quot;: True, &quot;outcome_unknown&quot;: True, &quot;message&quot;: str(error),
+            &quot;hint&quot;: f&quot;{name} may or may not have been applied. Retry with IDENTICAL arguments: the same idempotency key makes the retry safe.&quot;}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The timeout result says what the model needs to know: the outcome is unknown, and a retry with identical arguments is safe.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The replay without a key shows two rebookings. The replay with your key shows one rebooking and one replay: the second call returned the first booking.</li>
+<li>The live run books one seat, even if the model retries.</li>
+</ul>
+</li>
+</ol>
+<h2>Stop a loop that never ends</h2>
+<p>In this section, you bound the loop. A recorded model that never stops asking for the flight status is run through it.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 5 of 5</strong>. Below it are the lines <code>turn = 0</code> and <code>while True:</code>, in the function <code>run_agent</code>.</p>
+</li>
+<li>
+<p>Replace the six lines of the starter loop, from <code>turn = 0</code> to the line <code>return done</code>, with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    for turn in range(1, max_turns + 1):
+        done = core.take_turn(create, services, state, messages, log, stage, turn)
+        if done:
+            return done
+    return {&quot;turns&quot;: max_turns, &quot;stopped&quot;: &quot;max_turns&quot;, &quot;final_text&quot;: &quot;&quot;, **log}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The <code>for</code> loop is the iteration guard. A loop must end, whatever the model does.</li>
+<li>The result says <code>stopped</code> is <code>max_turns</code>, so the caller can tell a guard from a finished answer.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 5:</p>
+<div class="cb"><pre><code>python lab.py --stage 5
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The runaway model is cut off after 8 turns.</li>
+<li>The last line is the gate: one rebooking, nothing unverified, writes in order, and the runaway stopped.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 21/21 checks passed</code>.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Part A of the checker tests your code directly and needs no key. Part B reads the stages you ran with Claude, and it reports model variance as <code>[info]</code> lines, not failures.</p>
+</blockquote>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the piece to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: The TODO for that stage is not done yet. Stage 1 needs none.</li>
+<li><strong>Stage 2 shows no faster read phase</strong>: The model put the reads in separate turns this time. Run the stage again, and read the turn trace.</li>
+<li><strong>The live run shows one rebooking in stage 1</strong>: The model did not retry. Stage 4 replays a recorded retry, so the comparison does not depend on it.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2C used an order desk with five lookups and three dependent writes, and its last step was a hardened executor with declared prerequisites and keys injected by the harness. The old version of this lab, with four open defects in one file, is archived.</li>
+<li>The next lab, Lab 2.3, is about what happens when a tool fails: typed errors, a bounded retry, and an escalation.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

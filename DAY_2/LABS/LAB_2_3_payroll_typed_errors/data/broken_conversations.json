@@ -1,0 +1,193 @@
+[
+ {
+  "id": "A",
+  "title": "Orphan tool_result",
+  "expect_caught": true,
+  "messages": [
+   {
+    "role": "user",
+    "content": "Payroll ticket ADJ-3001: look up E1001 and E1002."
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "text",
+      "text": "Checking."
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01A",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "B",
+  "title": "Wrong tool_use_id",
+  "expect_caught": true,
+  "messages": [
+   {
+    "role": "user",
+    "content": "Payroll ticket ADJ-3001: look up E1001 and E1002."
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01A",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1001"
+      }
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "C",
+  "title": "Missing result for a parallel call",
+  "expect_caught": true,
+  "messages": [
+   {
+    "role": "user",
+    "content": "Payroll ticket ADJ-3001: look up E1001 and E1002."
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01A",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1001"
+      }
+     },
+     {
+      "type": "tool_use",
+      "id": "toolu_01B",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1002"
+      }
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01A",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "D",
+  "title": "Text before the tool_result",
+  "expect_caught": true,
+  "messages": [
+   {
+    "role": "user",
+    "content": "Payroll ticket ADJ-3001: look up E1001 and E1002."
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01A",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1001"
+      }
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "Here you go."
+     },
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01A",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "OK",
+  "title": "A correct conversation",
+  "expect_caught": false,
+  "messages": [
+   {
+    "role": "user",
+    "content": "Payroll ticket ADJ-3001: look up E1001 and E1002."
+   },
+   {
+    "role": "assistant",
+    "content": [
+     {
+      "type": "tool_use",
+      "id": "toolu_01A",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1001"
+      }
+     },
+     {
+      "type": "tool_use",
+      "id": "toolu_01B",
+      "name": "lookup_employee",
+      "input": {
+       "employee_id": "E1002"
+      }
+     }
+    ]
+   },
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01A",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     },
+     {
+      "type": "tool_result",
+      "tool_use_id": "toolu_01B",
+      "content": "{\"employee_id\": \"E1001\", \"status\": \"active\"}"
+     }
+    ]
+   }
+  ]
+ }
+]

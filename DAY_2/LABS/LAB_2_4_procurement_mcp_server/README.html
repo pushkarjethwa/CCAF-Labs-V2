@@ -1,0 +1,338 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build and Lock Down a Procurement MCP Server</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 2 - Tool Design and MCP</header><main><h1>Build and lock down a procurement MCP server</h1>
+<p>In Demo 2D, you watched the Northwind CRM move from a hand-written CLI to one MCP server. A stray <code>print()</code> hung the server, an API key leaked into a log, and a reader role tried to write a ticket and got a 403. In this lab, you do the same for a procurement server. Procurement wants an AI assistant to look up suppliers and purchase orders and, for people who are allowed to, approve them.</p>
+<p>You will complete six pieces of <strong>lab.py</strong>, which add up to about 40 lines of code. The lab takes about 40 minutes, it needs no API key and no model, and this guide gives you every line. At the end, a real MCP client connects to your server over stdio and over streamable HTTP, a purchase order is read through a resource and a validated tool, an analyst is refused with a 403 and a caller with no key is refused with a 401, and no key appears in a log.</p>
+<p>This lab continues Demo 2D, so you will recognize the following:</p>
+<ul>
+<li>The stages: a stdio server and the stdout trap, resources, validated tools with structured errors, a client and a config linter, authentication with roles and safe logging, and then the same server over HTTP.</li>
+<li>The three kinds of failure: a print that corrupts the wire, a key that leaks into a log, and a caller who is known but not allowed.</li>
+<li>The vocabulary: a tool is controlled by the model, a resource by the application, a prompt by the user. A 401 means no identity, and a 403 means known but not allowed.</li>
+</ul>
+<p>The procurement server has three tools, <code>find_supplier</code>, <code>get_po</code> and <code>approve_po</code>, two resources, <code>supplier://{supplier_id}</code> and <code>po://{po_id}</code>, and one prompt. Two roles use it. An <strong>analyst</strong> may read. An <strong>approver</strong> may also approve a pending purchase order whose supplier is active. A mock database sits behind it, with 8 suppliers and 7 purchase orders, so you can run it as often as you like.</p>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later. You do not need an API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_2/LABS/LAB_2_4_procurement_mcp_server</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor, and then read the three pieces that are already written: the <code>supplier_resource</code> resource, the <code>find_supplier</code> tool and the <code>approve_po</code> tool. Your pieces copy their shape.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: You never type a key in this lab. Each stage creates throw-away keys for its own run, hands them to the server through its environment, and never prints or saves them.</p>
+</blockquote>
+<h2>Run the broken server</h2>
+<p>In this section, you run stage 1 before any fix. The starter server has one defect, and this stage shows you how it looks from the client.</p>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Wait about 8 seconds, and then review the output, noting the following details:</p>
+<ul>
+<li>The line <code>initialize FAILED (TimeoutError)</code> means that the client sent its first request, and the server never answered in a way the client could read.</li>
+<li>The server did answer. The starter prints a banner with <code>print(..., end=&quot;&quot;)</code>, which leaves a partial line on stdout. The first JSON reply is written onto the end of that line, so the combined line is not valid JSON and the client drops it.</li>
+<li>A stdio server uses stdout as the protocol wire. Anything else written there is corruption.</li>
+</ul>
+</li>
+</ol>
+<h2>Keep stdout clean</h2>
+<p>In this section, you send the server's log lines to stderr, which is the right place for them.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 1 of 6</strong>. Below it is a function named <code>setup_logging</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>print(&quot;procurement server starting&quot;, end=&quot;&quot;, flush=True)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    logging.basicConfig(stream=sys.stderr, level=logging.INFO, format=&quot;procurement %(levelname)s %(message)s&quot;)
+    logging.getLogger(&quot;procurement&quot;).info(&quot;procurement server starting&quot;)
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>stream=sys.stderr</code> sends every log record to stderr. The MCP client ignores stderr, and you can read it when something goes wrong.</li>
+<li>Never use <code>print()</code> in a stdio server. If a connection fails with no useful error, run the server alone and read its stderr first.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 1 again:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The three lines now start with <code>ok</code>. The client connected, it logged no JSON-RPC parse error, and the server's log line arrived on stderr.</li>
+<li>The tool list shows <code>approve_po</code>, <code>find_supplier</code> and <code>get_po</code>. The starter has no <code>get_po</code> tool yet, so your server may list only two until you do TODO 3.</li>
+</ul>
+</li>
+</ol>
+<h2>Add a resource template</h2>
+<p>In this section, you add the <code>po://{po_id}</code> resource, so an application can attach one purchase order to a conversation. In Demo 2D, this was <code>kb://articles/{article_id}</code>.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 2 of 6</strong>. Below it is the line <code># replace this line in TODO 2</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. This time the code is not inside a function, so there is no indent:</p>
+<div class="cb"><pre><code class="language-python">@mcp.resource(&quot;po://{po_id}&quot;, mime_type=&quot;application/json&quot;)
+def po_resource(po_id: str) -&gt; str:
+    po = pdb.po_row(CON, po_id)
+    if po is None:
+        raise ValueError(f&quot;unknown purchase order {po_id}&quot;)
+    return json.dumps(po, sort_keys=True)
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>A resource with <code>{po_id}</code> in its URI is a template. A client finds it in <code>resources/templates/list</code>, and not in <code>resources/list</code>.</li>
+<li>An unknown id raises an error. The client gets an error back and the session survives. Errors are data, not crashes.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The fixed list shows only <code>procurement://suppliers/index</code>. The template list shows <code>po://{po_id}</code> and <code>supplier://{supplier_id}</code>.</li>
+<li><code>supplier://S-100</code> shows the bank account as <code>****3000</code>. A resource is attached to a conversation, so it holds the minimum necessary data.</li>
+<li><code>po://PO-9999</code> ends as an error, and the next call still works.</li>
+</ul>
+</li>
+</ol>
+<h2>Validate a tool</h2>
+<p>In this section, you add the <code>get_po</code> tool with two layers of protection. The schema rejects a badly formed id before your code runs. Your code then answers an unknown id with a stable error code.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 3 of 6</strong>. Below it is the line <code># replace this line in TODO 3</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. There is no indent here either:</p>
+<div class="cb"><pre><code class="language-python">PoId = Annotated[str, Field(pattern=r&quot;^PO-\d{4}$&quot;, description=&quot;Purchase order id such as PO-2001&quot;)]
+
+
+@mcp.tool()
+def get_po(ctx: Context, po_id: PoId) -&gt; CallToolResult:
+    &quot;&quot;&quot;Look up one purchase order by id. Returns supplier, amount, status and approvals. Error po_not_found if unknown.&quot;&quot;&quot;
+    def work():
+        po = pdb.po_row(CON, po_id)
+        if po is None:
+            raise core.ProcError(&quot;po_not_found&quot;, f&quot;No purchase order {po_id}&quot;)
+        return po
+    return core.run(ctx, &quot;get_po&quot;, work)
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The docstring becomes the tool description, and the model reads it, so write it for the model.</li>
+<li><code>PoId</code> is layer one. The pattern appears in the schema that the client sees, and a bad id is rejected before <code>get_po</code> runs.</li>
+<li><code>core.ProcError</code> is layer two. The gate in <strong>procurement_core.py</strong> turns it into a result with <code>is_error</code> set and a stable <code>code</code>, so a script or a model can branch on it without reading prose.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 3:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li><code>get_po PO-9999</code> returns the code <code>po_not_found</code>. <code>get_po 'po-1'</code> and the unknown tool <code>delete_po</code> are rejected before any code of yours runs.</li>
+<li><code>approve_po PO-2004</code> returns <code>supplier_not_active</code> with status 422, and <code>approve_po PO-2002</code> returns <code>po_not_pending</code> with status 409. Those rules were already written for you.</li>
+<li>Authentication is still off in this stage, so <code>approve_po PO-2001</code> succeeds for anyone. That is the problem stage 5 fixes.</li>
+</ul>
+</li>
+</ol>
+<h2>Lint a client configuration</h2>
+<p>In this section, you write a small linter for the file that tells a client such as Claude Code how to reach your server. It finds three mistakes that people really commit.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 4 of 6</strong>. Below it is a function named <code>lint_config</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return []  # replace these lines in TODO 4</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    problems = []
+    for name, server in config.get(&quot;mcpServers&quot;, {}).items():
+        if server.get(&quot;type&quot;) == &quot;sse&quot;:
+            problems.append(f&quot;R2 {name}: type 'sse' is deprecated, use 'http'&quot;)
+        url = server.get(&quot;url&quot;, &quot;&quot;)
+        if url.startswith(&quot;http://&quot;) and urlparse(url).hostname not in (&quot;127.0.0.1&quot;, &quot;localhost&quot;):
+            problems.append(f&quot;R5 {name}: plain http to a non-local host&quot;)
+        for key, value in {**server.get(&quot;headers&quot;, {}), **server.get(&quot;env&quot;, {})}.items():
+            if re.search(r&quot;(?i)key|token|secret|authorization&quot;, key) and &quot;${&quot; not in value:
+                problems.append(f&quot;R4 {name}: {key} holds a literal secret, use ${{VAR}}&quot;)
+    return problems
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>R2 catches the deprecated <code>sse</code> transport. R5 catches a key that travels over plain http to another machine. R4 catches a secret that is typed into the file instead of being a <code>${VAR}</code> reference.</li>
+<li>An empty list means the file is fine.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The first line is your own MCP client listing the tools, resources, templates and prompts. A host such as Claude Code gives the model the same tools named <code>mcp__procurement__&lt;tool&gt;</code>. MCP changes where the tool lives, and the tool-use loop stays the same.</li>
+<li><strong>mcp.stdio.json</strong> and <strong>mcp.http.json</strong> in the <strong>CONFIGS</strong> folder pass.</li>
+<li><strong>mcp.leaky.json</strong> fails, and that is expected. It lists four problems: one R2, two R4 and one R5.</li>
+</ul>
+</li>
+</ol>
+<h2>Authenticate and authorize</h2>
+<p>In this section, you answer the two questions in order: who are you, and what may you do. They fail in two different ways, so they have two different status codes.</p>
+<ol>
+<li>
+<p>Search for the comment <strong>TODO 5 of 6</strong>. Below it are three lines: <code>ROLE_TOOLS = {}</code>, a function <code>authenticate</code> that returns <code>None</code>, and a function <code>is_allowed</code> that returns <code>False</code>.</p>
+</li>
+<li>
+<p>Replace those lines, from <code>ROLE_TOOLS = {}</code> to <code>return False</code>, with the following code:</p>
+<div class="cb"><pre><code class="language-python">ROLE_TOOLS = {&quot;analyst&quot;: {&quot;find_supplier&quot;, &quot;get_po&quot;}, &quot;approver&quot;: {&quot;find_supplier&quot;, &quot;get_po&quot;, &quot;approve_po&quot;}}
+
+
+def authenticate(token):
+    found = None
+    for role, key in core.load_keyring().items():
+        if token and hmac.compare_digest(token.encode(), key.encode()):
+            found = role
+    return found
+
+
+def is_allowed(role, tool):
+    return tool in ROLE_TOOLS.get(role, set())
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>hmac.compare_digest</code> takes the same time however many characters match. The loop checks every key and never returns early, so the time taken does not reveal which key matched.</li>
+<li>An empty token is never valid.</li>
+<li><code>is_allowed</code> denies by default. A role that is not in the table, or a tool that is not listed for the role, gets nothing, so a new tool can never silently become available to everyone.</li>
+<li>A 401 is raised by the authentication layer, and a 403 is raised by the gate in <strong>procurement_core.py</strong>, which calls your <code>is_allowed</code>.</li>
+</ul>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 6 of 6</strong>. Below it is a function named <code>redact</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return text  # replace these lines in TODO 6</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    text = re.sub(r&quot;(?i)bearer\s+[\w.~+/=-]+&quot;, &quot;Bearer &quot; + core.MASK, text)
+    for secret in core.known_secrets():
+        text = text.replace(secret, core.MASK)
+    return text
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>Every audit line passes through <code>redact</code> before it is written. The server logs the <code>Authorization</code> header of a rejected request, the way a developer would while chasing a 401, so this function is what keeps the key out of the log.</li>
+<li>The first line removes anything shaped like a <code>Bearer</code> token. The loop removes the exact keys of this process, which catches a key that appears anywhere else, for example inside an error message.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 5:</p>
+<div class="cb"><pre><code>python lab.py --stage 5
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>In section 1, five failures give 401, and the analyst key and the approver key get through with 200. The 401 body is the same for every failure, so an attacker cannot tell which part was wrong.</li>
+<li>In section 2, the number of comparisons is 2 for the first key, the last key and an unknown key.</li>
+<li>In section 3, a real stdio server runs once per role. The analyst gets <code>approve_po DENIED</code>, and the approver does not. The refusal is a tool result with status 403, and the session stays alive, so a model can read it and adapt.</li>
+<li>In section 4, the grep for the keys finds none. To see the leak, you can temporarily change <code>redact</code> to <code>return text</code> and run stage 5 again.</li>
+<li>In section 5, a server started with no key exits with code 2 and prints no key.</li>
+</ul>
+</li>
+</ol>
+<h2>Serve the same server over HTTP</h2>
+<p>In this section, you run the same server over streamable HTTP. This stage needs no new code.</p>
+<ol>
+<li>
+<p>Run stage 6 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 6
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The same client code gives identical results over stdio and over HTTP. The transport is configuration, and the design is the same.</li>
+<li>A rejected key shows as <code>ExceptionGroup[MCPError(-32603)]</code> in the client, because the SDK hides the HTTP status. The raw HTTP view below it shows the real answer, <code>401</code>, with a <code>WWW-Authenticate</code> header.</li>
+<li>Over HTTP, the analyst is refused with 403 and the approver succeeds.</li>
+<li>The server log shows the statuses 200 and 401, the audited denial of the analyst's write, and no key.</li>
+<li>The server process is stopped when the stage ends.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 41/41 checks passed</code>.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: Part A of the checker tests your code with hand-made inputs and starts no server. Part B reads the stages you ran, and it only checks the stages that you have run so far.</p>
+</blockquote>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ModuleNotFoundError: No module named 'mcp'</code>, <code>httpx2</code> or <code>uvicorn</code></strong>: Run <code>pip install -r requirements.txt</code> again, in the same Python that you use to run <strong>lab.py</strong>. The lab was written for the <code>mcp</code> package, version 2.3.0, which imports <code>MCPServer</code> from <code>mcp.server.mcpserver</code>.</li>
+<li><strong>Stage 1 still ends with <code>initialize FAILED</code>, or any stage says <code>Connection closed</code></strong>: The server stopped or wrote something that is not JSON-RPC. The stage prints the last lines of the server's stderr. Look for a <code>print(</code> in <strong>lab.py</strong>, an <code>ImportError</code>, or a <code>SyntaxError</code> from a paste that lost its indent. Run <code>python check.py</code> to see which TODO fails.</li>
+<li><strong>A stage after stage 1 says it could not talk to the server</strong>: Finish TODO 1 first. A server that prints to stdout breaks every stage.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces, and the resource and tool code of TODOs 2 and 3 has no indent.</li>
+<li><strong>Stage 3 shows no <code>get_po</code> tool</strong>: The TODO 3 placeholder line is still in <strong>lab.py</strong>.</li>
+<li><strong>Stage 5 shows <code>five failures give 401</code> as TODO</strong>: <code>authenticate</code> still returns <code>None</code>, or <code>core.load_keyring()</code> found no keys. Run the stage again, because each stage creates its own keys.</li>
+<li><strong>Stage 5 or 6 says no key appears in the log is TODO</strong>: <code>redact</code> still returns the text unchanged.</li>
+<li><strong>Stage 6 fails to start the server, or the port is busy</strong>: The stage picks a free port by itself. Close an older terminal that is still running <strong>lab.py</strong>, and run the stage again.</li>
+<li><strong>A <code>PermissionError</code> when a temporary file is cleaned up (Windows)</strong>: The lab closes its log handles before it cleans up, and ignores this error. If you still see it, close any editor tab that has the file open, and run the stage again.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Each stage stops every server process that it starts. If a terminal was closed in the middle of stage 6, end any leftover <code>python</code> process that runs <strong>lab.py --serve</strong>.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 2D used a CRM and a hand-written CLI, and showed the same three failures: stdout pollution, a key in a log, and a 401 compared with a 403.</li>
+<li>The previous lab, Lab 2.3, made tool failures typed and bounded, and this lab uses the same idea of a stable error code for the MCP tool <code>get_po</code>.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>
