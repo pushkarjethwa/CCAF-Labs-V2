@@ -19,7 +19,7 @@ mono_crash.*
 
 # Build results
 LAB_Test/
-ClaudeFoundation/
+#ClaudeFoundation/
 .opencode/
 _templates/
 TRAINER_V2/

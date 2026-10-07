@@ -1,0 +1,5 @@
+.env
+.venv/
+.claudefenv/
+__pycache__/
+labs/dist/
