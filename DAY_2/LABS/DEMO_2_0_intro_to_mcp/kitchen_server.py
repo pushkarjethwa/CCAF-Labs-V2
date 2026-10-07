@@ -12,7 +12,7 @@ from mcp.server.mcpserver import MCPServer
 import kitchen
 
 if "--noisy" in sys.argv:
-    print("Kitchen is open!", end="")          # BUG on purpose: this goes onto the wire
+    print("Kitchen is open!", end="", flush=True)   # BUG on purpose: flush sends it onto the wire at once
 
 mcp = MCPServer("pizza-kitchen")
 

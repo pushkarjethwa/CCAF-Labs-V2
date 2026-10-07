@@ -13,3 +13,5 @@ To complete these exercises you need Python 3.10 or later and an Anthropic API k
 | Build Your First Agent with the Claude Agent SDK | Demo 3E | [LAB_3_5_first_agent_with_agent_sdk](LAB_3_5_first_agent_with_agent_sdk/README.md) |
 | Build the Same Agent Two Ways with the Anthropic SDK | Demo 3F | [LAB_3_6_two_ways_to_build_an_agent](LAB_3_6_two_ways_to_build_an_agent/README.md) |
 | Build the Research Desk as a Multi-Agent System | Demo 3G | [LAB_3_7_research_desk_with_subagents](LAB_3_7_research_desk_with_subagents/README.md) |
+
+Reading: [Building an agent: Anthropic SDK or Claude Agent SDK?](../ANTHROPIC_SDK_VS_CLAUDE_AGENT_SDK.md) is a short comparison of the two ways to build an agent. Read it before Lab 3.5 and Lab 3.6.
