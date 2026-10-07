@@ -4,6 +4,7 @@ These hands-on labs follow the Day 2 demos. Each lab keeps the scenario you work
 
 To complete these exercises you need Python 3.10 or later and an Anthropic API key (Lab 2.4 needs no key). Setup is in **DAY_0_SETUP_GUIDE.md**.
 
+- [Intro to MCP (demo to run first)](DEMO_2_0_intro_to_mcp/README.md): a 15-minute, key-free demo. Run its four stages before Lab 2.4 or Lab 2.6, to see an MCP server and client work.
 - [Fix the Tool Boundaries of the Facilities Assistant](LAB_2_1_facilities_tool_boundaries/README.md): follows Demo 2A, about 35 minutes. Rewrite descriptions, consolidate and prune the tools, scope them per desk, and pass a gate.
 - [Run the Tool Calls of One Turn Safely](LAB_2_2_travel_disruption_tool_loop/README.md): follows Demo 2C, about 35 minutes. Overlap the reads, keep the dependent writes in order, make a retry safe, and bound the loop.
 - [Make the Payroll Agent Fail Safely](LAB_2_3_payroll_typed_errors/README.md): follows Demo 2B, about 30 minutes. Typed errors, a bounded retry, an escalation, and a preflight check.
