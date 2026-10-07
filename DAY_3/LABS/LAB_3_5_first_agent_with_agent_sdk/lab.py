@@ -19,9 +19,10 @@ import hashlib
 import json
 import os
 import pathlib
+import shutil
 import sys
 
-from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, CLINotFoundError, ResultMessage, TextBlock, ToolUseBlock,
+from claude_agent_sdk import (AssistantMessage, ClaudeAgentOptions, ResultMessage, TextBlock, ToolUseBlock,
                               create_sdk_mcp_server, query, tool)
 from dotenv import load_dotenv
 
@@ -97,7 +98,7 @@ def events_from(message):
         return events
     if isinstance(message, ResultMessage):
         return [{"kind": "result", "turns": message.num_turns, "cost_usd": message.total_cost_usd,
-                 "is_error": message.is_error, "stop_reason": message.stop_reason}]
+                 "stop_reason": message.stop_reason}]
     return []
 
 
@@ -108,7 +109,7 @@ def show(event):
         print(f"\n{event['text']}\n")
     else:
         cost = f"${event['cost_usd']:.4f}" if event["cost_usd"] is not None else "n/a"
-        print(f"[done] {'ERROR' if event['is_error'] else 'ok'} | turns={event['turns']} | cost={cost} | stop_reason={event['stop_reason']}")
+        print(f"[done] turns={event['turns']} | cost={cost} | stop_reason={event['stop_reason']}")
 
 
 def source_fingerprint():
@@ -118,11 +119,10 @@ def source_fingerprint():
 def main():
     if not os.getenv("ANTHROPIC_API_KEY"):
         sys.exit("ANTHROPIC_API_KEY is missing. Create a .env file next to lab.py containing ANTHROPIC_API_KEY=sk-ant-...")
+    if not shutil.which("claude"):
+        sys.exit("The Claude Code CLI (claude) was not found. The Agent SDK drives it as a helper process.")
     print(f"Model: {MODEL}\nGoal:  {GOAL}\n")
-    try:
-        events = asyncio.run(run_live())
-    except CLINotFoundError:
-        sys.exit("The Claude Code CLI was not found. The Agent SDK drives it as a helper process. Install Claude Code (see the guide).")
+    events = asyncio.run(run_live())
     RESULTS_FILE.parent.mkdir(exist_ok=True)
     RESULTS_FILE.write_text(json.dumps({"fingerprint": source_fingerprint(), "events": events}, indent=1), encoding="utf-8")
     print("\nSaved to results/run.json. Now run: python check.py")

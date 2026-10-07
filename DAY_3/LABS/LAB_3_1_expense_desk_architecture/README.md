@@ -8,7 +8,7 @@ lab:
 
 In Demo 3A, you watched ACME's finance team decide whether an expense review should be a conversation, a workflow, or an agent. You voted on five briefs, and then you saw the same claim review built three ways and measured. The cheapest design that was reliable won. In this lab, you build the first two of those designs yourself, with the same briefs, the same T&E policy (**ACME-T&E-2026.2**), and the same claims.
 
-You will complete three small pieces of **lab.py**, which add up to 26 lines of code. The lab takes about 25 minutes, and this guide gives you every line. At the end, you see both builds review six real claims side by side, so you can compare them.
+You will complete three small pieces of **lab.py**, which add up to 24 lines of code. The lab takes about 25 minutes, and this guide gives you every line. At the end, you see both builds review six real claims side by side, so you can compare them.
 
 This lab continues Demo 3A, so you will recognize the following:
 
@@ -64,7 +64,7 @@ You need Python 3.10 or later and an Anthropic API key.
     python check.py
     ```
 
-    > **Note**: The checker fails on purpose, because the starter code contains placeholders. The last line shows that only a few of the 16 checks passed.
+    > **Note**: The checker fails on purpose, because the starter code contains placeholders. The last line shows that only a few of the 14 checks passed.
 
 ## Write the rubric from the demo
 
@@ -133,7 +133,7 @@ In this section, you write Build 2. Claude does one job, which is to read the fr
 
 1. In **lab.py**, search for the comment **TODO 3 of 3**. Below it is a function named `run_workflow` that currently returns `"escalate"`.
 
-2. Replace the line `return "escalate"  # replace these lines in TODO 3` with the following code. Keep the four-space indent:
+2. Replace the line `return "escalate"  # replace this line in TODO 3` with the following code. Keep the four-space indent:
 
     ```python
         system = ("Extract the expense fields from the claim text. Reply with JSON only, matching this schema exactly:\n"
@@ -145,15 +145,13 @@ In this section, you write Build 2. Claude does one job, which is to read the fr
             messages=[{"role": "user", "content": claim["text"]}],
         )
         fields = json_in(text_of(response))
-        if not isinstance(fields, dict) or any(key not in fields for key in EXTRACTION_SCHEMA["required"]):
-            return "escalate"
         return apply_policy(fields, claim)[0]
     ```
 
     Noting the following details:
 
     - The call looks like Build 1, but the instruction is different. Claude gets the schema, not the policy.
-    - If Claude's reply is missing a field, the claim is escalated to a human. The model never gets to guess a decision.
+    - The model never decides. It only fills the fields, and the code makes the decision.
     - `apply_policy` is plain Python in **expense_core.py**. It holds the caps, the receipt rule, and the duplicate check.
 
 3. Save the file, and then run the checker:
@@ -162,7 +160,7 @@ In this section, you write Build 2. Claude does one job, which is to read the fr
     python check.py
     ```
 
-4. Verify that the six **TODO 3** checks pass and that Part A shows no `[FAIL]` lines.
+4. Verify that the four **TODO 3** checks pass and that Part A shows no `[FAIL]` lines.
 
 ## Run both builds on real claims
 
@@ -186,16 +184,7 @@ In this section, you write Build 2. Claude does one job, which is to read the fr
     python check.py
     ```
 
-4. Verify that the last line reads `RESULT: 22/22 checks passed`.
-
-## Troubleshooting
-
-- **`ANTHROPIC_API_KEY is missing`**: Create the **.env** file in the lab folder, as described in the *Add your Claude API key* section.
-- **A TODO check fails**: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.
-- **IndentationError**: A pasted line lost its indent. Code inside a function is indented four spaces.
-- **A conversational answer shows `invalid`**: Claude's reply was not the JSON asked for. Check that `ANSWER_FORMAT` is part of the `system` text in TODO 2.
-- **Part B says the saved run is not from your current code**: You edited a TODO after the last run. Run `python lab.py` again.
-- **The workflow got fewer than 5 of 6 right**: Read the table. A miss means Claude read a field wrongly, not that the policy was wrong. Run `python lab.py` again, because model output varies slightly between runs.
+4. Verify that the last line reads `RESULT: 20/20 checks passed`.
 
 ## Clean up
 
@@ -204,4 +193,3 @@ Close the terminal. Keep your **.env** file private, and do not copy it to anoth
 ## More information
 
 - Demo 3A showed all three builds on all twelve claims, and measured accuracy, cost, and how often the same claim got a different answer. The agentic build comes back in Labs 3.5 to 3.7.
-- To see how a design handles a failure at runtime, continue with Lab 3.3.

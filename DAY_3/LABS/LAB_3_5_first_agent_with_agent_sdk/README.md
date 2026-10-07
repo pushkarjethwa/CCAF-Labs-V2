@@ -36,7 +36,7 @@ You need Python 3.10 or later, an Anthropic API key, and the Claude Code command
     claude --version
     ```
 
-    > **Note**: If the command is not found, ask your instructor to help you install Claude Code. The SDK uses your API key. Do not sign in with a claude.ai account.
+    > **Note**: The SDK uses your API key. Do not sign in with a claude.ai account.
 
 4. Create a new file named **.env** in the lab folder, and add the following line, replacing the value with your own API key:
 
@@ -54,7 +54,7 @@ You need Python 3.10 or later, an Anthropic API key, and the Claude Code command
     python check.py
     ```
 
-    > **Note**: The checker fails on purpose. Part A tests your four TODOs with no API key and no model. Part B is skipped until you run the agent.
+    > **Note**: Part A tests your four TODOs with no API key and no model. Part B is skipped until you run the agent. The lines under each TODO turn to `[PASS]` as you complete it.
 
 2. Notice that only two files matter for this lab: **lab.py**, which holds your four TODOs, and **check.py**. The **soc_tools.py** file holds the three tool functions, which read the incident data, and you do not need to read it.
 
@@ -132,8 +132,8 @@ An agent in the SDK is one configuration object. This is where you decide what t
             allowed_tools=["mcp__soc__list_alerts",     # pre-approve exactly these three, nothing else
                            "mcp__soc__get_log_lines",
                            "mcp__soc__lookup_indicator"],
-            max_turns=12,                               # hard stop on the loop
-            max_budget_usd=1.00,                        # hard stop on spend
+            max_turns=12,                               # limit on the loop
+            max_budget_usd=1.00,                        # limit on spend
             setting_sources=[],                         # ignore any local CLAUDE.md or settings files
         )
     ```
@@ -147,7 +147,7 @@ An agent in the SDK is one configuration object. This is where you decide what t
     - `create_sdk_mcp_server` bundles your tools into a server that runs inside your own Python process. There is nothing separate to start.
     - `tools=[]` switches off Claude Code's built-in file and shell tools. This is least privilege: the agent can only read the incident.
     - `allowed_tools` pre-approves exactly three tools. A tool name has the form `mcp__<server>__<tool>`.
-    - `max_turns` and `max_budget_usd` are the brakes. They are bounded autonomy: the agent chooses its steps, but not without limit.
+    - `max_turns` and `max_budget_usd` set the limits. They are bounded autonomy: the agent chooses its steps within limits you configure.
     - `setting_sources=[]` ignores any local settings files, so every student's agent behaves the same.
 
 ## Run the agent loop
@@ -193,7 +193,7 @@ The `query()` function runs the whole loop for you: it asks Claude, runs the too
     [done] ok | turns=5 | cost=$0.0200 | stop_reason=end_turn
     ```
 
-    > **Tip**: A model can occasionally take a different route. If the checker complains about the run, run `python lab.py` once more before you change any code.
+    > **Note**: The agent might take a different route from the example. That is normal.
 
 ## Check your work
 
@@ -210,30 +210,6 @@ The `query()` function runs the whole loop for you: it asks Claude, runs the too
     ```
 
 3. Submit the **results/run.json** file as your evidence. There is nothing else to write up.
-
-## Try breaking it (optional)
-
-After you reach 18/18, change one thing at a time, run `python check.py`, and then undo the change.
-
-1. Change the description of `get_log_lines` to `"Logs."`. Run `python lab.py`. Does the agent still read the logs before it decides?
-
-2. Remove `tools=[]` from the configuration. What does the checker say, and what could the agent now do that it should not?
-
-3. Change `max_turns` to 2 and run `python lab.py`. How does the agent behave when it runs out of turns?
-
-4. Remove the sentence "You cannot act yourself" from the prompt. What does the checker still accept, and what does that tell you about prompts versus enforcement?
-
-## Troubleshooting
-
-- **ANTHROPIC_API_KEY is missing**: The **.env** file is not in the lab folder, or it has a typo. Repeat the steps in *Set up the lab folder*.
-
-- **The Claude Code CLI was not found**: The SDK could not find the command-line tool. Check that `claude --version` works in the same terminal.
-
-- **IndentationError**: A pasted line lost its indent. Code inside a function is indented four spaces, and the rows inside the `TOOL_SPECS` list are indented four spaces.
-
-- **A TODO line still fails after pasting**: The old lines are still in the file, or you pasted only part of the snippet. Delete the old lines named in the step, and paste the whole snippet.
-
-- **Part B says you edited lab.py after the last run**: Run `python lab.py` again.
 
 ## Clean up
 

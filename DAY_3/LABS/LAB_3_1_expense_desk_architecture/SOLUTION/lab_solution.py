@@ -66,8 +66,6 @@ def run_workflow(claim):
         messages=[{"role": "user", "content": claim["text"]}],
     )
     fields = json_in(text_of(response))
-    if not isinstance(fields, dict) or any(key not in fields for key in EXTRACTION_SCHEMA["required"]):
-        return "escalate"
     return apply_policy(fields, claim)[0]
 
 

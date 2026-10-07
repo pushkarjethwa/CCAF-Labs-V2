@@ -1,4 +1,4 @@
-<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Make the Warranty Intake Agent Survive Failure</title><style>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build the Warranty Claims Agent</title><style>
 :root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
 *{box-sizing:border-box}
 body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
@@ -28,15 +28,15 @@ th{background:var(--bg)}
 hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
-</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Make the Warranty Intake Agent Survive Failure</h1>
-<p>In Demo 3C, you watched a warranty-claim intake agent meet injected faults. The agent files a claim with four tools: it looks up the product registration, checks the warranty terms, creates the claim, and schedules a pickup. A blanket &quot;retry three times&quot; handled only one of the faults. The fix was to classify each error first, and then use the recovery that fits. In this lab, you write that fix yourself, for the same agent, the same tools, and the same faults.</p>
-<p>You will complete four small pieces of <strong>lab.py</strong>, which add up to 26 lines of code. The lab takes about 35 minutes, and this guide gives you every line. At the end, a real Claude agent runs four faults through your recovery layer.</p>
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build the warranty claims agent</h1>
+<p>In Demo 3C, you built a warranty claims agent in stages. It works a customer request with five tools: it looks up the product registration, checks the warranty terms, creates the claim, schedules a pickup, and submits the decision. Every tool returns the same structured result, a fixed pipeline decides from the warranty terms, and a live Claude agent loop runs the same tools and stops at its decision or at a turn limit. In this lab, you write the key pieces of that agent yourself.</p>
+<p>You will complete four small pieces of <strong>lab.py</strong>, which add up to 23 lines of code. The lab takes about 30 minutes, and this guide gives you every line. At the end, a real Claude agent works four warranty requests.</p>
 <p>This lab continues Demo 3C, so you will recognize the following:</p>
 <ul>
-<li>The agent, its four tools, and the customer case C01 (a swollen laptop battery).</li>
-<li>The fault injector, and the faults <code>tool_drift</code>, <code>env_outage</code>, <code>permission</code>, and <code>reasoning</code>.</li>
-<li>The three families of failure (tool, reasoning, and environment), plus permission errors that are never retried.</li>
-<li>The ground truth from the chaos matrix, which the checker uses to test your work.</li>
+<li>The five tools and the four requests C01 to C04. C01 to C03 are covered by the warranty, and C04 is not.</li>
+<li>The structured result shape: <code>tool</code>, <code>ok</code> and <code>data</code>.</li>
+<li>The one-rule decision: covered means approved, and anything else means denied.</li>
+<li>The agent loop with a limit of 10 turns, and the check that a decision matches the tool results.</li>
 </ul>
 <h2>Set up the lab folder</h2>
 <p>You need Python 3.10 or later and an Anthropic API key.</p>
@@ -73,119 +73,71 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The checker fails on purpose. Part A tests your recovery layer against the ground truth from Demo 3C, and needs no API key and no model. Part B is skipped until you run the live agent.</p>
+<p><strong>Note</strong>: The checker fails for now, because the four pieces are not written yet. Part A tests your code on the four requests and needs no API key and no model. Part B is skipped until you run the live agent.</p>
 </blockquote>
 </li>
 <li>
-<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your four TODOs, and <strong>check.py</strong>. The <strong>warranty_core.py</strong> file holds the mock services, the fault injector, and the agent loop from the demo, and you do not need to read it.</p>
+<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your four TODOs, and <strong>check.py</strong>. The <strong>warranty_core.py</strong> file holds the mock tools, the tool definitions, and the decision check from the demo, and you do not need to read it.</p>
 </li>
 <li>
-<p>Notice that the starter code retries every failure three times, whatever the error says. This is the naive agent from Stage 1 of the demo.</p>
+<p>Open <strong>data/cases.json</strong> and notice the four requests. C01 is a swollen laptop battery, C02 is a dead display, C03 is a shattered phone with accidental-damage cover, and C04 is a monitor whose warranty has expired.</p>
 </li>
 </ol>
-<h2>Classify each error</h2>
-<p>The first decision is what kind of failure an error is. The classifier looks only at the error's status and code, never at its message text, because message text changes and can mislead.</p>
+<h2>Run a tool and return a structured result</h2>
+<p>Every tool in the agent answers in the same shape, so the loop and the model always read results the same way. The first piece runs one tool and wraps its result.</p>
 <ol>
 <li>
 <p>Open <strong>lab.py</strong> in your code editor.</p>
 </li>
 <li>
-<p>Search for the comment <strong>TODO 1 of 4 - CLASSIFY</strong>. Below it is the function <code>classify(exc)</code>, and its only line is <code>return &quot;environment&quot;  # replace this line in TODO 1</code>.</p>
+<p>Search for the comment <strong>TODO 1 of 4 - RUN A TOOL</strong>. Below it is the function <code>run_tool(name, args)</code>, and its only line is <code>return {}  # replace this line in TODO 1</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
-<div class="cb"><pre><code class="language-python">    status, code = getattr(exc, &quot;status_code&quot;, None), getattr(exc, &quot;code&quot;, &quot;&quot;)
-    if status == 403:
-        return &quot;permission&quot;
-    if status in (503, 504):
-        return &quot;environment&quot;
-    if code in (&quot;E_ARG_RENAMED&quot;, &quot;E_SCHEMA_REJECTED&quot;):
-        return &quot;tool&quot;
-    if status in (404, 422):
-        return &quot;reasoning&quot;
-    return &quot;unknown&quot;
+<div class="cb"><pre><code class="language-python">    return {&quot;tool&quot;: name, &quot;ok&quot;: True, &quot;data&quot;: core.TOOL_FUNCTIONS[name](**args)}
 </code></pre></div>
 </li>
 <li>
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the nine lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the two lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
 </li>
 <li>
-<p>Review the classifier, noting the following details:</p>
+<p>Review the line, noting the following details:</p>
 <ul>
-<li>A 403 means the agent has no permission. Retrying cannot help.</li>
-<li>A 503 or 504 means the service is unavailable or slow. This is an environment problem that may pass.</li>
-<li>An <code>E_ARG_RENAMED</code> or <code>E_SCHEMA_REJECTED</code> code means the tool's contract changed. This is a tool problem.</li>
-<li>A 404 or 422 means the caller sent a bad request or a wrong rule. This is a reasoning problem, because the model caused it.</li>
-<li>Anything else, such as a corrupt reply from an adapter, is unknown.</li>
+<li><code>core.TOOL_FUNCTIONS[name]</code> looks up the tool function by its name.</li>
+<li><code>(**args)</code> calls that function with the arguments as keyword arguments.</li>
+<li>The result goes under <code>data</code>, next to the tool name and an <code>ok</code> flag, so every result has the same three keys.</li>
 </ul>
 </li>
 </ol>
-<h2>Write the recovery rules</h2>
-<p>The second decision is what to do about each kind of failure. The starter code uses the same blanket retry for all five kinds.</p>
+<h2>Decide from the warranty terms</h2>
+<p>The second piece is the decision itself. The <code>check_warranty_terms</code> tool returns whether the issue is covered, the rule that says so, and a reason. Your function turns that into a decision.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4 - RECOVERY</strong>.</p>
-</li>
-<li>
-<p>Inside the <code>RECOVERY = {</code> block, replace the five rows with the following code:</p>
-<div class="cb"><pre><code class="language-python">    &quot;tool&quot;: (&quot;retry_renamed_then_fallback&quot;, 1),
-    &quot;reasoning&quot;: (&quot;corrective_message&quot;, 2),
-    &quot;environment&quot;: (&quot;backoff_then_breaker&quot;, 3),
-    &quot;permission&quot;: (&quot;escalate&quot;, 0),
-    &quot;unknown&quot;: (&quot;escalate&quot;, 0),
-</code></pre></div>
-</li>
-<li>
-<p>Save the file, and then run <code>python check.py</code>.</p>
-</li>
-<li>
-<p>Verify that the six matrix lines under <strong>TODO 2</strong> show <code>[PASS]</code>, along with the two lines about the reasoning policy and the single alert.</p>
-</li>
-<li>
-<p>Review the rules, noting the following details:</p>
-<ul>
-<li>A tool failure is retried once with the renamed argument, and then falls back to a degraded endpoint. A second identical retry would fail the same way.</li>
-<li>A reasoning failure sends the model a corrective message at most twice, and then a human takes over.</li>
-<li>An environment failure is retried with backoff, up to three attempts in total. Then a circuit breaker pauses the run and raises one alert, instead of one alert per failed call.</li>
-<li>A permission or unknown failure is never retried and never routed around. The agent stops and hands over to a human.</li>
-</ul>
-<blockquote class="">
-<p><strong>Note</strong>: The checker compares your rules with the chaos-matrix ground truth from Demo 3C: 6 faults across 4 steps, each with the expected outcome and the expected number of attempts.</p>
-</blockquote>
-</li>
-</ol>
-<h2>Write the corrective message</h2>
-<p>When the model caused the error, the executor sends it a corrective message. A vague message such as &quot;Try again.&quot; gives the model nothing to fix.</p>
-<ol>
-<li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4 - CORRECTIVE MESSAGE</strong>. Below it is the function <code>corrective_message(exc)</code>, and its only line is <code>return &quot;Try again.&quot;  # replace this line in TODO 3</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4 - DECIDE</strong>. Below it is the function <code>decide(terms)</code>, and its only line is <code>return {&quot;decision&quot;: &quot;approved&quot;, &quot;rule_id&quot;: &quot;&quot;, &quot;reason&quot;: &quot;&quot;}  # replace this line in TODO 2</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent:</p>
-<div class="cb"><pre><code class="language-python">    if exc.code == &quot;E_COVERAGE_MISMATCH&quot;:
-        return (&quot;The coverage rule you used does not match the warranty terms for this serial and issue. &quot;
-                &quot;Call check_warranty_terms again and use exactly the rule_id it returns.&quot;)
-    return f&quot;The call failed: {exc.message}. Fix the arguments (check the format) and call the tool again.&quot;
+<div class="cb"><pre><code class="language-python">    return {&quot;decision&quot;: &quot;approved&quot; if terms[&quot;covered&quot;] else &quot;denied&quot;, &quot;rule_id&quot;: terms[&quot;rule_id&quot;], &quot;reason&quot;: terms[&quot;reason&quot;]}
 </code></pre></div>
 </li>
 <li>
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the two lines under <strong>TODO 3</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the three lines under <strong>TODO 2</strong> show <code>[PASS]</code>, along with the four lines under <strong>TODO 1 and 2 together</strong>. These lines run the fixed pipeline from stage 2 of the demo on all four requests.</p>
 <blockquote class="">
-<p><strong>Note</strong>: A good corrective message names the tool to call again and the exact value to use. Without that detail, the model tends to repeat the same mistake.</p>
+<p><strong>Note</strong>: The decision comes from the terms and not from the customer's message. The reason in the decision is the reason from the warranty terms.</p>
 </blockquote>
 </li>
 </ol>
 <h2>Write your Claude API call</h2>
-<p>All the checks that need no model pass now. In this section, you write the call that gives the agent a brain. Each turn of the agent is one call to Claude, with the four tool definitions attached.</p>
+<p>All the checks that need no model pass for these two pieces. In this section, you write the call that gives the agent a brain. Each turn of the agent is one call to Claude, with the five tool definitions attached.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4</strong>. Below it is the function <code>ask(messages)</code>, and its only line is <code>raise NotImplementedError(&quot;TODO 4 is not done yet&quot;)  # replace this line in TODO 4</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4</strong>. Below it is the function <code>ask(messages)</code>, and its only line is <code>raise NotImplementedError(&quot;TODO 3 is not done yet&quot;)  # replace this line in TODO 3</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent:</p>
@@ -202,7 +154,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the one line under <strong>TODO 4</strong> shows <code>[PASS]</code>.</p>
+<p>Verify that the one line under <strong>TODO 3</strong> shows <code>[PASS]</code>.</p>
 </li>
 <li>
 <p>Review the call, noting the following details:</p>
@@ -211,35 +163,77 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <li><code>.messages.create(...)</code> sends your request to Claude.</li>
 <li><code>model</code> chooses which Claude model answers.</li>
 <li><code>max_tokens</code> limits the length of the answer. The API requires it.</li>
-<li><code>system</code> holds the standing instruction for the intake agent.</li>
-<li><code>tools</code> lists the four tools that Claude may ask the loop to run.</li>
+<li><code>system</code> holds the standing instruction for the claims agent.</li>
+<li><code>tools</code> lists the five tools that Claude may ask the loop to run.</li>
 <li><code>messages</code> holds the conversation so far, including the results of earlier tool calls.</li>
 <li>The function returns the whole response, because the agent loop reads its content blocks to find the tool calls.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the agent loop</h2>
+<p>The last piece is the loop that makes the agent work. Each turn, the loop asks Claude what to do next, runs the tools that Claude picked, and sends the results back.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4 - THE AGENT LOOP</strong>. Below it is the function <code>run_agent(case, ask_fn=None)</code>. After the lines that build <code>messages</code>, <code>records</code>, and <code>turns</code>, the only line is <code>pass  # replace this line in TODO 4</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    for turns in range(1, core.MAX_TURNS + 1):
+        response = ask_fn(messages)
+        messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+        calls = [block for block in response.content if block.type == &quot;tool_use&quot;]
+        if not calls:
+            break
+        results = []
+        for call in calls:
+            record = run_tool(call.name, call.input)
+            records.append(record)
+            results.append({&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: call.id, &quot;content&quot;: json.dumps(record)})
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})
+        if any(call.name == &quot;submit_decision&quot; for call in calls):
+            break
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run <code>python check.py</code>.</p>
+</li>
+<li>
+<p>Verify that the five lines under <strong>TODO 4</strong> show <code>[PASS]</code>.</p>
+<blockquote class="">
+<p><strong>Note</strong>: The checker drives your loop with a tiny stand-in for Claude that follows the same five steps. This proves that your loop runs the tools, sends the results back, and stops.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the loop, noting the following details:</p>
+<ul>
+<li><code>range(1, core.MAX_TURNS + 1)</code> limits the loop to 10 turns, so it always ends.</li>
+<li>Each reply from Claude is added to <code>messages</code> as the assistant, so Claude sees its own earlier steps.</li>
+<li>The <code>tool_use</code> blocks in the reply are the tool calls that Claude chose. A reply with none means Claude is finished.</li>
+<li><code>run_tool</code> runs each call, and the record is kept for the final check.</li>
+<li>The results go back as one user message of <code>tool_result</code> blocks. Each one carries the <code>tool_use_id</code> of its call.</li>
+<li>The loop stops after the turn in which Claude calls <code>submit_decision</code>.</li>
 </ul>
 </li>
 </ol>
 <h2>Run the live agent</h2>
 <ol>
 <li>
-<p>Run the agent through four faults, one from each family, by running the following command:</p>
+<p>Run the agent on the four requests by running the following command:</p>
 <div class="cb"><pre><code>python lab.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The run uses a small amount of API credit. Each fault is a separate agent run that makes several calls to Claude.</p>
+<p><strong>Note</strong>: The run uses a small amount of API credit. Each request is a separate agent run that makes several calls to Claude.</p>
 </blockquote>
 </li>
 <li>
-<p>Verify that the output is similar to the following. The wording of the last line for <code>reasoning</code> depends on the model:</p>
-<div class="cb"><pre><code>tool_drift   at create_claim         status=completed            faulted-step attempts=2 alerts=[]
-env_outage   at create_claim         status=paused_alerted       faulted-step attempts=3 alerts=['create_claim service']
-permission   at schedule_pickup      status=escalated            faulted-step attempts=1 alerts=[]
-reasoning    at check_warranty_terms status=completed            faulted-step attempts=2 alerts=[]
+<p>Verify that the output is similar to the following. The claim and pickup numbers are not printed here, and the turn counts can vary a little with the model:</p>
+<div class="cb"><pre><code>C01  decision=approved  turns=5  tools=5  verified=True
+C02  decision=approved  turns=5  tools=5  verified=True
+C03  decision=approved  turns=5  tools=5  verified=True
+C04  decision=denied    turns=3  tools=3  verified=True
 
 Saved to results/run.json. Now run: python check.py
 </code></pre></div>
-<blockquote class="">
-<p><strong>Tip</strong>: A model can occasionally behave differently on the <code>reasoning</code> fault. If that line shows an unexpected status, run <code>python lab.py</code> once more before you change any code.</p>
-</blockquote>
 </li>
 </ol>
 <h2>Check your work</h2>
@@ -251,50 +245,13 @@ Saved to results/run.json. Now run: python check.py
 </li>
 <li>
 <p>Verify that the last line reads:</p>
-<div class="cb"><pre><code>RESULT: 25/25 checks passed
+<div class="cb"><pre><code>RESULT: 22/22 checks passed
 </code></pre></div>
 </li>
 <li>
 <p>Submit the <strong>results/run.json</strong> file as your evidence. There is nothing else to write up.</p>
 </li>
 </ol>
-<h2>Try breaking it (optional)</h2>
-<p>After you reach 25/25, change one thing at a time, run <code>python check.py</code>, and then undo the change.</p>
-<ol>
-<li>
-<p>Change the <code>&quot;permission&quot;</code> row to <code>(&quot;retry_same_call&quot;, 3)</code>. Which lines fail, and what does a retry do to a 403?</p>
-</li>
-<li>
-<p>Change the <code>&quot;environment&quot;</code> limit from 3 to 10. Which lines fail, and what would ten attempts do to a service that is down?</p>
-</li>
-<li>
-<p>Make <code>classify</code> return <code>&quot;environment&quot;</code> for every error. Which lines fail?</p>
-</li>
-<li>
-<p>Change the corrective message to <code>&quot;Try again.&quot;</code>. Which line fails, and why does the model need more than that?</p>
-</li>
-</ol>
-<h2>Troubleshooting</h2>
-<ul>
-<li>
-<p><strong>ANTHROPIC_API_KEY is missing</strong>: The <strong>.env</strong> file is not in the lab folder, or it has a typo. Repeat the steps in <em>Set up the lab folder</em>.</p>
-</li>
-<li>
-<p><strong>IndentationError</strong>: A pasted line lost its indent. The code inside a function must be indented four spaces, and the code inside a dictionary must be indented four spaces.</p>
-</li>
-<li>
-<p><strong>A TODO line still fails after pasting</strong>: The old line is still in the file, or you pasted only part of the snippet. Delete the old line named in the step, and paste the whole snippet.</p>
-</li>
-<li>
-<p><strong>NotImplementedError: TODO 4 is not done yet</strong>: The <code>ask</code> function still has the placeholder line. Repeat the steps in <em>Write your Claude API call</em>.</p>
-</li>
-<li>
-<p><strong>Part B says you edited lab.py after the last run</strong>: Run <code>python lab.py</code> again.</p>
-</li>
-<li>
-<p><strong>The reasoning fault shows an unexpected status</strong>: This is normal model variation. Run <code>python lab.py</code> once more.</p>
-</li>
-</ul>
 <h2>Clean up</h2>
 <p>Delete the <strong>results</strong> folder to reset the lab, and keep your <strong>.env</strong> file private.</p>
 <h2>More information</h2>

@@ -1,17 +1,13 @@
 {
-  "_comment": "Scripted human reviewer decisions used by Stage 3/4 and FINAL so the pause/resume cycle is deterministic. In production these arrive from a review UI, one at a time, hours later.",
+  "_comment": "Scripted reviewers. In production the approval arrives from a review screen. A payment goes to the reviewer with the lowest limit that still covers the amount.",
   "reviewers": {
+    "carol.diaz": {"role": "AP analyst", "limit": 25000.0},
     "alice.moreno": {"role": "AP supervisor", "limit": 100000.0},
-    "bob.chen": {"role": "finance controller", "limit": 1000000.0},
-    "carol.diaz": {"role": "AP analyst", "limit": 25000.0}
+    "bob.chen": {"role": "finance controller", "limit": 1000000.0}
   },
-  "decisions": {
-    "PAY-1004": {"reviewer": "alice.moreno", "decision": "reject", "reason": "Call-back to the phone number on file did not confirm the new bank details; ask supplier to re-submit via the portal."},
-    "PAY-1005": {"reviewer": "alice.moreno", "decision": "reject", "reason": "Only 31,500 received. Return to AP to request a revised invoice for delivered quantity."},
-    "PAY-1006": {"reviewer": "alice.moreno", "decision": "approve", "reason": "Receipt GR-55199 located in warehouse system (late scan); delivery confirmed by dock supervisor."},
-    "PAY-1008": {"reviewer": "bob.chen", "decision": "reject", "reason": "CFO office confirms no such request was made; potential social-engineering attempt reported to security."},
-    "PAY-1009": {"reviewer": "bob.chen", "decision": "reject", "reason": "Invoice bank account does not match vendor master and vendor is 34 days old; fraud review opened."},
-    "PAY-1010": {"reviewer": "alice.moreno", "decision": "approve", "reason": "Onboarding documents and two trade references verified; first payment approved."},
-    "PAY-1011": {"reviewer": "alice.moreno", "decision": "approve", "reason": "Amount above J. Okafor's 50k limit; reviewer limit is 100k; matched evidence confirmed."}
+  "approvals": {
+    "PAY-1004": {"reviewer": "bob.chen", "reason": "Pumps delivered and commissioned; documents match."},
+    "PAY-1005": {"reviewer": "alice.moreno", "reason": "Amount is above the approver's limit; documents match."},
+    "PAY-1006": {"reviewer": "carol.diaz", "reason": "New supplier; onboarding documents verified."}
   }
 }

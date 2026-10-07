@@ -84,13 +84,13 @@ Four labs, all built the same way. In each one you write **a few small decisions
 
 | Lab | The story | What you decide (you write) | Real Claude does | Time |
 |---|---|---|---|---|
-| [3.1 Expense desk: review claims two ways](DAY_3/LABS/LAB_3_1_expense_desk_architecture/README.md) | ACME Finance (Demo 3A). Vote on the five briefs, then review six claims as a conversation and as a workflow | The rubric and two Claude calls (26 lines) | Both reviews | 25 min |
-| [3.2 Research desk: hand-offs](DAY_3/LABS/LAB_3_2_research_desk_handoffs/README.md) | The research desk (Demo 3B). What a valid hand-off is, what each specialist may see, and what to do when two reliable reports disagree | Contracts, minimal briefs, a conflict rule and one writer call (22 lines) | The writer | 45 min |
-| [3.3 Warranty claims: failure recovery](DAY_3/LABS/LAB_3_3_warranty_failure_recovery/README.md) | Warranty intake (Demo 3C). Classify each failure and pick the recovery | Classifier, recovery table, corrective message and one call (26 lines) | The intake agent | 30 min |
-| [3.4 Supplier payments: release guard](DAY_3/LABS/LAB_3_4_payment_release_guard/README.md) | Payment release (Demo 3D). The model proposes; code decides and a hook enforces | Gate rules, idempotency key, release hook and one call (43 lines) | The proposal | 40 min |
+| [3.1 Expense desk: review claims two ways](DAY_3/LABS/LAB_3_1_expense_desk_architecture/README.md) | ACME Finance (Demo 3A). Vote on the five briefs, then review six claims as a conversation and as a workflow | The rubric and two Claude calls (24 lines) | Both reviews | 25 min |
+| [3.2 Research desk: hand-offs](DAY_3/LABS/LAB_3_2_research_desk_handoffs/README.md) | The research desk (Demo 3B). What a valid hand-off is, what each specialist may see, and what to do when two reliable reports disagree | Contracts, minimal briefs, a conflict rule and one writer call (14 lines) | The writer | 45 min |
+| [3.3 Warranty claims agent](DAY_3/LABS/LAB_3_3_warranty_failure_recovery/README.md) | Warranty claims (Demo 3C). Tools, a decision rule and an agent loop | Tool runner, decision, one call and the loop (23 lines) | The intake agent | 30 min |
+| [3.4 Supplier payments: release guard](DAY_3/LABS/LAB_3_4_payment_release_guard/README.md) | Payment release (Demo 3D). Small payments approved by rule, larger ones by a reviewer | Gate rules, reviewer choice, release hook and one call (26 lines) | The proposal | 40 min |
 | [3.5 First agent with the Agent SDK](DAY_3/LABS/LAB_3_5_first_agent_with_agent_sdk/README.md) | Incident INC-7741 (Demo 3E). Configure a read-only agent | Tool specs, system prompt, options and the run (32 lines) | The whole agent | 30 min |
 | [3.6 Two ways to build an agent](DAY_3/LABS/LAB_3_6_two_ways_to_build_an_agent/README.md) | The same incident agent (Demo 3F), as a manual loop and with the Tool Runner | Loop pieces and Tool Runner functions (26 lines) | The whole agent | 30 min |
-| [3.7 Research desk with subagents](DAY_3/LABS/LAB_3_7_research_desk_with_subagents/README.md) | The research desk again (Demo 3G), built with Agent SDK subagents | Two subagents, a leak guard and options (38 lines) | The coordinator and writer | 40 min |
+| [3.7 Research desk with subagents](DAY_3/LABS/LAB_3_7_research_desk_with_subagents/README.md) | The research desk again (Demo 3G), built with Agent SDK subagents | Two subagents and the coordinator options (28 lines) | The coordinator and writer | 40 min |
 
 How a Day 3 lab differs from the labs above:
 
@@ -109,8 +109,8 @@ The Day 3 demos are in the trainer's folder (`TRAINER_V2/DAY_3/DEMOS`). Each dem
 |---|---|---|
 | 3A Should this be an agent? | Choose chat, workflow or agent by who controls the next step | Lab 3.1 |
 | 3B Monolith to multi-agent | One 12-tool agent becomes a small desk of specialists with checked hand-offs | Lab 3.2 |
-| 3C Agent failure lab | Tool, reasoning and environment errors each need a different recovery | Lab 3.3 |
-| 3D Human escalation | A human approval is a saved state change, with a policy gate and an audit trail | Lab 3.4 |
+| 3C Warranty claims agent | An agent runs a claim through clean tools to a decision | Lab 3.3 |
+| 3D Payment release | A rule approves small payments, a reviewer approves large ones, and an audit trail records each release | Lab 3.4 |
 | 3E First agent with the Agent SDK | The smallest useful Claude Agent SDK agent (an incident triage) | Before Lab 3.4 |
 | 3F Four ways to build an agent | Same task as a manual loop, Tool Runner, Managed Agents and the Agent SDK, and how to deploy each | Lab 3.4, decision matrix |
 | 3G Research orchestrator with the Agent SDK | The final multi-agent design with subagents, a safety hook and a scorer | Lab 3.2 |

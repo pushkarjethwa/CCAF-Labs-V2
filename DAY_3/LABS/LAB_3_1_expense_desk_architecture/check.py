@@ -67,10 +67,6 @@ check(not wrong, "when Claude extracts the fields correctly, code reaches the ri
 check(len(fake.calls) == len(claim), "makes exactly one Claude call per claim", f"made {len(fake.calls)} calls for {len(claim)} claims")
 check(fake.calls and "merchant" in fake.calls[0].get("system", ""), "the system prompt contains the extraction schema", "add json.dumps(EXTRACTION_SCHEMA) to the system prompt")
 check(fake.calls and fake.calls[0]["messages"][0]["content"] == CLAIMS[0]["text"], "the user message is just the claim text", "send claim['text'] as the user message")
-with_fake(lambda system, user: "I could not read this claim.")
-check(lab.run_workflow(claim["R02"]) == "escalate", "when Claude's reply is not usable JSON, the claim is escalated to a human", "return \"escalate\" when the fields are missing")
-with_fake(lambda system, user: '{"decision": "approve"}')
-check(lab.run_workflow(claim["R02"]) == "escalate", "a reply with the wrong fields is escalated too (code, not the model, decides)", "check every key in EXTRACTION_SCHEMA['required']")
 
 print("\nPART B - your real run (needs `python lab.py` with a key)\n")
 problems_a = not all(results)
@@ -84,8 +80,8 @@ else:
     check(saved.get("fingerprint") == lab.code_fingerprint(), "the saved run is from your CURRENT code", "you edited a TODO after the last run - run `python lab.py` again")
     check(len(rows) == len(lab.LAB_CLAIMS), f"all {len(lab.LAB_CLAIMS)} claims were reviewed both ways")
     valid = {"approve", "reject", "escalate"}
-    check(all(r["conversational"] in valid for r in rows), "every conversational answer was a readable decision",
-          "an answer shows as 'invalid' when the reply was not the JSON asked for - check TODO 2")
+    check(all(r["conversational"] in valid for r in rows), "every conversational answer was a decision",
+          "check that TODO 2 returns decision_in(text_of(response))")
     check(all(r["workflow"] in valid for r in rows), "every workflow answer was a decision")
     check(score["workflow"] >= 5, f"the workflow got at least 5 of 6 right (it got {score['workflow']})",
           "the model extracts and code decides, so a miss means a bad extraction - read the table above")

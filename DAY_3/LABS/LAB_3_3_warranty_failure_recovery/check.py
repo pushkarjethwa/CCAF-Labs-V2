@@ -1,4 +1,4 @@
-"""check.py - Part A tests your recovery layer against Demo 3C's ground truth (no API key). Part B checks the live run saved by `python lab.py`.
+"""check.py - Part A tests your code on the four cases (no API key). Part B checks the live run saved by `python lab.py`.
 
 Exit code 0 = everything passed.
 """
@@ -24,61 +24,87 @@ def guarded(fn, *args):
         return f"{type(exc).__name__}: {exc}"
 
 
-E = core.ServiceError
-print("PART A - your recovery layer, tested with no model and no API key\n")
-print("TODO 1 - classify (by status and code, never by message text)")
-for label, exc, want in [("503 unavailable", E(503, "E_UNAVAILABLE", "x"), "environment"), ("504 timeout", E(504, "E_TIMEOUT", "x"), "environment"),
-                         ("403 forbidden", E(403, "E_FORBIDDEN", "x"), "permission"), ("renamed argument", E(422, "E_ARG_RENAMED", "x"), "tool"),
-                         ("schema rejected", E(422, "E_SCHEMA_REJECTED", "x"), "tool"), ("wrong coverage rule", E(422, "E_COVERAGE_MISMATCH", "x"), "reasoning"),
-                         ("404 not found", E(404, "E_NOT_FOUND", "x"), "reasoning"), ("corrupt adapter reply", RuntimeError("corrupt frame"), "unknown")]:
-    got = guarded(lab.classify, exc)
-    check(got == want, f"{label} is classified as {want}", f"you returned {got!r}")
-got = guarded(lab.classify, E(503, "E_UNAVAILABLE", "403 forbidden: permission denied"))
-check(got == "environment", "the message text is ignored: a 503 whose message says 'forbidden' is still environment", f"you returned {got!r}")
+class Block:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
 
-print("\nTODO 2 - RECOVERY, checked against the chaos ground truth (6 faults x 4 steps)")
-for fault in [f for f in core.PLANS["faults"] if core.PLANS["faults"][f]["family"] != "reasoning"]:
-    want = core.EXPECTED[fault]
-    runs = [guarded(core.run_chain, lab.HOOKS, fault, step) for step in core.STEPS]
-    ok = all(isinstance(r, tuple) and r[0] == want["outcome"][step] and r[1] == want["attempts"] for r, step in zip(runs, core.STEPS))
-    got = [r[:2] if isinstance(r, tuple) else r for r in runs[:1]]
-    check(ok, f"{fault}: outcome and attempts match the ground truth on all 4 steps (expected {want['attempts']} attempt(s) at the faulted step)", f"first run gave {got}")
 
-executor = core.ResilientExecutor(core.Injector(None, None), lab.HOOKS)
-bad = {"serial": "HX20481977", "issue_type": "battery_defect", "coverage_rule_id": "R-WRONG", "customer_id": "CUS-1042"}
-stops = [guarded(executor.run, "create_claim", bad) for _ in range(3)]
-check(all(isinstance(s, dict) for s in stops) and [s.get("stop") for s in stops] == [None, None, "escalated"],
-      "a model that keeps sending a wrong rule is corrected twice, then a human is called", f"stops: {[s.get('stop') if isinstance(s, dict) else s for s in stops]}")
-good = {**bad, "coverage_rule_id": "R-BASIC-DEFECT"}
-outage = core.ResilientExecutor(core.Injector("env_outage", "create_claim"), lab.HOOKS)
-guarded(outage.run, "create_claim", good)
-guarded(outage.run, "create_claim", good)
-check(len(outage.alerts) == 1, "two calls into the same outage raise exactly ONE alert", f"alerts: {outage.alerts}")
+def canned_model(case):
+    """A tiny stand-in for Claude that follows the happy path, so TODO 4 can be tested with no key."""
+    form, turn = case["form"], [0]
 
-print("\nTODO 3 - the corrective message")
-msg = guarded(lab.corrective_message, E(422, "E_COVERAGE_MISMATCH", "rule is wrong"))
-check(isinstance(msg, str) and "check_warranty_terms" in msg and "rule_id" in msg, "for a wrong coverage rule it tells the model to call check_warranty_terms and use the rule_id it returns", f"you returned {msg!r}")
-msg = guarded(lab.corrective_message, E(422, "E_BAD_SERIAL_FORMAT", "serial must be two capital letters then eight digits"))
-check(isinstance(msg, str) and "serial must be two capital letters then eight digits" in msg, "for any other error it quotes the error's own message", f"you returned {msg!r}")
+    def model(messages):
+        turn[0] += 1
+        last = json.loads(messages[-1]["content"][-1]["content"]) if len(messages) > 1 else {"tool": None}
+        data, name = last.get("data", {}), last["tool"]
+        if name is None:
+            call = ("lookup_product_registration", {"serial": form["serial"]})
+        elif name == "lookup_product_registration":
+            call = ("check_warranty_terms", {"serial": form["serial"], "issue_type": form["issue_type"]})
+        elif name == "check_warranty_terms" and data["covered"]:
+            call = ("create_claim", {"serial": form["serial"], "issue_type": form["issue_type"], "customer_id": form["customer_id"]})
+        elif name == "check_warranty_terms":
+            call = ("submit_decision", {"decision": "denied", "reason": data["reason"]})
+        elif name == "create_claim":
+            call = ("schedule_pickup", {"claim_number": data["claim_number"], "preferred_date": form["preferred_date"], "zone": form["zone"]})
+        else:
+            call = ("submit_decision", {"decision": "approved", "reason": "covered", "claim_number": data["claim_number"], "pickup_id": data["pickup_id"]})
+        return Block(content=[Block(type="tool_use", id=f"t{turn[0]}", name=call[0], input=call[1])])
 
-print("\nTODO 4 - the Claude call")
-check("NotImplementedError" not in inspect.getsource(lab.ask), "the ask function makes a Claude API call (the placeholder line is gone)", "replace the raise NotImplementedError line in TODO 4")
+    return model
 
-print("\nPART B - TODO 4 and the live agent (needs `python lab.py` with a key; tolerant of normal model variation)\n")
+
+CASES = core.CASES["cases"]
+print("PART A - your code, tested with no model and no API key\n")
+
+print("TODO 1 - run_tool (the structured envelope)")
+got = guarded(lab.run_tool, "lookup_product_registration", {"serial": "HX20481977"})
+check(isinstance(got, dict) and got.get("tool") == "lookup_product_registration" and got.get("ok") is True,
+      "the result has tool = the tool name and ok = True", f"you returned {got!r}")
+check(isinstance(got, dict) and isinstance(got.get("data"), dict) and got["data"].get("plan") == "BASIC",
+      "the data key holds what the tool returned (the registration for HX20481977)", f"you returned {got!r}")
+
+print("\nTODO 2 - decide")
+covered = {"covered": True, "rule_id": "R-BASIC-DEFECT", "reason": "covered until 2027-02-10"}
+excluded = {"covered": False, "rule_id": "R-EXPIRED", "reason": "the plan expired"}
+got = guarded(lab.decide, covered)
+check(isinstance(got, dict) and got.get("decision") == "approved", "covered terms give the decision approved", f"you returned {got!r}")
+got = guarded(lab.decide, excluded)
+check(isinstance(got, dict) and got.get("decision") == "denied", "terms that are not covered give the decision denied", f"you returned {got!r}")
+check(isinstance(got, dict) and got.get("rule_id") == "R-EXPIRED" and got.get("reason") == "the plan expired",
+      "the rule_id and the reason are copied from the terms", f"you returned {got!r}")
+
+print("\nTODO 1 and 2 together - the fixed pipeline on the four cases")
+for case in CASES:
+    row = guarded(core.run_pipeline, lab.HOOKS, case)
+    ok = isinstance(row, dict) and row["verified"] and row["decision"]["decision"] == case["expected"]
+    check(ok, f"{case['id']}: the decision is {case['expected']} and matches the tool results", f"result: {row}")
+
+print("\nTODO 3 - the Claude call")
+check("NotImplementedError" not in inspect.getsource(lab.ask), "the ask function makes a Claude API call (the placeholder line is gone)", "replace the raise NotImplementedError line in TODO 3")
+
+print("\nTODO 4 - the agent loop (driven here by a tiny stand-in for Claude)")
+for case in CASES:
+    row = guarded(lab.run_agent, case, canned_model(case))
+    ok = isinstance(row, dict) and row["verified"] and row["decision"]["decision"] == case["expected"]
+    check(ok, f"{case['id']}: the loop ran the tools, submitted the decision and stopped ({case['expected']})", f"result: {row}")
+row = guarded(lab.run_agent, CASES[0], canned_model(CASES[0]))
+check(isinstance(row, dict) and row["tools"] == ["lookup_product_registration", "check_warranty_terms", "create_claim", "schedule_pickup", "submit_decision"]
+      and row["turns"] == 5, "C01 used the five tools in order, one per turn, and finished in 5 turns", f"result: {row}")
+
+print("\nPART B - the live agent (needs `python lab.py` with a key; tolerant of normal model variation)\n")
 if not lab.RESULTS_FILE.exists():
     print("[SKIP] results/run.json not found - finish the TODOs, run `python lab.py`, then this again.")
 else:
     saved = json.loads(lab.RESULTS_FILE.read_text(encoding="utf-8"))
-    rows = {r["fault"]: r for r in saved["rows"]}
+    rows = {r["case"]: r for r in saved["rows"]}
     check(saved.get("fingerprint") == lab.source_fingerprint(), "the saved run is from your CURRENT lab.py", "you edited lab.py after the last run - run `python lab.py` again")
-    check(rows["tool_drift"]["status"] == "completed" and rows["tool_drift"]["faulted_step_attempts"] == 2,
-          "tool_drift: the agent finished after exactly one retry with the renamed argument", f"got {rows['tool_drift']['status']}, {rows['tool_drift']['faulted_step_attempts']} attempt(s)")
-    check(rows["env_outage"]["status"] == "paused_alerted" and rows["env_outage"]["faulted_step_attempts"] == 3 and len(rows["env_outage"]["alerts"]) == 1,
-          "env_outage: three attempts with backoff, then the run paused and ONE alert was raised", f"got {rows['env_outage']['status']}, {rows['env_outage']['faulted_step_attempts']} attempt(s)")
-    check(rows["permission"]["status"] == "escalated" and rows["permission"]["faulted_step_attempts"] == 1,
-          "permission: ONE attempt, then escalated to a human (a blanket retry would have made three)", f"got {rows['permission']['status']}, {rows['permission']['faulted_step_attempts']} attempt(s)")
-    check(rows["reasoning"]["status"] in ("completed", "escalated"), "reasoning: the model was corrected and either finished or was handed to a human, never retried blindly",
-          f"got {rows['reasoning']['status']}")
+    for case in CASES:
+        row = rows.get(case["id"], {})
+        decision = (row.get("decision") or {}).get("decision")
+        check(decision == case["expected"] and row.get("verified"), f"{case['id']}: Claude decided {case['expected']}, and the decision matches the tool results", f"got {decision}, verified={row.get('verified')}")
+    check(all(r["turns"] <= core.MAX_TURNS for r in rows.values()), f"every run finished within the turn limit ({core.MAX_TURNS})")
+    check("create_claim" not in rows.get("C04", {}).get("tools", ["create_claim"]), "C04 was denied without filing a claim")
 
 print(f"\nRESULT: {sum(results)}/{len(results)} checks passed")
 sys.exit(0 if all(results) else 1)

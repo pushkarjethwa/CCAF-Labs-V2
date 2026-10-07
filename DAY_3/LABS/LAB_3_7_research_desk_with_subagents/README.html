@@ -29,14 +29,14 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
 </style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build the Research Desk as a Multi-Agent System</h1>
-<p>In Demo 3G, you watched the final design of the research desk written with the Claude Agent SDK. A coordinator delegates each question to four specialists: a searcher, an analyst, a fact-checker, and a writer. The coordinator holds a confidential client note and never researches anything itself. Three controls made the desk safe: each specialist has only the tools its job needs, a hook blocks any brief that contains the confidential note, and a conflict between reliable sources goes to a human. In this lab, you write those controls yourself, for the same desk, with the same corpus and the same questions.</p>
-<p>You will complete three pieces of <strong>lab.py</strong>, which add up to 39 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.</p>
+<p>In Demo 3G, you watched the final design of the research desk written with the Claude Agent SDK. A coordinator delegates each question to four specialists: a searcher, an analyst, a fact-checker, and a writer. The coordinator never researches anything itself. Each specialist has only the tools its job needs, and a conflict between reliable sources goes to a human. In this lab, you write the specialists and the coordinator yourself, for the same desk, with the same corpus and the same questions.</p>
+<p>You will complete two pieces of <strong>lab.py</strong>, which add up to 28 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.</p>
 <p>This lab continues Demo 3G, so you will recognize the following:</p>
 <ul>
-<li>The research desk, its 40-document corpus, its five tools, and the confidential client note about Pallo Systems.</li>
+<li>The research desk, its 40-document corpus, and its five tools.</li>
 <li>The coordinator and the four specialists, with the searcher and the writer already written for you.</li>
-<li>The three controls: least privilege, context isolation with a PreToolUse hook, and escalation.</li>
-<li>The questions Q2 (two reliable reports disagree) and Q5 (a rumour sits next to the confidential note), and the string-matching scorer.</li>
+<li>The two stages: the specialists with only the tools they need, and the coordinator that brings them together.</li>
+<li>The questions Q2 (two reliable reports disagree, so the desk escalates to a human) and Q5 (a rumour that must be labelled), and the string-matching scorer.</li>
 </ul>
 <h2>Set up the lab folder</h2>
 <blockquote class="">
@@ -76,18 +76,18 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The checker fails on purpose. Part A tests your three TODOs with no API key and no model. Part B is skipped until you run the desk.</p>
+<p><strong>Note</strong>: Part A tests your two TODOs with no API key and no model. It reports which lines are still to do. Part B is skipped until you run the desk.</p>
 </blockquote>
 </li>
 <li>
-<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your three TODOs, and <strong>check.py</strong>. The <strong>research_tools.py</strong> file holds the five tools and the corpus, and you do not need to read it.</p>
+<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your two TODOs, and <strong>check.py</strong>. The <strong>research_tools.py</strong> file holds the five tools and the corpus, and you do not need to read it.</p>
 </li>
 <li>
 <p>Open <strong>lab.py</strong> and read the comment block at the top of the file, noting the following details:</p>
 <ul>
 <li>The coordinator delegates and never researches.</li>
 <li>The searcher and the writer are already written, so you can see what a finished specialist looks like.</li>
-<li>The starter versions of the analyst and the fact-checker can use every tool, which is the problem you fix first.</li>
+<li>The starter versions of the analyst and the fact-checker can use every tool, which you fix first.</li>
 </ul>
 </li>
 </ol>
@@ -95,7 +95,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Least privilege means that a specialist cannot misuse a tool it does not have. The analyst only needs arithmetic. The fact-checker only needs to re-read documents.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 1 of 3 - SUBAGENTS</strong>. Below it is the <code>SUBAGENTS = {</code> dictionary, with the searcher already written.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 1 of 2 - SUBAGENTS</strong>. Below it is the <code>SUBAGENTS = {</code> dictionary, with the searcher already written.</p>
 </li>
 <li>
 <p>Find the two entries that start with <code>&quot;analyst&quot;</code> and <code>&quot;fact_checker&quot;</code>, which sit between the searcher and the writer. Each has a short placeholder description and every tool.</p>
@@ -137,47 +137,11 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </ul>
 </li>
 </ol>
-<h2>Block briefs that carry the confidential note</h2>
-<p>The coordinator knows the confidential note. Specialists must never see it, and a sentence in a prompt is not a guard. A PreToolUse hook runs in code before every delegation, and it can refuse the call.</p>
-<ol>
-<li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 3 - make_leak_guard</strong>. Below it is the function <code>make_leak_guard(run)</code>, which contains an inner function named <code>guard</code>. Its only line is <code>return {}  # replace these lines in TODO 2</code>.</p>
-</li>
-<li>
-<p>Replace that line with the following code. Keep the eight-space indent, because the code sits inside two functions:</p>
-<div class="cb"><pre><code class="language-python">        brief = json.dumps(input_data[&quot;tool_input&quot;]).lower()
-        if any(marker.lower() in brief for marker in LEAK_MARKERS):
-            run.blocked_leaks += 1
-            return {&quot;hookSpecificOutput&quot;: {
-                &quot;hookEventName&quot;: &quot;PreToolUse&quot;,
-                &quot;permissionDecision&quot;: &quot;deny&quot;,
-                &quot;permissionDecisionReason&quot;: &quot;This brief contains client-confidential context. &quot;
-                                            &quot;Rewrite it with only the research question and the facts needed.&quot;,
-            }}
-        return {}  # no opinion: allow
-</code></pre></div>
-</li>
-<li>
-<p>Save the file, and then run <code>python check.py</code>.</p>
-</li>
-<li>
-<p>Verify that the five lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
-</li>
-<li>
-<p>Review the guard, noting the following details:</p>
-<ul>
-<li>The hook reads the whole delegation, so the brief is checked wherever it appears in it, and the match ignores upper and lower case.</li>
-<li>On a match, the hook counts the block and returns a <code>deny</code> decision. The reason goes back to the coordinator, so it can rewrite the brief without the note.</li>
-<li>Returning <code>{}</code> means no opinion, and the call goes ahead.</li>
-<li>The markers are specific phrases on purpose. A bare <code>$400M</code> would also block a legitimate brief about a Kestrel investor-day target, and the checker tests for that.</li>
-</ul>
-</li>
-</ol>
 <h2>Assemble the coordinator</h2>
-<p>The coordinator is one configuration object. It brings the specialists, the tools, the hook, and the limits together.</p>
+<p>The coordinator is one configuration object. It brings the specialists, the tools, and the limits together.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 3 - build_options</strong>. Below it is the function <code>build_options(run)</code>, and its only line is <code>return ClaudeAgentOptions(model=MODEL, system_prompt=COORDINATOR_PROMPT)  # replace these lines in TODO 3</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 2 - build_options</strong>. Below it is the function <code>build_options(run)</code>, and its only line is <code>return ClaudeAgentOptions(model=MODEL, system_prompt=COORDINATOR_PROMPT)  # replace these lines in TODO 2</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent, because the code sits inside the function:</p>
@@ -189,7 +153,6 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
         mcp_servers={SERVER: server},
         tools=[&quot;Agent&quot;],                                                   # the coordinator's only built-in tool
         allowed_tools=[*DELEGATE_TOOLS, *(mcp(spec.name) for spec in TOOL_SPECS)],
-        hooks={&quot;PreToolUse&quot;: [HookMatcher(matcher=&quot;|&quot;.join(DELEGATE_TOOLS), hooks=[make_leak_guard(run)])]},
         max_turns=30,
         max_budget_usd=3.00,
         setting_sources=[],
@@ -200,15 +163,14 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the six lines under <strong>TODO 3</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the four lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
 </li>
 <li>
 <p>Review the configuration, noting the following details:</p>
 <ul>
 <li><code>agents=SUBAGENTS</code> gives the coordinator its four specialists.</li>
 <li><code>tools=[&quot;Agent&quot;]</code> makes delegation the coordinator's only built-in tool, so it cannot search or calculate itself.</li>
-<li><code>allowed_tools</code> allows delegation and the five desk tools, because the subagents use them.</li>
-<li>The <code>hooks</code> entry runs your leak guard before every delegation. The matcher names both <code>Agent</code> and <code>Task</code>, because the delegation tool was renamed between Claude Code versions.</li>
+<li><code>allowed_tools</code> allows delegation and the five desk tools, because the subagents use them. The list names both <code>Agent</code> and <code>Task</code>, because the delegation tool was renamed between Claude Code versions.</li>
 <li>The limits and <code>setting_sources=[]</code> work as they did in the Demo 3E agent: the desk is bounded, and every student's desk behaves the same.</li>
 </ul>
 </li>
@@ -229,11 +191,8 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <li>Lines that start with <code>[coordinator] delegates to</code> show the coordinator handing work to a specialist.</li>
 <li>Indented lines show the tool calls of that specialist.</li>
 <li>Below each question, you see the final report and a list of <code>PASS</code> and <code>FAIL</code> checks from the scorer.</li>
-<li>A final <code>info</code> line shows how many briefs the leak guard blocked, and how many data tools the coordinator called itself. The second number should be 0.</li>
+<li>A final <code>info</code> line shows how many data tools the coordinator called itself. It should be 0, because the coordinator only delegates.</li>
 </ul>
-<blockquote class="">
-<p><strong>Tip</strong>: A model can occasionally take a different route. If the checker complains about the run, run <code>python lab.py</code> once more before you change any code.</p>
-</blockquote>
 </li>
 </ol>
 <h2>Check your work</h2>
@@ -245,50 +204,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </li>
 <li>
 <p>Verify that the last line reads:</p>
-<div class="cb"><pre><code>RESULT: 22/22 checks passed
+<div class="cb"><pre><code>RESULT: 14/14 checks passed
 </code></pre></div>
 </li>
 <li>
 <p>Submit the <strong>results/run.json</strong> file as your evidence. There is nothing else to write up.</p>
 </li>
 </ol>
-<h2>Try breaking it (optional)</h2>
-<p>After you reach 22/22, change one thing at a time, run <code>python check.py</code>, and then undo the change.</p>
-<ol>
-<li>
-<p>Give the analyst the <code>fetch_document</code> tool as well. Which line fails, and what could the analyst now do that it should not?</p>
-</li>
-<li>
-<p>Remove <code>.lower()</code> from the first line of the guard (<code>brief = json.dumps(...).lower()</code>), so that the match is case-sensitive. Which line fails, and why would a model that writes &quot;DUE DILIGENCE&quot; get through?</p>
-</li>
-<li>
-<p>Remove the hook from <code>build_options</code>. Which lines fail? Part B would only fail if the coordinator actually tried to leak. What does that tell you about testing a control?</p>
-</li>
-<li>
-<p>Add the confidential note to the system prompt of the writer. What would stop it from leaking?</p>
-</li>
-</ol>
-<h2>Troubleshooting</h2>
-<ul>
-<li>
-<p><strong>ANTHROPIC_API_KEY is missing</strong>: The <strong>.env</strong> file is not in the lab folder, or it has a typo. Repeat the steps in <em>Set up the lab folder</em>.</p>
-</li>
-<li>
-<p><strong>The Claude Code CLI was not found</strong>: The SDK could not find the command-line tool. Check that <code>claude --version</code> works in the same terminal.</p>
-</li>
-<li>
-<p><strong>IndentationError</strong>: A pasted line lost its indent. The guard code is indented eight spaces, the <code>build_options</code> code is indented four spaces, and the two subagent entries are indented four spaces.</p>
-</li>
-<li>
-<p><strong>A TODO line still fails after pasting</strong>: The old lines are still in the file, or you pasted only part of the snippet. Delete the old lines named in the step, and paste the whole snippet.</p>
-</li>
-<li>
-<p><strong>Part B says you edited lab.py after the last run</strong>: Run <code>python lab.py</code> again.</p>
-</li>
-<li>
-<p><strong>A question shows FAIL in the scorer</strong>: This is normal model variation. Run <code>python lab.py</code> once more before you change any code.</p>
-</li>
-</ul>
 <h2>Clean up</h2>
 <p>Delete the <strong>results</strong> folder to reset the lab, and keep your <strong>.env</strong> file private.</p>
 <h2>More information</h2>

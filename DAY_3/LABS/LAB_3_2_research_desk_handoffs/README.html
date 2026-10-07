@@ -28,15 +28,14 @@ th{background:var(--bg)}
 hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
-</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Harden the Research Desk</h1>
-<p>In Demo 3B, the instructor turned one overloaded research agent into a desk of four specialists: a searcher, an analyst, a fact-checker, and a writer. The desk was then made safe with four ideas: validated hand-offs, isolated briefs, a rule for each kind of failure, and escalation decided in code. In this lab, you write those four ideas yourself, on the same desk, with the same 40-document corpus and the same confidential client note.</p>
-<p>The client behind the desk has quietly started due diligence on acquiring Pallo Systems. That note must never reach a specialist or the final report. You make sure it does not, and you make the desk fail safely when things go wrong.</p>
-<p>You will complete five small pieces of <strong>lab.py</strong>, which add up to 22 lines of code. The lab takes about 35 minutes, and this guide gives you every line.</p>
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build the Research Desk</h1>
+<p>In Demo 3B, the instructor turned one overloaded research agent into a desk of four specialists: a searcher, an analyst, a fact-checker, and a writer. The desk works because of four ideas: validated hand-offs, minimal briefs, escalation decided in code, and a writer that turns verified facts into a report. In this lab, you write those four ideas yourself, on the same desk, with the same 40-document corpus.</p>
+<p>You will complete four small pieces of <strong>lab.py</strong>, which add up to 14 lines of code. The lab takes about 30 minutes, and this guide gives you every line.</p>
 <p>This lab continues Demo 3B, so you will recognize the following:</p>
 <ul>
 <li>The research desk, its corpus, and its tools.</li>
-<li>The four specialists, and the questions Q2 (two reliable reports disagree), Q4 (a calculation is needed), and Q5 (a rumour sits next to the confidential note).</li>
-<li>The ideas you write here: contracts and isolated briefs from Stage 4, the failure policy from the Stage 5 hand-off drill, and the escalation rule.</li>
+<li>The four specialists, and the questions Q2 (two reliable reports disagree), Q4 (a calculation is needed), and Q5 (a rumour sits next to the real answer).</li>
+<li>The ideas you write here: contracts and minimal briefs from Stage 4, and the escalation rule.</li>
 </ul>
 <h2>Set up the lab folder</h2>
 <p>You need Python 3.10 or later and an Anthropic API key.</p>
@@ -73,11 +72,11 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The checker fails on purpose. Part A tests each of your five TODOs with hand-made inputs and needs no API key. Part B is skipped until you run the desk.</p>
+<p><strong>Note</strong>: The checker reports <code>[FAIL]</code> lines until you finish the TODOs. Part A tests each of your four TODOs with hand-made inputs and needs no API key. Part B is skipped until you run the desk.</p>
 </blockquote>
 </li>
 <li>
-<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your five TODOs, and <strong>check.py</strong>. The <strong>desk_core.py</strong> file is the machinery from the demo, and you do not need to read it.</p>
+<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your four TODOs, and <strong>check.py</strong>. The <strong>desk_core.py</strong> file is the machinery from the demo, and you do not need to read it.</p>
 </li>
 </ol>
 <h2>Write the hand-off contracts</h2>
@@ -87,7 +86,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Open <strong>lab.py</strong> in your code editor.</p>
 </li>
 <li>
-<p>Search for the comment <strong>TODO 1 of 5 - CONTRACTS</strong>.</p>
+<p>Search for the comment <strong>TODO 1 of 4 - CONTRACTS</strong>.</p>
 </li>
 <li>
 <p>Below the <code>&quot;searcher&quot;</code> row, find the two rows that start with <code>&quot;analyst&quot;</code> and <code>&quot;fact_checker&quot;</code>. Replace those two lines with the following code:</p>
@@ -99,17 +98,17 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the six lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the three lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
 <blockquote class="">
-<p><strong>Note</strong>: The contract rejects a reply with a missing field, an extra field, a verdict outside the three allowed words, or a <code>doc_id</code> that is not in the corpus (a hallucinated source).</p>
+<p><strong>Note</strong>: A contract lists the fields a reply must have and their types. The <code>verdict</code> field accepts only the three words listed, and every <code>doc_id</code> must be a document that exists in the corpus.</p>
 </blockquote>
 </li>
 </ol>
 <h2>Write the briefs</h2>
-<p>A brief is the message a specialist receives. The starter code pastes the confidential note into every brief, which is the leak you saw in Stage 3 of the demo.</p>
+<p>A brief is the message a specialist receives. Each brief should carry only the task and the facts that specialist needs, and nothing else. The starter code returns an empty string for each brief.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 5 - BRIEFS</strong>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4 - BRIEFS</strong>.</p>
 </li>
 <li>
 <p>Select the three functions below it, from <code>def searcher_brief</code> to the end of <code>fact_check_brief</code>, and replace them with the following code:</p>
@@ -130,65 +129,30 @@ def fact_check_brief(finding):
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the six lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the three lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
 <blockquote class="">
-<p><strong>Note</strong>: Each brief now holds only the task and the facts that specialist needs. This is least privilege: what a specialist never sees, it cannot leak.</p>
+<p><strong>Note</strong>: This is least privilege. The searcher gets the question, the analyst gets the calculation and the facts, and the fact-checker gets one claim and its document. No specialist reads the whole conversation.</p>
 </blockquote>
-</li>
-</ol>
-<h2>Write the failure policy</h2>
-<p>The starter code retries every failure ten times, which is the wrong answer to most failures. The Stage 5 drill in the demo showed that different failures need different policies.</p>
-<ol>
-<li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 5 - POLICY</strong>.</p>
-</li>
-<li>
-<p>Inside the <code>POLICY = {</code> block, replace the four rows with the following code:</p>
-<div class="cb"><pre><code class="language-python">    &quot;malformed_handoff&quot;: {&quot;action&quot;: &quot;re_ask_with_errors&quot;, &quot;max_attempts&quot;: 1},
-    &quot;specialist_crashed&quot;: {&quot;action&quot;: &quot;retry_same_call&quot;, &quot;max_attempts&quot;: 2},
-    &quot;confidential_leak&quot;: {&quot;action&quot;: &quot;block_and_escalate&quot;, &quot;max_attempts&quot;: 0},
-    &quot;no_findings&quot;: {&quot;action&quot;: &quot;partial_report&quot;, &quot;max_attempts&quot;: 0},
-</code></pre></div>
-</li>
-<li>
-<p>Save the file, and then run <code>python check.py</code>.</p>
-</li>
-<li>
-<p>Verify that the six lines under <strong>TODO 3</strong> show <code>[PASS]</code>.</p>
-</li>
-<li>
-<p>Review the policy, noting the following details:</p>
-<ul>
-<li>A malformed reply is a reasoning problem. Repeating the same call gives the same mistake, so the desk re-asks once and quotes the exact problems.</li>
-<li>A crashed specialist is an environment problem. The next try may work, so the desk retries the same call at most twice.</li>
-<li>A brief that contains the client note is never acceptable. The desk blocks it before any model sees it, and escalates.</li>
-<li>When the searcher finds nothing, there is nothing to build on. The desk stops with an honest partial report for a human.</li>
-</ul>
 </li>
 </ol>
 <h2>Decide escalation in code</h2>
 <p>When two reliable sources disagree, the desk must not pick one. It must tell a human. In this section, you make that a rule in code instead of a hope that the writer remembers.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 5 - ESCALATION</strong>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4 - ESCALATION</strong>.</p>
 </li>
 <li>
-<p>In the <code>has_conflict</code> function, replace the line <code>return False  # replace this line in TODO 4</code> with the following code:</p>
+<p>In the <code>has_conflict</code> function, replace the line <code>return False  # replace this line in TODO 3</code> with the following code:</p>
 <div class="cb"><pre><code class="language-python">    return any(c[&quot;verdict&quot;] == &quot;CONFLICT&quot; for c in checks)
-</code></pre></div>
-</li>
-<li>
-<p>In the <code>must_re_ask_writer</code> function, replace the line <code>return False  # replace this line in TODO 4</code> with the following code:</p>
-<div class="cb"><pre><code class="language-python">    return conflict and not core.escalated(report)
 </code></pre></div>
 </li>
 <li>
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the four lines under <strong>TODO 4</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the three lines under <strong>TODO 3</strong> show <code>[PASS]</code>.</p>
 <blockquote class="">
-<p><strong>Note</strong>: The first function spots a conflict among the fact-checks. The second says that if there was a conflict and the report did not escalate it, the desk asks the writer once more.</p>
+<p><strong>Note</strong>: The function spots a conflict among the fact-checks. When it returns <code>True</code>, <strong>desk_core.py</strong> adds a line to the writer's brief that tells it to report both values and escalate to a human.</p>
 </blockquote>
 </li>
 </ol>
@@ -196,10 +160,10 @@ def fact_check_brief(finding):
 <p>The searcher, analyst, and fact-checker run as real Claude agents inside <strong>desk_core.py</strong>. The writer is a single call with no tools, and you write it.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 5 of 5</strong>. Below it is the function <code>call_writer(brief)</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4</strong>. Below it is the function <code>call_writer(brief)</code>.</p>
 </li>
 <li>
-<p>Replace the last line of the function, <code>return &quot;&quot;  # replace this line in TODO 5</code>, with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<p>Replace the last line of the function, <code>return &quot;&quot;  # replace this line in TODO 4</code>, with the following code. Keep the four-space indent, because the code sits inside the function:</p>
 <div class="cb"><pre><code class="language-python">    response = get_client().messages.create(
         model=MODEL_BALANCED,
         max_tokens=2048,
@@ -240,15 +204,12 @@ def fact_check_brief(finding):
 </li>
 <li>
 <p>Verify that you see one line per question, similar to the following. The counts will differ:</p>
-<div class="cb"><pre><code>Q2: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 2, 'status': 'complete'}
-Q4: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 2, 'status': 'complete'}
-Q5: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 1, 'status': 'complete'}
+<div class="cb"><pre><code>Q2: PASS | {'checks': 2}
+Q4: PASS | {'checks': 2}
+Q5: PASS | {'checks': 1}
 
 Saved to results/run.json. Now run: python check.py
 </code></pre></div>
-<blockquote class="">
-<p><strong>Tip</strong>: A model can occasionally slip on one question. If a line shows <code>FAIL</code>, run <code>python lab.py</code> once more before you change any code.</p>
-</blockquote>
 </li>
 </ol>
 <h2>Check your work</h2>
@@ -260,50 +221,13 @@ Saved to results/run.json. Now run: python check.py
 </li>
 <li>
 <p>Verify that the last line reads:</p>
-<div class="cb"><pre><code>RESULT: 28/28 checks passed
+<div class="cb"><pre><code>RESULT: 14/14 checks passed
 </code></pre></div>
 </li>
 <li>
 <p>Submit the <strong>results/run.json</strong> file as your evidence. There is nothing else to write up.</p>
 </li>
 </ol>
-<h2>Try breaking it (optional)</h2>
-<p>After you reach 28/28, change one thing at a time, run <code>python check.py</code>, and then undo the change.</p>
-<ol>
-<li>
-<p>Set <code>&quot;malformed_handoff&quot;</code> to <code>&quot;max_attempts&quot;: 5</code>. Which line fails, and what would five re-asks cost on a long brief?</p>
-</li>
-<li>
-<p>Set <code>&quot;confidential_leak&quot;</code> to <code>&quot;action&quot;: &quot;retry_same_call&quot;</code>. Which line fails, and why is a blocked brief better than a retry?</p>
-</li>
-<li>
-<p>Put <code>{desk.PRIVATE_NOTE}</code> back into <code>analyst_brief</code>. Which lines fail?</p>
-</li>
-<li>
-<p>Make <code>has_conflict</code> return <code>False</code>. Which Part B line would fail on a real run, and why?</p>
-</li>
-</ol>
-<h2>Troubleshooting</h2>
-<ul>
-<li>
-<p><strong>ANTHROPIC_API_KEY is missing</strong>: The <strong>.env</strong> file is not in the lab folder, or it has a typo. Repeat the steps in <em>Set up the lab folder</em>.</p>
-</li>
-<li>
-<p><strong>IndentationError</strong>: A pasted line lost its indent. Match the indent shown in the snippet, which is four spaces inside a function or a dictionary.</p>
-</li>
-<li>
-<p><strong>A TODO line still fails after pasting</strong>: The old lines are still in the file, or only some were replaced. Delete the old lines named in the step, and paste the whole snippet.</p>
-</li>
-<li>
-<p><strong>Part B says you edited lab.py after the last run</strong>: Run <code>python lab.py</code> again.</p>
-</li>
-<li>
-<p><strong>Part B says a report is empty</strong>: The <code>call_writer</code> function still returns an empty string. Check that the <code>return &quot;&quot;</code> line is gone from TODO 5.</p>
-</li>
-<li>
-<p><strong>One question shows FAIL on a real run</strong>: This is normal model variation. Run <code>python lab.py</code> once more.</p>
-</li>
-</ul>
 <h2>Clean up</h2>
 <p>Delete the <strong>results</strong> folder to reset the lab, and keep your <strong>.env</strong> file private.</p>
 <h2>More information</h2>

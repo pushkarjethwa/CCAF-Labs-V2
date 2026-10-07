@@ -138,11 +138,11 @@ The rule behind the table: **use the least powerful option that works**, and mov
 | Demo | What it needs | Which package fits |
 |---|---|---|
 | 3A, expense review | A fixed series of steps with one model call | Neither agent feature. A workflow with the Anthropic SDK. |
-| 3C, failure recovery | Retry and recovery rules around each tool call | Either. The rules are your code, in a loop or around the runner. |
-| 3D, payment guard | A rule that runs before the release tool | Claude Agent SDK gives you the hook. With a manual loop you call the same rule yourself. |
+| 3C, warranty claims | A tool-using loop with a decision rule and a turn limit | Either. The loop is your code, or the runner. |
+| 3D, payment release | A rule that runs before the release tool | Claude Agent SDK gives you the hook. With a manual loop you call the same rule yourself. |
 | 3E, first agent | One agent in one configuration object | Claude Agent SDK |
 | 3F, four builds | The same agent, to compare | All four builds |
-| 3G, research desk | Subagents, and a hook that refuses a leak | Claude Agent SDK (3B built the same desk by hand with the Anthropic SDK) |
+| 3G, research desk | Subagents and a coordinator | Claude Agent SDK (3B built the same desk by hand with the Anthropic SDK) |
 
 ## Common mistakes
 

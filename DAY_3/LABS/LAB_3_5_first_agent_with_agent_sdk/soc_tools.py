@@ -19,12 +19,11 @@ def list_alerts(args):
 def get_log_lines(args):
     needle = f"host={args['host']} "
     lines = [line for line in INCIDENT["log_lines"] if needle in line]
-    return "\n".join(lines) or f"No log lines for host {args['host']}."
+    return "\n".join(lines)
 
 
 def lookup_indicator(args):
-    verdict = INTEL.get(args["ip"])
-    return json.dumps(verdict) if verdict else f"No intelligence on {args['ip']}."
+    return json.dumps(INTEL[args["ip"]])
 
 
 RUN = {"list_alerts": list_alerts, "get_log_lines": get_log_lines, "lookup_indicator": lookup_indicator}

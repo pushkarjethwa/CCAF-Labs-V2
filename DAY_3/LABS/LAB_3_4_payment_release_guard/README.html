@@ -1,4 +1,4 @@
-<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Guard Supplier-Payment Release with Code, Not Prompts</title><style>
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build a Supplier-Payment Release Gate with Human Approval</title><style>
 :root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
 *{box-sizing:border-box}
 body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
@@ -28,15 +28,15 @@ th{background:var(--bg)}
 hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
-</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Guard Supplier-Payment Release with Code, Not Prompts</h1>
-<p>In Demo 3D, you watched an agent propose what to do with twelve supplier payments: release, hold, or reject. Many of its proposals came with high confidence, and some were wrong. The lesson was that a confidence score is not a control, and that a sentence in a prompt is not a guard. The control has to be code: a policy gate, a human review that really pauses the payment, a bank call that cannot pay twice, and an Agent SDK hook that blocks the release tool. In this lab, you write those controls yourself, for the same payments, the same policy, and the same reviewers.</p>
-<p>You will complete five small pieces of <strong>lab.py</strong>, which add up to 43 lines of code. The lab takes about 45 minutes, and this guide gives you every line. At the end, Claude proposes an outcome for each of the twelve payments, and your controls decide what actually happens.</p>
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build a Supplier-Payment Release Gate with Human Approval</h1>
+<p>In Demo 3D, you watched a supplier-payment release process handle six payments. A set of simple rules checked each payment. Small payments were approved automatically. Larger ones waited for a reviewer, who approved them, and only then was the money released. An Agent SDK hook let the release tool run for approved payments. In this lab, you write those pieces yourself, for the same payments, the same rules, and the same reviewers.</p>
+<p>You will complete four small pieces of <strong>lab.py</strong>, which add up to 26 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, Claude writes a short note for each of the six payments, and your gate, reviewer choice, and hook release them.</p>
 <p>This lab continues Demo 3D, so you will recognize the following:</p>
 <ul>
-<li>The twelve labelled supplier payments (PAY-1001 to PAY-1012), the policy file, and the three scripted reviewers.</li>
-<li>The policy gate, where the model's proposal can only add doubt and can never remove a hard flag.</li>
-<li>The pause, review, and resume cycle, and the idempotent payment that moves money once.</li>
-<li>The Agent SDK hook that blocks the release tool, and the six hook scenarios from Stage 5.</li>
+<li>The six supplier payments (PAY-1001 to PAY-1006), the policy file, and the three reviewers.</li>
+<li>The release gate: rules that decide whether a payment is released automatically or needs approval.</li>
+<li>The approval step, where a reviewer approves a waiting payment.</li>
+<li>The Agent SDK hook that lets the release tool run for approved payments.</li>
 </ul>
 <h2>Set up the lab folder</h2>
 <p>You need Python 3.10 or later and an Anthropic API key.</p>
@@ -73,52 +73,41 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The checker fails on purpose. Part A tests your five TODOs with no API key and no model. Part B is skipped until you run the real model.</p>
+<p><strong>Note</strong>: The checker reports <code>[FAIL]</code> lines because your four TODOs are not written yet. Part A tests your code with no API key and no model. Part B is skipped until you run the real model.</p>
 </blockquote>
 </li>
 <li>
-<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your five TODOs, and <strong>check.py</strong>. The <strong>release_core.py</strong> file is the payment engine from the demo, and you do not need to read it.</p>
+<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your four TODOs, and <strong>check.py</strong>. The <strong>release_core.py</strong> file is the payment engine from the demo, and you do not need to read it.</p>
 </li>
 <li>
-<p>Notice that the starter code approves every payment and refuses nothing. That is what trusting the model looks like.</p>
+<p>Open <strong>data/policy.json</strong>. It holds the two numbers your rules use: an approval threshold of 25,000 and a new-vendor age of 90 days.</p>
 </li>
 </ol>
-<h2>Write the policy gate</h2>
-<p>The gate decides, in code, whether a payment is released, sent to a human, or rejected. It has three small parts: the flags raised by the evidence, the flags raised by the model's proposal, and the decision rule.</p>
+<h2>Write the release gate</h2>
+<p>The gate decides, in code, whether a payment is released automatically or goes to a reviewer. It has two small parts: the rules, and the decision.</p>
 <ol>
 <li>
 <p>Open <strong>lab.py</strong> in your code editor.</p>
 </li>
 <li>
-<p>Search for the comment <strong>TODO 1 of 5 - THE POLICY GATE</strong>. Below it are three functions. Each one has a single placeholder line that ends with <code># replace these lines in TODO 1</code>.</p>
+<p>Search for the comment <strong>TODO 1 of 4 - THE RELEASE GATE</strong>. Below it are two functions. Each one has a single placeholder line that ends with <code># replace these lines in TODO 1</code>.</p>
 </li>
 <li>
 <p>In the <code>payment_flags</code> function, replace the line <code>return []  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent:</p>
 <div class="cb"><pre><code class="language-python">    flags = []
-    if case[&quot;invoice&quot;][&quot;bank_last4&quot;] != case[&quot;bank_history&quot;][&quot;on_file_last4&quot;]:
-        flags.append(&quot;BANK_MISMATCH&quot;)
+    if case[&quot;payment&quot;][&quot;amount&quot;] &gt;= policy[&quot;approval_threshold&quot;]:
+        flags.append(&quot;AMOUNT_NEEDS_APPROVAL&quot;)
     if case[&quot;payment&quot;][&quot;amount&quot;] &gt; case[&quot;approver&quot;][&quot;limit&quot;]:
         flags.append(&quot;OVER_APPROVER_LIMIT&quot;)
-    if case[&quot;payment&quot;][&quot;amount&quot;] &gt;= policy.cfg[&quot;amount_dual_control&quot;]:
-        flags.append(&quot;HV_DUAL_CONTROL&quot;)
+    if case[&quot;payee&quot;][&quot;vendor_age_days&quot;] &lt; policy[&quot;new_vendor_days&quot;]:
+        flags.append(&quot;NEW_VENDOR&quot;)
     return flags
 </code></pre></div>
 </li>
 <li>
-<p>In the <code>proposal_flags</code> function, replace the line <code>return []  # replace these lines in TODO 1</code> with the following code:</p>
-<div class="cb"><pre><code class="language-python">    if proposal is None:
-        return [&quot;NO_MODEL_PROPOSAL&quot;]
-    if proposal.get(&quot;decision&quot;) == &quot;reject&quot;:
-        return [&quot;MODEL_RECOMMENDS_REJECT&quot;]
-    return []
-</code></pre></div>
-</li>
-<li>
 <p>In the <code>decide</code> function, replace the line <code>return &quot;auto-release&quot;  # replace these lines in TODO 1</code> with the following code:</p>
-<div class="cb"><pre><code class="language-python">    if reject_flags:
-        return &quot;reject&quot;
-    if hard_flags or score &gt;= escalate_at:
-        return &quot;escalate&quot;
+<div class="cb"><pre><code class="language-python">    if flags:
+        return &quot;needs-approval&quot;
     return &quot;auto-release&quot;
 </code></pre></div>
 </li>
@@ -126,65 +115,58 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the six lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the four lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
 </li>
 <li>
 <p>Review the gate, noting the following details:</p>
 <ul>
-<li>A hard flag always forces a human. The model's confidence can never remove it.</li>
-<li>If the model gave nothing usable, a human decides. Silence is never a yes.</li>
-<li>If the model says reject, a human decides. The model does not get to reject silently.</li>
-<li>A reject flag, such as a duplicate invoice, wins over everything else. Otherwise any hard flag, or a risk score at the limit, escalates. Only a payment with no flags and a low score is released.</li>
+<li>A rule that finds something worth a second look adds a flag. The flags are the reasons shown to the reviewer.</li>
+<li>A large amount, a payment above the approver's own limit, and a very new vendor each send the payment to a reviewer.</li>
+<li>A payment with no flags is released automatically.</li>
 </ul>
 </li>
 </ol>
-<h2>Write the human review checks</h2>
-<p>When the gate pauses a payment, a human reviewer decides. A real approval process refuses some decisions, and so should yours.</p>
+<h2>Choose the reviewer</h2>
+<p>A payment that needs approval goes to one reviewer. The reviewer must be allowed to approve that amount, so the choice depends on each reviewer's limit.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 5 - THE HUMAN REVIEW</strong>. Below it is the function <code>decision_problem(case, decision, reviewer)</code>, and its only line is <code>return None  # replace these lines in TODO 2</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4 - THE REVIEWER</strong>. Below it is the function <code>choose_reviewer(case, reviewers)</code>, and its only line is <code>return None  # replace these lines in TODO 2</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent:</p>
-<div class="cb"><pre><code class="language-python">    if decision[&quot;reviewer&quot;] == case[&quot;payment&quot;][&quot;requested_by&quot;]:
-        return &quot;reviewer cannot review a payment they requested (four-eyes)&quot;
-    if reviewer[&quot;limit&quot;] &lt; case[&quot;payment&quot;][&quot;amount&quot;]:
-        return f&quot;reviewer limit {reviewer['limit']:,.0f} &lt; amount {case['payment']['amount']:,.0f}&quot;
-    if decision.get(&quot;evidence_digest&quot;) != core.digest(case):
-        return &quot;stale decision: the evidence changed since the reviewer saw it; re-review required&quot;
-    if decision.get(&quot;decision&quot;) not in (&quot;approve&quot;, &quot;reject&quot;) or not decision.get(&quot;reason&quot;, &quot;&quot;).strip():
-        return &quot;decision must be approve or reject, with a non-empty reason&quot;
-    return None
+<div class="cb"><pre><code class="language-python">    amount = case[&quot;payment&quot;][&quot;amount&quot;]
+    for name, person in sorted(reviewers.items(), key=lambda item: item[1][&quot;limit&quot;]):
+        if person[&quot;limit&quot;] &gt;= amount:
+            return name
 </code></pre></div>
 </li>
 <li>
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the six lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
+<p>Verify that the three lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
 </li>
 <li>
-<p>Review the checks, noting the following details:</p>
+<p>Review the choice, noting the following details:</p>
 <ul>
-<li>Four-eyes: nobody approves a payment they requested.</li>
-<li>Limit: a reviewer cannot approve more than their own limit.</li>
-<li>Stale evidence: the reviewer's decision is bound to the evidence digest they saw. If the evidence changed, the decision is refused.</li>
-<li>Valid decision: the answer must be approve or reject, and it must come with a reason.</li>
+<li>The reviewers are sorted from the lowest limit to the highest.</li>
+<li>The first reviewer whose limit covers the amount gets the payment. A 6,500 payment goes to the analyst, and a 182,000 payment goes to the finance controller.</li>
+<li>The engine puts this name in the review packet, and that reviewer approves the payment.</li>
 </ul>
-<blockquote class="">
-<p><strong>Note</strong>: The function returns a message when a decision must be refused, and <code>None</code> when it is fine. The engine turns the message into a refusal.</p>
-</blockquote>
 </li>
 </ol>
-<h2>Write the payment key</h2>
-<p>If the process dies right after the bank pays, a retry must not pay again. The bank remembers an idempotency key, and the same key twice moves money once.</p>
+<h2>Write the release hook</h2>
+<p>An Agent SDK agent calls a <code>release_payment</code> tool. A PreToolUse hook runs before the tool and decides whether the call may go ahead. The hook looks at the state of the payment in the workflow, so the answer comes from the system of record and not from the agent.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 5 - THE PAYMENT KEY</strong>. Below it is the function <code>payment_key(case_id, digest)</code>, and its only line is <code>return None  # replace this line in TODO 3</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4 - THE RELEASE HOOK</strong>. Below it is the function <code>make_before_release(svc)</code>, which holds the inner function <code>before_release</code>. Its only line is <code>return {}  # replace these lines in TODO 3</code>.</p>
 </li>
 <li>
-<p>Replace that line with the following code. Keep the four-space indent:</p>
-<div class="cb"><pre><code class="language-python">    return f&quot;{case_id}:{digest}&quot;
+<p>Replace that line with the following code. Keep the eight-space indent, because the code sits inside two functions:</p>
+<div class="cb"><pre><code class="language-python">        allowed, why = svc.authorisation(input_data[&quot;tool_input&quot;][&quot;case_id&quot;])
+        decision = &quot;allow&quot; if allowed else &quot;deny&quot;
+        return {&quot;hookSpecificOutput&quot;: {&quot;hookEventName&quot;: &quot;PreToolUse&quot;, &quot;permissionDecision&quot;: decision,
+                                       &quot;permissionDecisionReason&quot;: why}}
 </code></pre></div>
 </li>
 <li>
@@ -192,56 +174,28 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </li>
 <li>
 <p>Verify that the two lines under <strong>TODO 3</strong> show <code>[PASS]</code>.</p>
-<blockquote class="">
-<p><strong>Note</strong>: The key is the same for the same case and the same evidence, and it changes if the evidence changes. Returning <code>None</code> means no key, which is the version that pays twice after a crash.</p>
-</blockquote>
-</li>
-</ol>
-<h2>Write the release hook</h2>
-<p>An Agent SDK agent calls a <code>release_payment</code> tool. A PreToolUse hook runs before the tool and can block it. The prompt may say &quot;only release approved payments&quot;, but the hook is what makes it true.</p>
-<ol>
-<li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 5 - THE RELEASE HOOK</strong>. Below it is the function <code>make_before_release(svc)</code>, which holds the inner function <code>before_release</code>. Its only line is <code>return {}  # replace these lines in TODO 4</code>.</p>
-</li>
-<li>
-<p>Replace that line with the following code. Keep the eight-space indent, because the code sits inside two functions:</p>
-<div class="cb"><pre><code class="language-python">        try:
-            allowed, why = svc.authorisation(input_data[&quot;tool_input&quot;][&quot;case_id&quot;])
-        except Exception as exc:  # a broken guard must refuse, not shrug
-            allowed, why = False, f&quot;guard error ({type(exc).__name__}): refusing&quot;
-        if allowed:
-            return {}
-        return {&quot;hookSpecificOutput&quot;: {&quot;hookEventName&quot;: &quot;PreToolUse&quot;, &quot;permissionDecision&quot;: &quot;deny&quot;,
-                                       &quot;permissionDecisionReason&quot;: f&quot;Release refused: {why}&quot;}}
-</code></pre></div>
-</li>
-<li>
-<p>Save the file, and then run <code>python check.py</code>.</p>
-</li>
-<li>
-<p>Verify that the six lines under <strong>TODO 4</strong> show <code>[PASS]</code>.</p>
 </li>
 <li>
 <p>Review the hook, noting the following details:</p>
 <ul>
-<li>The hook asks the workflow whether money may move for this case right now. The answer comes from the case's state, not from the agent.</li>
-<li>Returning <code>{}</code> allows the tool call. Returning a <code>deny</code> decision blocks it before it runs, and the reason is passed back to the agent.</li>
-<li>The hook fails closed. If the guard itself errors, or the tool input is malformed, it refuses.</li>
+<li><code>svc.authorisation(case_id)</code> tells the hook whether the payment was approved, either by the gate or by a reviewer.</li>
+<li>The hook returns a PreToolUse decision with a reason. For an approved payment, the decision is <code>allow</code>, and the tool runs.</li>
+<li>The prompt can say &quot;only release approved payments&quot;, and the hook is what makes it true.</li>
 </ul>
 </li>
 </ol>
 <h2>Write your Claude API call</h2>
-<p>In this section, you write the one model call in the lab: the agent's proposal for a single payment.</p>
+<p>In this section, you write the one model call in the lab: a short note that helps the reviewer understand a single payment.</p>
 <ol>
 <li>
-<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 5 of 5</strong>. Below it is the function <code>ask(text)</code>, and its only line is <code>raise NotImplementedError(&quot;TODO 5 is not done yet&quot;)  # replace this line in TODO 5</code>.</p>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4</strong>. Below it is the function <code>ask(text)</code>, and its only line is <code>raise NotImplementedError(&quot;TODO 4 is not done yet&quot;)  # replace this line in TODO 4</code>.</p>
 </li>
 <li>
 <p>Replace that line with the following code. Keep the four-space indent:</p>
 <div class="cb"><pre><code class="language-python">    response = get_client().messages.create(
         model=MODEL_BALANCED,
-        max_tokens=4096,
-        system=core.PROPOSAL_SYSTEM,
+        max_tokens=1024,
+        system=core.NOTE_SYSTEM,
         messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: text}],
     )
     return text_of(response)
@@ -251,7 +205,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Save the file, and then run <code>python check.py</code>.</p>
 </li>
 <li>
-<p>Verify that the one line under <strong>TODO 5</strong> shows <code>[PASS]</code>.</p>
+<p>Verify that the one line under <strong>TODO 4</strong> shows <code>[PASS]</code>.</p>
 </li>
 <li>
 <p>Review the call, noting the following details:</p>
@@ -260,30 +214,30 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <li><code>.messages.create(...)</code> sends your request to Claude.</li>
 <li><code>model</code> chooses which Claude model answers.</li>
 <li><code>max_tokens</code> limits the length of the answer. The API requires it.</li>
-<li><code>system</code> tells the model to reply with a JSON proposal.</li>
+<li><code>system</code> tells the model to write a note of two plain sentences for the reviewer.</li>
 <li><code>messages</code> holds the evidence for one payment, as JSON.</li>
 <li><code>text_of(response)</code> pulls the answer text out of the response.</li>
 </ul>
 </li>
 </ol>
-<h2>Run the real model through your controls</h2>
+<h2>Run the release process</h2>
 <ol>
 <li>
-<p>Ask Claude for a proposal on each of the twelve payments, and run them through your gate, review, payment, and audit controls, by running the following command:</p>
+<p>Ask Claude for a note on each of the six payments, and run them through your gate, reviewer choice, approval, and release hook, by running the following command:</p>
 <div class="cb"><pre><code>python lab.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The run makes about twelve short calls to Claude, and uses a small amount of API credit.</p>
+<p><strong>Note</strong>: The run makes six short calls to Claude, and uses a small amount of API credit.</p>
 </blockquote>
 </li>
 <li>
-<p>Verify that the output ends with a summary line similar to the following. The counts of payments can differ with the model:</p>
-<div class="cb"><pre><code>gate correct 12/12 | unsafe auto-releases 0 | payments 6 for 6 executed cases | audit chain intact: True
+<p>Verify that the output ends with a summary line similar to the following:</p>
+<div class="cb"><pre><code>gate correct 6/6 | released 6 payments, total 276,750.00
 
 Saved to results/run.json. Now run: python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Tip</strong>: Read the proposals printed above the summary. Notice how confident the model is on payments that your gate escalates. The gate does not care.</p>
+<p><strong>Tip</strong>: Read the notes printed above the summary. Three payments were released automatically, and three waited for a reviewer and were approved.</p>
 </blockquote>
 </li>
 </ol>
@@ -296,53 +250,16 @@ Saved to results/run.json. Now run: python check.py
 </li>
 <li>
 <p>Verify that the last line reads:</p>
-<div class="cb"><pre><code>RESULT: 26/26 checks passed
+<div class="cb"><pre><code>RESULT: 15/15 checks passed
 </code></pre></div>
 </li>
 <li>
 <p>Submit the <strong>results/run.json</strong> file as your evidence. There is nothing else to write up.</p>
 </li>
 </ol>
-<h2>Try breaking it (optional)</h2>
-<p>After you reach 26/26, change one thing at a time, run <code>python check.py</code>, and then undo the change.</p>
-<ol>
-<li>
-<p>Make <code>proposal_flags</code> return an empty list for <code>None</code>. Which line fails, and what does a missing model answer then mean?</p>
-</li>
-<li>
-<p>Make <code>payment_key</code> return <code>None</code>. Which line fails, and what does a crash after payment now cost?</p>
-</li>
-<li>
-<p>Remove the <code>except</code> branch from the hook so that a malformed input raises an error. Which line fails, and why must a guard fail closed?</p>
-</li>
-<li>
-<p>Make <code>decide</code> return <code>&quot;auto-release&quot;</code> when the score is high but there are no hard flags. Which lines fail?</p>
-</li>
-</ol>
-<h2>Troubleshooting</h2>
-<ul>
-<li>
-<p><strong>ANTHROPIC_API_KEY is missing</strong>: The <strong>.env</strong> file is not in the lab folder, or it has a typo. Repeat the steps in <em>Set up the lab folder</em>.</p>
-</li>
-<li>
-<p><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces, and the code inside the hook is indented eight spaces.</p>
-</li>
-<li>
-<p><strong>A TODO line still fails after pasting</strong>: The old placeholder line is still in the file, or you pasted only part of the snippet. Delete the placeholder line named in the step, and paste the whole snippet.</p>
-</li>
-<li>
-<p><strong>NotImplementedError: TODO 5 is not done yet</strong>: The <code>ask</code> function still has the placeholder line. Repeat the steps in <em>Write your Claude API call</em>.</p>
-</li>
-<li>
-<p><strong>Part B says you edited lab.py after the last run</strong>: Run <code>python lab.py</code> again.</p>
-</li>
-<li>
-<p><strong>Part B says fewer than eleven proposals were usable</strong>: The model's replies were not valid JSON. Run <code>python lab.py</code> once more.</p>
-</li>
-</ul>
 <h2>Clean up</h2>
 <p>Delete the <strong>results</strong> folder to reset the lab, and keep your <strong>.env</strong> file private.</p>
 <h2>More information</h2>
-<p>The <strong>SOLUTION/lab_solution.py</strong> file is the finished lab. This guide already contains every line you need, so use the file only to find a typo. To learn how the API call works, see <strong>HOW_THE_CODE_WORKS.md</strong> in the <strong>STUDENT_V2</strong> folder.</p>
+<p>The <strong>SOLUTION/lab_solution.py</strong> file is the finished lab. This guide already contains every line you need, so use the file only to compare your work. To learn how the API call works, see <strong>HOW_THE_CODE_WORKS.md</strong> in the <strong>STUDENT_V2</strong> folder.</p>
 </main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
 b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

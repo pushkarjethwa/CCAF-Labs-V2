@@ -1,9 +1,8 @@
-"""check.py - Part A tests your five TODOs with no API key and no model. Part B checks the real run saved by `python lab.py`.
+"""check.py - Part A tests your four TODOs with no API key and no model. Part B checks the real run saved by `python lab.py`.
 
 Exit code 0 = everything passed.
 """
 import asyncio
-import copy
 import inspect
 import json
 import sys
@@ -26,102 +25,51 @@ def guarded(fn, *args):
         return f"{type(exc).__name__}: {exc}"
 
 
-policy, neutral = core.Policy(), core.NEUTRAL
-CASES = core.CASES
-base = CASES["PAY-1001"]
+CASES, policy = core.CASES, core.POLICY
 
+print("PART A - your four TODOs, tested with no API key and no model\n")
+print("TODO 1 - the release gate")
+flags = {cid: guarded(lab.payment_flags, case, policy) for cid, case in CASES.items()}
+check(flags["PAY-1004"] == ["AMOUNT_NEEDS_APPROVAL"], "payment_flags: PAY-1004 (182,000) is flagged AMOUNT_NEEDS_APPROVAL", f"you returned {flags['PAY-1004']!r}")
+check(flags["PAY-1005"] == ["AMOUNT_NEEDS_APPROVAL", "OVER_APPROVER_LIMIT"], "payment_flags: PAY-1005 (64,000, approver limit 50,000) gets two flags", f"you returned {flags['PAY-1005']!r}")
+check(flags["PAY-1006"] == ["NEW_VENDOR"], "payment_flags: PAY-1006 (a 20-day-old vendor) is flagged NEW_VENDOR", f"you returned {flags['PAY-1006']!r}")
+check(guarded(lab.decide, []) == "auto-release" and guarded(lab.decide, ["NEW_VENDOR"]) == "needs-approval",
+      "decide: no flags means auto-release, any flag means needs-approval")
 
-def gate(case, proposal=neutral):
-    return core.evaluate(case, proposal, policy, lab.HOOKS)
+print("\nTODO 2 - the reviewer")
+for cid, name in (("PAY-1006", "carol.diaz"), ("PAY-1005", "alice.moreno"), ("PAY-1004", "bob.chen")):
+    amount = CASES[cid]["payment"]["amount"]
+    check(guarded(lab.choose_reviewer, CASES[cid], core.REVIEWERS) == name, f"{cid} ({amount:,.0f}) goes to {name}, the lowest limit that covers it")
 
-
-print("PART A - your five TODOs, tested with no API key and no model\n")
-print("TODO 1 - the policy gate")
-wrong = [cid for cid, c in CASES.items() if gate(c)["decision"] != c["expected"]]
-check(not wrong, "the gate reaches the expected outcome on all 12 labelled payments", f"wrong on: {', '.join(wrong)}")
-flags = guarded(lab.payment_flags, CASES["PAY-1009"], policy)
-check(isinstance(flags, list) and "BANK_MISMATCH" in flags and "HV_DUAL_CONTROL" in flags, "payment_flags finds the bank mismatch and the dual-control amount on PAY-1009", f"you returned {flags!r}")
-check(gate(CASES["PAY-1009"], {"decision": "release", "confidence": 0.99, "rationale": ""})["decision"] == "escalate", "a confident 'release' (0.99) cannot remove the hard flags of PAY-1009")
-check("NO_MODEL_PROPOSAL" in gate(base, None)["hard_flags"], "no proposal from the model means a human decides (silence is never yes)")
-check(gate(base, {"decision": "reject", "confidence": 0.9, "rationale": ""})["decision"] == "escalate", "a model that says reject sends the case to a human instead of silently rejecting it")
-check(guarded(lab.decide, ["DUPLICATE_INVOICE"], ["BANK_MISMATCH"], 5, 3) == "reject" and guarded(lab.decide, [], ["BANK_MISMATCH"], 0, 3) == "escalate"
-      and guarded(lab.decide, [], [], 3, 3) == "escalate" and guarded(lab.decide, [], [], 2, 3) == "auto-release",
-      "decide: a reject flag wins, then any hard flag or a score at the limit escalates, otherwise auto-release")
-
-print("\nTODO 2 - the human review")
-case = copy.deepcopy(CASES["PAY-1011"])
-reviewer = core.REVIEWERS["alice.moreno"]
-good = {"reviewer": "alice.moreno", "decision": "approve", "reason": "Verified with the supplier.", "evidence_digest": core.digest(case)}
-check(guarded(lab.decision_problem, case, good, reviewer) is None, "a proper decision is accepted")
-mine = copy.deepcopy(case)
-mine["payment"]["requested_by"] = "alice.moreno"
-check(guarded(lab.decision_problem, mine, good, reviewer), "four-eyes: a reviewer cannot approve a payment they requested")
-small = {"limit": 1000.0}
-check(guarded(lab.decision_problem, case, good, small), "a reviewer whose limit is below the amount is refused")
-check(guarded(lab.decision_problem, case, {**good, "evidence_digest": "0" * 16}, reviewer), "a decision made on stale evidence is refused")
-check(guarded(lab.decision_problem, case, {**good, "reason": "  "}, reviewer), "a decision with an empty reason is refused")
-check(guarded(lab.decision_problem, case, {**good, "decision": "maybe"}, reviewer), "a decision other than approve or reject is refused")
-
-print("\nTODO 3 - the payment key")
-
-
-def service(execute=True):
-    svc = core.ReleaseService(lab.HOOKS)
-    for cid in CASES:
-        svc.process(cid, neutral, execute=execute)
-    return svc
-
-
-def approve(svc, cid):
-    try:
-        svc.human_decision(cid, core.scripted_decision(svc, cid))
-    except Exception:
-        pass  # the starter's gate may not have paused this case; the checks below then fail on their own
-
-
-svc = service()
-approve(svc, "PAY-1006")
-guarded(svc.resume, "PAY-1006")
-guarded(svc.resume, "PAY-1006")
-check(svc.payment_count() == sum(1 for s in svc.states().values() if s == "EXECUTED") and svc.states().get("PAY-1006") == "EXECUTED",
-      "resuming an approved payment twice moves money once", f"payments {svc.payment_count()}, state {svc.states().get('PAY-1006')}")
+print("\nTODO 3 - the release hook")
 svc = core.ReleaseService(lab.HOOKS)
-svc.process("PAY-1006", neutral)
-approve(svc, "PAY-1006")
-try:
-    svc.resume("PAY-1006", crash_after_payment=True)
-except Exception:
-    pass
-guarded(svc.resume, "PAY-1006")
-check(svc.payment_count() == 1, "a crash right after the bank paid, then a retry, still pays once", f"payments {svc.payment_count()}")
+for cid in CASES:
+    svc.process(cid, core.template_note(CASES[cid]))
+for cid, state in svc.states().items():
+    if state == "AWAITING_APPROVAL":
+        svc.approve(cid, core.APPROVALS[cid]["reviewer"], core.APPROVALS[cid]["reason"])
+before = guarded(lab.make_before_release, svc)
+for cid in ("PAY-1001", "PAY-1004"):
+    out = guarded(lambda c: asyncio.run(before({"tool_input": {"case_id": c}}, "t1", None)), cid)
+    verdict = out.get("hookSpecificOutput", {}) if isinstance(out, dict) else {}
+    kind = "a payment the gate approved" if cid == "PAY-1001" else "a payment a reviewer approved"
+    check(verdict.get("permissionDecision") == "allow" and verdict.get("permissionDecisionReason"), f"{kind} ({cid}): the hook allows the release tool and gives a reason", f"hook returned {out!r}")
 
-print("\nTODO 4 - the release hook")
-svc = service(execute=False)
-approve(svc, "PAY-1006")
-approve(svc, "PAY-1004")
-before = lab.make_before_release(svc)
-for label, tool_input, allowed in [("a clean case the gate approved", {"case_id": "PAY-1001"}, True), ("a case a human approved", {"case_id": "PAY-1006"}, True),
-                                   ("a case a human rejected", {"case_id": "PAY-1004"}, False), ("a case still waiting for a human", {"case_id": "PAY-1009"}, False),
-                                   ("a case that never went through the gate", {"case_id": "PAY-9999"}, False), ("malformed tool input (fails closed)", {}, False)]:
-    out = guarded(lambda ti: asyncio.run(before({"tool_input": ti}, "t1", None)), tool_input)
-    denied = isinstance(out, dict) and out.get("hookSpecificOutput", {}).get("permissionDecision") == "deny"
-    check(isinstance(out, dict) and denied != allowed, f"{label}: {'allowed' if allowed else 'denied'}", f"hook returned {out!r}")
+print("\nTODO 4 - the Claude call")
+check("NotImplementedError" not in inspect.getsource(lab.ask), "the ask function makes a Claude API call (the placeholder line is gone)", "replace the raise NotImplementedError line in TODO 4")
 
-print("\nTODO 5 - the Claude call")
-check("NotImplementedError" not in inspect.getsource(lab.ask), "the ask function makes a Claude API call (the placeholder line is gone)", "replace the raise NotImplementedError line in TODO 5")
-
-print("\nPART B - the real run (needs `python lab.py` with a key; tolerant of normal model variation)\n")
+print("\nPART B - the real run (needs `python lab.py` with a key)\n")
 if not lab.RESULTS_FILE.exists():
     print("[SKIP] results/run.json not found - finish the TODOs, run `python lab.py`, then this again.")
 else:
     saved = json.loads(lab.RESULTS_FILE.read_text(encoding="utf-8"))
+    total = sum(c["payment"]["amount"] for c in CASES.values())
     check(saved.get("fingerprint") == lab.source_fingerprint(), "the saved run is from your CURRENT lab.py", "you edited lab.py after the last run - run `python lab.py` again")
-    check(saved["usable_proposals"] >= 11, "Claude returned a usable proposal for at least 11 of the 12 payments", f"usable: {saved['usable_proposals']}")
-    check(not saved["unsafe_auto_releases"], "no risky payment was auto-released, whatever the model said", f"unsafe: {saved['unsafe_auto_releases']}")
-    check(saved["correct"] >= 11, "the gate reached the expected outcome on at least 11 of 12 payments", f"correct: {saved['correct']}")
-    check(saved["payments"] == saved["executed"] and not saved["completeness_problems"] and saved["audit_ok"],
-          "every payment has one executed case, a gate decision (and a human approval where needed), and the audit chain is intact",
-          f"payments {saved['payments']}, executed {saved['executed']}, problems {saved['completeness_problems']}")
+    check(saved["notes"] == len(CASES), "Claude wrote a note for every payment", f"notes: {saved['notes']}")
+    check(saved["correct"] == len(CASES), "the gate reached the expected outcome on all 6 payments", f"correct: {saved['correct']}")
+    check(saved["released"] == len(CASES) and abs(saved["total_paid"] - total) < 0.01 and saved["hook_allowed"] == len(CASES),
+          "all 6 payments were allowed by the hook and released, for the full amount", f"released {saved['released']}, total {saved['total_paid']}")
+    check(not saved["audit_problems"], "every released payment has a gate decision (and a reviewer approval where needed) in the audit trail", f"{saved['audit_problems']}")
 
 print(f"\nRESULT: {sum(results)}/{len(results)} checks passed")
 sys.exit(0 if all(results) else 1)

@@ -30,7 +30,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 @media print{header{display:none}pre{white-space:pre-wrap}}
 </style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Review Expense Claims Two Ways</h1>
 <p>In Demo 3A, you watched ACME's finance team decide whether an expense review should be a conversation, a workflow, or an agent. You voted on five briefs, and then you saw the same claim review built three ways and measured. The cheapest design that was reliable won. In this lab, you build the first two of those designs yourself, with the same briefs, the same T&amp;E policy (<strong>ACME-T&amp;E-2026.2</strong>), and the same claims.</p>
-<p>You will complete three small pieces of <strong>lab.py</strong>, which add up to 26 lines of code. The lab takes about 25 minutes, and this guide gives you every line. At the end, you see both builds review six real claims side by side, so you can compare them.</p>
+<p>You will complete three small pieces of <strong>lab.py</strong>, which add up to 24 lines of code. The lab takes about 25 minutes, and this guide gives you every line. At the end, you see both builds review six real claims side by side, so you can compare them.</p>
 <p>This lab continues Demo 3A, so you will recognize the following:</p>
 <ul>
 <li>The five briefs: the HR-policy FAQ bot, the expense-report review, the nightly KPI digest, the open-ended competitive research question, and the production-incident triage.</li>
@@ -88,7 +88,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python check.py
 </code></pre></div>
 <blockquote class="">
-<p><strong>Note</strong>: The checker fails on purpose, because the starter code contains placeholders. The last line shows that only a few of the 16 checks passed.</p>
+<p><strong>Note</strong>: The checker fails on purpose, because the starter code contains placeholders. The last line shows that only a few of the 14 checks passed.</p>
 </blockquote>
 </li>
 </ol>
@@ -161,7 +161,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 3</strong>. Below it is a function named <code>run_workflow</code> that currently returns <code>&quot;escalate&quot;</code>.</p>
 </li>
 <li>
-<p>Replace the line <code>return &quot;escalate&quot;  # replace these lines in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<p>Replace the line <code>return &quot;escalate&quot;  # replace this line in TODO 3</code> with the following code. Keep the four-space indent:</p>
 <div class="cb"><pre><code class="language-python">    system = (&quot;Extract the expense fields from the claim text. Reply with JSON only, matching this schema exactly:\n&quot;
               + json.dumps(EXTRACTION_SCHEMA))
     response = get_client().messages.create(
@@ -171,14 +171,12 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
         messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: claim[&quot;text&quot;]}],
     )
     fields = json_in(text_of(response))
-    if not isinstance(fields, dict) or any(key not in fields for key in EXTRACTION_SCHEMA[&quot;required&quot;]):
-        return &quot;escalate&quot;
     return apply_policy(fields, claim)[0]
 </code></pre></div>
 <p>Noting the following details:</p>
 <ul>
 <li>The call looks like Build 1, but the instruction is different. Claude gets the schema, not the policy.</li>
-<li>If Claude's reply is missing a field, the claim is escalated to a human. The model never gets to guess a decision.</li>
+<li>The model never decides. It only fills the fields, and the code makes the decision.</li>
 <li><code>apply_policy</code> is plain Python in <strong>expense_core.py</strong>. It holds the caps, the receipt rule, and the duplicate check.</li>
 </ul>
 </li>
@@ -188,7 +186,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </code></pre></div>
 </li>
 <li>
-<p>Verify that the six <strong>TODO 3</strong> checks pass and that Part A shows no <code>[FAIL]</code> lines.</p>
+<p>Verify that the four <strong>TODO 3</strong> checks pass and that Part A shows no <code>[FAIL]</code> lines.</p>
 </li>
 </ol>
 <h2>Run both builds on real claims</h2>
@@ -215,24 +213,14 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </code></pre></div>
 </li>
 <li>
-<p>Verify that the last line reads <code>RESULT: 22/22 checks passed</code>.</p>
+<p>Verify that the last line reads <code>RESULT: 20/20 checks passed</code>.</p>
 </li>
 </ol>
-<h2>Troubleshooting</h2>
-<ul>
-<li><strong><code>ANTHROPIC_API_KEY is missing</code></strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
-<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
-<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
-<li><strong>A conversational answer shows <code>invalid</code></strong>: Claude's reply was not the JSON asked for. Check that <code>ANSWER_FORMAT</code> is part of the <code>system</code> text in TODO 2.</li>
-<li><strong>Part B says the saved run is not from your current code</strong>: You edited a TODO after the last run. Run <code>python lab.py</code> again.</li>
-<li><strong>The workflow got fewer than 5 of 6 right</strong>: Read the table. A miss means Claude read a field wrongly, not that the policy was wrong. Run <code>python lab.py</code> again, because model output varies slightly between runs.</li>
-</ul>
 <h2>Clean up</h2>
 <p>Close the terminal. Keep your <strong>.env</strong> file private, and do not copy it to another folder.</p>
 <h2>More information</h2>
 <ul>
 <li>Demo 3A showed all three builds on all twelve claims, and measured accuracy, cost, and how often the same claim got a different answer. The agentic build comes back in Labs 3.5 to 3.7.</li>
-<li>To see how a design handles a failure at runtime, continue with Lab 3.3.</li>
 </ul>
 </main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
 b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

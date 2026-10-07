@@ -4,19 +4,17 @@ lab:
     module: 'Day 3 - Agentic Architecture and Orchestration'
 ---
 
-# Harden the Research Desk
+# Build the Research Desk
 
-In Demo 3B, the instructor turned one overloaded research agent into a desk of four specialists: a searcher, an analyst, a fact-checker, and a writer. The desk was then made safe with four ideas: validated hand-offs, isolated briefs, a rule for each kind of failure, and escalation decided in code. In this lab, you write those four ideas yourself, on the same desk, with the same 40-document corpus and the same confidential client note.
+In Demo 3B, the instructor turned one overloaded research agent into a desk of four specialists: a searcher, an analyst, a fact-checker, and a writer. The desk works because of four ideas: validated hand-offs, minimal briefs, escalation decided in code, and a writer that turns verified facts into a report. In this lab, you write those four ideas yourself, on the same desk, with the same 40-document corpus.
 
-The client behind the desk has quietly started due diligence on acquiring Pallo Systems. That note must never reach a specialist or the final report. You make sure it does not, and you make the desk fail safely when things go wrong.
-
-You will complete five small pieces of **lab.py**, which add up to 22 lines of code. The lab takes about 35 minutes, and this guide gives you every line.
+You will complete four small pieces of **lab.py**, which add up to 14 lines of code. The lab takes about 30 minutes, and this guide gives you every line.
 
 This lab continues Demo 3B, so you will recognize the following:
 
 - The research desk, its corpus, and its tools.
-- The four specialists, and the questions Q2 (two reliable reports disagree), Q4 (a calculation is needed), and Q5 (a rumour sits next to the confidential note).
-- The ideas you write here: contracts and isolated briefs from Stage 4, the failure policy from the Stage 5 hand-off drill, and the escalation rule.
+- The four specialists, and the questions Q2 (two reliable reports disagree), Q4 (a calculation is needed), and Q5 (a rumour sits next to the real answer).
+- The ideas you write here: contracts and minimal briefs from Stage 4, and the escalation rule.
 
 ## Set up the lab folder
 
@@ -54,9 +52,9 @@ You need Python 3.10 or later and an Anthropic API key.
     python check.py
     ```
 
-    > **Note**: The checker fails on purpose. Part A tests each of your five TODOs with hand-made inputs and needs no API key. Part B is skipped until you run the desk.
+    > **Note**: The checker reports `[FAIL]` lines until you finish the TODOs. Part A tests each of your four TODOs with hand-made inputs and needs no API key. Part B is skipped until you run the desk.
 
-2. Notice that only two files matter for this lab: **lab.py**, which holds your five TODOs, and **check.py**. The **desk_core.py** file is the machinery from the demo, and you do not need to read it.
+2. Notice that only two files matter for this lab: **lab.py**, which holds your four TODOs, and **check.py**. The **desk_core.py** file is the machinery from the demo, and you do not need to read it.
 
 ## Write the hand-off contracts
 
@@ -64,7 +62,7 @@ A contract says exactly what shape a specialist's reply must have. The contract 
 
 1. Open **lab.py** in your code editor.
 
-2. Search for the comment **TODO 1 of 5 - CONTRACTS**.
+2. Search for the comment **TODO 1 of 4 - CONTRACTS**.
 
 3. Below the `"searcher"` row, find the two rows that start with `"analyst"` and `"fact_checker"`. Replace those two lines with the following code:
 
@@ -75,15 +73,15 @@ A contract says exactly what shape a specialist's reply must have. The contract 
 
 4. Save the file, and then run `python check.py`.
 
-5. Verify that the six lines under **TODO 1** show `[PASS]`.
+5. Verify that the three lines under **TODO 1** show `[PASS]`.
 
-    > **Note**: The contract rejects a reply with a missing field, an extra field, a verdict outside the three allowed words, or a `doc_id` that is not in the corpus (a hallucinated source).
+    > **Note**: A contract lists the fields a reply must have and their types. The `verdict` field accepts only the three words listed, and every `doc_id` must be a document that exists in the corpus.
 
 ## Write the briefs
 
-A brief is the message a specialist receives. The starter code pastes the confidential note into every brief, which is the leak you saw in Stage 3 of the demo.
+A brief is the message a specialist receives. Each brief should carry only the task and the facts that specialist needs, and nothing else. The starter code returns an empty string for each brief.
 
-1. In **lab.py**, search for the comment **TODO 2 of 5 - BRIEFS**.
+1. In **lab.py**, search for the comment **TODO 2 of 4 - BRIEFS**.
 
 2. Select the three functions below it, from `def searcher_brief` to the end of `fact_check_brief`, and replace them with the following code:
 
@@ -103,67 +101,35 @@ A brief is the message a specialist receives. The starter code pastes the confid
 
 3. Save the file, and then run `python check.py`.
 
-4. Verify that the six lines under **TODO 2** show `[PASS]`.
+4. Verify that the three lines under **TODO 2** show `[PASS]`.
 
-    > **Note**: Each brief now holds only the task and the facts that specialist needs. This is least privilege: what a specialist never sees, it cannot leak.
-
-## Write the failure policy
-
-The starter code retries every failure ten times, which is the wrong answer to most failures. The Stage 5 drill in the demo showed that different failures need different policies.
-
-1. In **lab.py**, search for the comment **TODO 3 of 5 - POLICY**.
-
-2. Inside the `POLICY = {` block, replace the four rows with the following code:
-
-    ```python
-        "malformed_handoff": {"action": "re_ask_with_errors", "max_attempts": 1},
-        "specialist_crashed": {"action": "retry_same_call", "max_attempts": 2},
-        "confidential_leak": {"action": "block_and_escalate", "max_attempts": 0},
-        "no_findings": {"action": "partial_report", "max_attempts": 0},
-    ```
-
-3. Save the file, and then run `python check.py`.
-
-4. Verify that the six lines under **TODO 3** show `[PASS]`.
-
-5. Review the policy, noting the following details:
-
-    - A malformed reply is a reasoning problem. Repeating the same call gives the same mistake, so the desk re-asks once and quotes the exact problems.
-    - A crashed specialist is an environment problem. The next try may work, so the desk retries the same call at most twice.
-    - A brief that contains the client note is never acceptable. The desk blocks it before any model sees it, and escalates.
-    - When the searcher finds nothing, there is nothing to build on. The desk stops with an honest partial report for a human.
+    > **Note**: This is least privilege. The searcher gets the question, the analyst gets the calculation and the facts, and the fact-checker gets one claim and its document. No specialist reads the whole conversation.
 
 ## Decide escalation in code
 
 When two reliable sources disagree, the desk must not pick one. It must tell a human. In this section, you make that a rule in code instead of a hope that the writer remembers.
 
-1. In **lab.py**, search for the comment **TODO 4 of 5 - ESCALATION**.
+1. In **lab.py**, search for the comment **TODO 3 of 4 - ESCALATION**.
 
-2. In the `has_conflict` function, replace the line `return False  # replace this line in TODO 4` with the following code:
+2. In the `has_conflict` function, replace the line `return False  # replace this line in TODO 3` with the following code:
 
     ```python
         return any(c["verdict"] == "CONFLICT" for c in checks)
     ```
 
-3. In the `must_re_ask_writer` function, replace the line `return False  # replace this line in TODO 4` with the following code:
+3. Save the file, and then run `python check.py`.
 
-    ```python
-        return conflict and not core.escalated(report)
-    ```
+4. Verify that the three lines under **TODO 3** show `[PASS]`.
 
-4. Save the file, and then run `python check.py`.
-
-5. Verify that the four lines under **TODO 4** show `[PASS]`.
-
-    > **Note**: The first function spots a conflict among the fact-checks. The second says that if there was a conflict and the report did not escalate it, the desk asks the writer once more.
+    > **Note**: The function spots a conflict among the fact-checks. When it returns `True`, **desk_core.py** adds a line to the writer's brief that tells it to report both values and escalate to a human.
 
 ## Write the writer's Claude API call
 
 The searcher, analyst, and fact-checker run as real Claude agents inside **desk_core.py**. The writer is a single call with no tools, and you write it.
 
-1. In **lab.py**, search for the comment **TODO 5 of 5**. Below it is the function `call_writer(brief)`.
+1. In **lab.py**, search for the comment **TODO 4 of 4**. Below it is the function `call_writer(brief)`.
 
-2. Replace the last line of the function, `return ""  # replace this line in TODO 5`, with the following code. Keep the four-space indent, because the code sits inside the function:
+2. Replace the last line of the function, `return ""  # replace this line in TODO 4`, with the following code. Keep the four-space indent, because the code sits inside the function:
 
     ```python
         response = get_client().messages.create(
@@ -202,14 +168,12 @@ The searcher, analyst, and fact-checker run as real Claude agents inside **desk_
 2. Verify that you see one line per question, similar to the following. The counts will differ:
 
     ```
-    Q2: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 2, 'status': 'complete'}
-    Q4: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 2, 'status': 'complete'}
-    Q5: PASS | leaks 0 | {'reworks': 0, 'leaks_blocked': 0, 'checks': 1, 'status': 'complete'}
+    Q2: PASS | {'checks': 2}
+    Q4: PASS | {'checks': 2}
+    Q5: PASS | {'checks': 1}
 
     Saved to results/run.json. Now run: python check.py
     ```
-
-    > **Tip**: A model can occasionally slip on one question. If a line shows `FAIL`, run `python lab.py` once more before you change any code.
 
 ## Check your work
 
@@ -222,36 +186,10 @@ The searcher, analyst, and fact-checker run as real Claude agents inside **desk_
 2. Verify that the last line reads:
 
     ```
-    RESULT: 28/28 checks passed
+    RESULT: 14/14 checks passed
     ```
 
 3. Submit the **results/run.json** file as your evidence. There is nothing else to write up.
-
-## Try breaking it (optional)
-
-After you reach 28/28, change one thing at a time, run `python check.py`, and then undo the change.
-
-1. Set `"malformed_handoff"` to `"max_attempts": 5`. Which line fails, and what would five re-asks cost on a long brief?
-
-2. Set `"confidential_leak"` to `"action": "retry_same_call"`. Which line fails, and why is a blocked brief better than a retry?
-
-3. Put `{desk.PRIVATE_NOTE}` back into `analyst_brief`. Which lines fail?
-
-4. Make `has_conflict` return `False`. Which Part B line would fail on a real run, and why?
-
-## Troubleshooting
-
-- **ANTHROPIC_API_KEY is missing**: The **.env** file is not in the lab folder, or it has a typo. Repeat the steps in *Set up the lab folder*.
-
-- **IndentationError**: A pasted line lost its indent. Match the indent shown in the snippet, which is four spaces inside a function or a dictionary.
-
-- **A TODO line still fails after pasting**: The old lines are still in the file, or only some were replaced. Delete the old lines named in the step, and paste the whole snippet.
-
-- **Part B says you edited lab.py after the last run**: Run `python lab.py` again.
-
-- **Part B says a report is empty**: The `call_writer` function still returns an empty string. Check that the `return ""` line is gone from TODO 5.
-
-- **One question shows FAIL on a real run**: This is normal model variation. Run `python lab.py` once more.
 
 ## Clean up
 

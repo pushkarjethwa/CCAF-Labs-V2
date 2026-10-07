@@ -1,7 +1,7 @@
 """desk_core.py - the machinery of the research desk (Demo 3B, stage 4). DO NOT EDIT.
 
-You do not need to read this file to finish the lab. It runs the specialists, validates their hand-offs, applies your failure
-policy and scores the answers. Everything you write is in lab.py.
+You do not need to read this file to finish the lab. It runs the specialists, checks their hand-offs against your contracts
+and scores the answers. Everything you write is in lab.py.
 """
 import json
 import re
@@ -31,22 +31,6 @@ ROLES = {
 WRITER_SYSTEM = ("You write the final report from the facts you are given, using exact figures and nothing else. Name the winner of any comparison in a "
                  "sentence such as '<product> is cheaper'. Quote no figure from a superseded or low-reliability source, except a rumour clearly "
                  "labelled as an unconfirmed rumour. " + REPORT_FORMAT)
-
-
-class SubagentError(Exception):
-    """A specialist failed to run (an environment problem)."""
-
-
-class HandoffError(Exception):
-    """A specialist's reply broke its contract even after the allowed re-asks (a reasoning problem)."""
-
-    def __init__(self, role, errors):
-        super().__init__(f"{role}: {'; '.join(errors)}")
-        self.role, self.errors = role, errors
-
-
-class LeakError(Exception):
-    """A brief contained the confidential client note. Blocked before any model saw it."""
 
 
 def json_in(text):
@@ -83,32 +67,13 @@ def validate(data, spec, path=""):
     return errors
 
 
-def guard_brief(brief):
-    if any(marker.lower() in brief.lower() for marker in desk.LEAK_MARKERS):
-        raise LeakError("brief contains the confidential client note")
-
-
-def call_with_contract(role, brief, caller, contracts, policy):
-    """Ask a specialist, validate its hand-off, re-ask with the exact problems, and classify what is left. Uses YOUR policy."""
-    if policy["confidential_leak"]["action"] == "block_and_escalate":
-        guard_brief(brief)
-    max_rework = policy["malformed_handoff"]["max_attempts"] if policy["malformed_handoff"]["action"] == "re_ask_with_errors" else 0
-    max_retry = policy["specialist_crashed"]["max_attempts"]
-    feedback, errors = "", []
-    for rework in range(max_rework + 1):
-        for retry in range(max_retry + 1):
-            try:
-                text = caller(role, brief + feedback)
-                break
-            except SubagentError:
-                if retry == max_retry:
-                    raise
-        data = json_in(text)
-        errors = ["the reply is not valid JSON"] if data is None else validate(data, contracts[role])
-        if not errors:
-            return data, rework
-        feedback = "\n\nYour previous reply was rejected: " + "; ".join(errors) + ". Reply again with JSON that satisfies the contract."
-    raise HandoffError(role, errors)
+def call_with_contract(role, brief, caller, contracts):
+    """Ask a specialist and check that its hand-off matches YOUR contract."""
+    data = json_in(caller(role, brief))
+    problems = ["the reply is not valid JSON"] if data is None else validate(data, contracts[role])
+    if problems:
+        raise SystemExit(f"The {role} hand-off does not match its contract: {'; '.join(problems)}")
+    return data
 
 
 def real_specialist(role, brief):
@@ -116,17 +81,14 @@ def real_specialist(role, brief):
     spec, state = ROLES[role], desk.Desk(enriched=True)
     system = spec["prompt"] + f"\nReply with JSON only, shaped like: {CONTRACT_TEXT[role]}"
     tools, messages = desk.tool_defs(spec["tools"], True), [{"role": "user", "content": brief}]
-    try:
-        for _ in range(spec["turns"]):
-            response = ask(messages, system=system, tools=tools, max_tokens=4096)
-            messages.append({"role": "assistant", "content": response.content})
-            calls = tool_calls_of(response)
-            if not calls:
-                return text_of(response)
-            messages.append({"role": "user", "content": [
-                {"type": "tool_result", "tool_use_id": block.id, "content": state.call(block.name, block.input)} for block in calls]})
-    except Exception as exc:  # network or API trouble is an environment problem, not a reasoning one
-        raise SubagentError(str(exc)) from exc
+    for _ in range(spec["turns"]):
+        response = ask(messages, system=system, tools=tools, max_tokens=4096)
+        messages.append({"role": "assistant", "content": response.content})
+        calls = tool_calls_of(response)
+        if not calls:
+            return text_of(response)
+        messages.append({"role": "user", "content": [
+            {"type": "tool_result", "tool_use_id": block.id, "content": state.call(block.name, block.input)} for block in calls]})
     return "(no final answer: turn limit reached)"
 
 
@@ -136,49 +98,25 @@ def escalated(report):
 
 
 def orchestrate(q, hooks, caller=None):
-    """The hardened desk (Demo 3B stage 4). `hooks` holds what YOU wrote in lab.py. Returns (report, briefs, notes)."""
+    """The desk (Demo 3B stage 4). `hooks` holds what YOU wrote in lab.py. Returns (report, notes)."""
     caller = caller or real_specialist
-    contracts, policy = hooks["contracts"], hooks["policy"]
-    notes, briefs = {"reworks": 0, "leaks_blocked": 0, "checks": 0, "status": "complete"}, []
+    contracts = hooks["contracts"]
 
     def call(role, brief):
-        briefs.append(brief)
-        return call_with_contract(role, brief, caller, contracts, policy)
+        return call_with_contract(role, brief, caller, contracts)
 
-    try:
-        found, reworks = call("searcher", hooks["searcher_brief"](q))
-        notes["reworks"] += reworks
-        if not found["findings"]:
-            if policy["no_findings"]["action"] == "partial_report":
-                raise HandoffError("searcher", ["no findings returned"])
-        results = []
-        if found["needs_calculation"]:
-            data, reworks = call("analyst", hooks["analyst_brief"](found))
-            results, notes["reworks"] = data["results"], notes["reworks"] + reworks
-        with ThreadPoolExecutor(max_workers=4) as pool:
-            checked = list(pool.map(lambda finding: call("fact_checker", hooks["fact_check_brief"](finding)), found["findings"]))
-        checks = [c for data, _ in checked for c in data["checks"]]
-        notes["reworks"] += sum(r for _, r in checked)
-        notes["checks"] = len(checks)
-        conflict = hooks["has_conflict"](checks)
-        brief = (f"Question: {q['text']}\nVerified findings: {json.dumps(found['findings'])}\nFact-check verdicts: {json.dumps(checks)}\n"
-                 f"Calculations: {json.dumps(results)}\nUnconfirmed rumours (label them as such if you mention them): {json.dumps(found['rumours'])}\n"
-                 + ("The fact-checker found a CONFLICT between reliable sources: report both values and escalate to a human.\n" if conflict else ""))
-        briefs.append(brief)
-        guard_brief(brief)
-        report = hooks["call_writer"](brief)
-        if hooks["must_re_ask_writer"](report, conflict):  # escalation is a rule, not a hope: one corrective re-ask
-            notes["reworks"] += 1
-            report = hooks["call_writer"](brief + "\nYour report did not escalate. The ESCALATION line must describe the conflict and name who decides.")
-        return report, briefs, notes
-    except LeakError:
-        reason, notes["leaks_blocked"] = "a brief contained confidential client context and was blocked", 1
-    except HandoffError as exc:
-        reason = f"{exc.role} could not deliver a valid hand-off ({'; '.join(exc.errors)[:160]})"
-    except SubagentError:
-        reason = "a specialist kept failing to run"
-    notes["status"] = "partial"
-    return f"ANSWER: not available.\nCONFIDENCE: low\nSOURCES: none\nESCALATION: {reason}; a human must take over.", briefs, notes
+    found = call("searcher", hooks["searcher_brief"](q))
+    results = []
+    if found["needs_calculation"]:
+        results = call("analyst", hooks["analyst_brief"](found))["results"]
+    with ThreadPoolExecutor(max_workers=4) as pool:   # the fact-checks are independent, so they run in parallel
+        replies = list(pool.map(lambda finding: call("fact_checker", hooks["fact_check_brief"](finding)), found["findings"]))
+    checks = [c for data in replies for c in data["checks"]]
+    brief = (f"Question: {q['text']}\nVerified findings: {json.dumps(found['findings'])}\nFact-check verdicts: {json.dumps(checks)}\n"
+             f"Calculations: {json.dumps(results)}\nUnconfirmed rumours (label them as such if you mention them): {json.dumps(found['rumours'])}\n")
+    if hooks["has_conflict"](checks):
+        brief += "The fact-checker found a CONFLICT between reliable sources: report both values and escalate to a human.\n"
+    return hooks["call_writer"](brief), {"checks": len(checks)}
 
 
 def score(q, report):
@@ -190,7 +128,3 @@ def score(q, report):
         checks[f"qualified:{rule['term']}"] = rule["term"].lower() not in low or any(w in low for w in rule["qualifiers"])
     checks["escalation"] = escalated(report) == q["expect_escalation"]
     return checks
-
-
-def leaks_in(briefs, report):
-    return sum(any(m.lower() in t.lower() for m in desk.LEAK_MARKERS) for t in [*briefs, report])

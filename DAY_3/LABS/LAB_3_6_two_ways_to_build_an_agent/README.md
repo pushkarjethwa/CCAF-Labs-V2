@@ -100,34 +100,33 @@ In the manual loop, you keep the whole conversation in a list called `messages`.
             for block in response.content:
                 if block.type == "tool_use":
                     called.append(block.name)
-                    text, is_error = run_tool(block.name, block.input)
-                    results.append({"type": "tool_result", "tool_use_id": block.id, "content": text, "is_error": is_error})
+                    text = kit.RUN_TOOL[block.name](block.input)
+                    results.append({"type": "tool_result", "tool_use_id": block.id, "content": text})
             messages.append({"role": "user", "content": results})
     ```
 
 3. Save the file, and then run `python check.py`.
 
-4. Verify that the six lines under **TODO 1** show `[PASS]`.
+4. Verify that the four lines under **TODO 1** show `[PASS]`.
 
 5. Review the loop, noting the following details:
 
     - You keep Claude's whole turn, including its `tool_use` blocks, because the next request must show Claude what it asked for.
     - Claude can ask for several tools in one turn. All the results go back together in one user message, and each result carries the `tool_use_id` of the request it answers.
-    - A tool that fails is reported to Claude as a readable error result, so Claude can recover. It does not crash the loop.
-    - The loop stops when Claude says `end_turn`, and it is cut off after `MAX_TURNS` turns. That brake is yours to keep.
+    - The loop stops when Claude says `end_turn`. The `for` loop over `MAX_TURNS` is the brake that the shared kit gives every build.
 
 ## Let the Tool Runner run the loop
 
 The Tool Runner uses the same Messages API, but it runs the loop for you. You hand it plain Python functions, and it calls them, builds the tool results, and asks Claude again until Claude stops asking for tools.
 
-1. In **lab.py**, search for the comment **TODO 2 of 2 - BUILD 2: THE TOOL RUNNER**. Below it are two functions with a placeholder line each: `as_runner_tool(spec)` and `runner_loop(client)`.
+1. In **lab.py**, search for the comment **TODO 2 of 2 - BUILD 2: THE TOOL RUNNER**. Below it are two functions with a placeholder line each: `as_runner_tool(tool)` and `runner_loop(client)`.
 
 2. In the `as_runner_tool` function, replace the line `raise NotImplementedError("TODO 2 is not done yet")  # replace these lines in TODO 2` with the following code. Keep the four-space indent:
 
     ```python
         def call(**kwargs):
-            return spec.run(kwargs)
-        return beta_tool(call, name=spec.name, description=spec.description, input_schema=spec.input_schema)
+            return kit.RUN_TOOL[tool["name"]](kwargs)
+        return beta_tool(call, name=tool["name"], description=tool["description"], input_schema=tool["input_schema"])
     ```
 
 3. In the `runner_loop` function, replace the line `raise NotImplementedError("TODO 2 is not done yet")  # replace these lines in TODO 2` with the following code. Keep the four-space indent:
@@ -137,7 +136,7 @@ The Tool Runner uses the same Messages API, but it runs the loop for you. You ha
             model=kit.MODEL,
             max_tokens=4096,
             system=kit.SYSTEM_PROMPT,
-            tools=[as_runner_tool(spec) for spec in kit.TOOL_SPECS],
+            tools=[as_runner_tool(tool) for tool in kit.TOOLS],
             messages=[{"role": "user", "content": kit.GOAL}],
             max_iterations=kit.MAX_TURNS,
         )
@@ -178,8 +177,6 @@ The Tool Runner uses the same Messages API, but it runs the loop for you. You ha
     - Both builds should name `bastion-02` as the compromised host. The loop changed, but the answer did not.
     - The runner reports the tokens of its last turn only, so its token count is not comparable to the manual loop's total.
 
-    > **Tip**: A model can occasionally take a different route. If the checker complains about the run, run `python lab.py` once more before you change any code.
-
 ## Check your work
 
 1. Run the checker one last time:
@@ -191,36 +188,10 @@ The Tool Runner uses the same Messages API, but it runs the loop for you. You ha
 2. Verify that the last line reads:
 
     ```
-    RESULT: 15/15 checks passed
+    RESULT: 13/13 checks passed
     ```
 
 3. Submit the **results/run.json** file as your evidence. There is nothing else to write up.
-
-## Try breaking it (optional)
-
-After you reach 15/15, change one thing at a time, run `python check.py`, and then undo the change.
-
-1. Delete the line that keeps Claude's turn (1b). Which lines fail, and what would the real API say about the next request?
-
-2. Send each tool result in its own user message instead of one message. Which line fails?
-
-3. Set `max_iterations` to 2 in the runner. What stop reason does the final message have?
-
-4. Count the lines you wrote for the manual loop and for the runner. What do you get from the extra lines, and what do you give up with the runner?
-
-## Troubleshooting
-
-- **ANTHROPIC_API_KEY is missing**: The **.env** file is not in the lab folder, or it has a typo. Repeat the steps in *Set up the lab folder*.
-
-- **IndentationError**: A pasted line lost its indent. The manual loop code is indented eight spaces, and the runner code is indented four spaces.
-
-- **NotImplementedError: TODO 1a is not done yet**: The placeholder line is still in the file. Repeat the steps in *Ask Claude in the manual loop*.
-
-- **NotImplementedError: TODO 2 is not done yet**: One of the two placeholder lines in the runner section is still in the file. There is one in `as_runner_tool` and one in `runner_loop`.
-
-- **A TODO line still fails after pasting**: The old placeholder line is still in the file, or you pasted only part of the snippet. Delete the placeholder line named in the step, and paste the whole snippet.
-
-- **Part B says you edited lab.py after the last run**: Run `python lab.py` again.
 
 ## Clean up
 

@@ -21,20 +21,12 @@ import incident_kit as kit
 from claude_client import get_client
 
 
-def run_tool(name, tool_input):
-    """Run one tool. Returns (text, is_error). A failing tool must not crash the loop: Claude can recover from a readable error."""
-    try:
-        return kit.SPEC_BY_NAME[name].run(tool_input), False
-    except Exception as exc:
-        return f"Tool {name} failed: {exc}", True
-
-
 # ======================================================================================
 # TODO 1 of 2 - BUILD 1: THE MANUAL LOOP. Three small pieces, marked 1a, 1b and 1c.
 # `messages` is the whole conversation so far. Each turn: ask Claude, keep its answer, run any tools it asked for, send the results back.
 # ======================================================================================
 def manual_loop(client):
-    tools = [spec.for_api() for spec in kit.TOOL_SPECS]
+    tools = kit.TOOLS
     messages = [{"role": "user", "content": kit.GOAL}]
     called, tokens_in, tokens_out = [], 0, 0
     for turn in range(1, kit.MAX_TURNS + 1):
@@ -57,21 +49,20 @@ def manual_loop(client):
         for block in response.content:
             if block.type == "tool_use":
                 called.append(block.name)
-                text, is_error = run_tool(block.name, block.input)
-                results.append({"type": "tool_result", "tool_use_id": block.id, "content": text, "is_error": is_error})
+                text = kit.RUN_TOOL[block.name](block.input)
+                results.append({"type": "tool_result", "tool_use_id": block.id, "content": text})
         messages.append({"role": "user", "content": results})
-    return {"build": "manual loop", "stop_reason": "max_turns", "turns": kit.MAX_TURNS, "tools_called": called, "final_text": "", "tokens_in": tokens_in, "tokens_out": tokens_out}
 
 
 # ======================================================================================
 # TODO 2 of 2 - BUILD 2: THE TOOL RUNNER. Two small pieces.
 # The runner calls your Python functions for you. It passes the model's arguments as keyword arguments.
 # ======================================================================================
-def as_runner_tool(spec):
-    """Wrap one ToolSpec for the runner with beta_tool(function, name=..., description=..., input_schema=...)."""
+def as_runner_tool(tool):
+    """Wrap one entry of kit.TOOLS for the runner with beta_tool(function, name=..., description=..., input_schema=...)."""
     def call(**kwargs):
-        return spec.run(kwargs)
-    return beta_tool(call, name=spec.name, description=spec.description, input_schema=spec.input_schema)
+        return kit.RUN_TOOL[tool["name"]](kwargs)
+    return beta_tool(call, name=tool["name"], description=tool["description"], input_schema=tool["input_schema"])
 
 
 def runner_loop(client):
@@ -80,7 +71,7 @@ def runner_loop(client):
         model=kit.MODEL,
         max_tokens=4096,
         system=kit.SYSTEM_PROMPT,
-        tools=[as_runner_tool(spec) for spec in kit.TOOL_SPECS],
+        tools=[as_runner_tool(tool) for tool in kit.TOOLS],
         messages=[{"role": "user", "content": kit.GOAL}],
         max_iterations=kit.MAX_TURNS,
     )

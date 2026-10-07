@@ -45,7 +45,7 @@ def run_conversational(claim):
 # Step 2: plain code, apply_policy(), makes the decision. Return "approve", "reject" or "escalate".
 # ======================================================================================
 def run_workflow(claim):
-    return "escalate"  # replace these lines in TODO 3
+    return "escalate"  # replace this line in TODO 3
 
 
 # ======================================================================================
