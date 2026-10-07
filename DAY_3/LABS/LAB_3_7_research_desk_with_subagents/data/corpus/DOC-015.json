@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-015",
+  "title": "Rumor mill: is Pallo about to sign Hartwell?",
+  "publisher": "RoboRumor blog",
+  "source_type": "blog",
+  "published_raw": "Apr 28, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "low",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "Unnamed sources suggest... Pallo Systems is said to be close to a deal with Hartwell Logistics as a fulfillment-center partner. We could not reach either company for comment. Treat as speculation.",
+  "facts": [
+    {
+      "fact_id": "DOC-015#1",
+      "topic": "pallo_partner_2026",
+      "statement": "Pallo Systems is said to be close to a deal with Hartwell Logistics as its fulfillment-center partner.",
+      "value": "Hartwell Logistics"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

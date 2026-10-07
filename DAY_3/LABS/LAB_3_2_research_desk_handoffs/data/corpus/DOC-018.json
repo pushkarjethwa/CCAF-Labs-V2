@@ -1,0 +1,21 @@
+{
+  "doc_id": "DOC-018",
+  "title": "Meridian Analytics: AMR Market Outlook 2026",
+  "publisher": "Meridian Analytics",
+  "source_type": "analyst_report",
+  "published_raw": "04/03/2026",
+  "date_format": "DD/MM/YYYY",
+  "reliability": "high",
+  "companies": [],
+  "text": "Outlook edition published 4 March 2026. The warehouse AMR market is forecast to reach $12.4B by 2030, a 14% CAGR from 2025, driven by mid-market adoption and fleet-software attach rates. Downside scenario: $10.9B.",
+  "facts": [
+    {
+      "fact_id": "DOC-018#1",
+      "topic": "amr_market_size_2030",
+      "statement": "The warehouse AMR market is forecast to reach $12.4B by 2030, a 14% CAGR from 2025.",
+      "value": "$12.4B / 14%"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

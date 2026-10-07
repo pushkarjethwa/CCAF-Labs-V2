@@ -1,0 +1,238 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Review Expense Claims Two Ways</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Review Expense Claims Two Ways</h1>
+<p>In Demo 3A, you watched ACME's finance team decide whether an expense review should be a conversation, a workflow, or an agent. You voted on five briefs, and then you saw the same claim review built three ways and measured. The cheapest design that was reliable won. In this lab, you build the first two of those designs yourself, with the same briefs, the same T&amp;E policy (<strong>ACME-T&amp;E-2026.2</strong>), and the same claims.</p>
+<p>You will complete three small pieces of <strong>lab.py</strong>, which add up to 26 lines of code. The lab takes about 25 minutes, and this guide gives you every line. At the end, you see both builds review six real claims side by side, so you can compare them.</p>
+<p>This lab continues Demo 3A, so you will recognize the following:</p>
+<ul>
+<li>The five briefs: the HR-policy FAQ bot, the expense-report review, the nightly KPI digest, the open-ended competitive research question, and the production-incident triage.</li>
+<li>The rule from the demo: if a <em>human</em> decides the next step, use a conversation; if a <em>process</em> decides, use a workflow; if the <em>model</em> decides, use an agent.</li>
+<li>The claims <strong>R01</strong> to <strong>R12</strong>, with their expected decisions: approve, reject, or escalate to a human.</li>
+<li>Build 1, the conversational build, where one Claude call reads the whole policy and decides alone.</li>
+<li>Build 2, the workflow build, where one Claude call reads the claim into fields and plain code applies the policy.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_3/LABS/LAB_3_1_expense_desk_architecture</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Review the starting point</h2>
+<ol>
+<li>
+<p>Open the <strong>data</strong> folder, and look at the following files, which are the same files you saw in the demo:</p>
+<ul>
+<li><strong>briefs.json</strong>: the five briefs, each with the signals that decide its architecture.</li>
+<li><strong>policy.json</strong>: the ACME travel and expense policy.</li>
+<li><strong>expense_reports.json</strong>: the twelve claims, with the decision each one should get.</li>
+</ul>
+</li>
+<li>
+<p>Run the checker to see your starting point:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The checker fails on purpose, because the starter code contains placeholders. The last line shows that only a few of the 16 checks passed.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Write the rubric from the demo</h2>
+<p>In this section, you write the rule that picks an architecture from a brief's signals. This is the same function that ran during the vote in Demo 3A.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 3</strong>. Below it is a function named <code>architecture_for</code> that currently returns <code>&quot;agentic&quot;</code> for every brief.</p>
+</li>
+<li>
+<p>Replace the line <code>return &quot;agentic&quot;  # replace this line in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    controller = signals[&quot;next_step_controller&quot;]
+    if controller == &quot;human&quot;:
+        return &quot;conversational&quot;
+    if controller == &quot;process&quot;:
+        return &quot;workflow&quot;
+    return &quot;agentic&quot;
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the five <strong>TODO 1</strong> checks pass.</p>
+</li>
+</ol>
+<h2>Build the conversational review</h2>
+<p>In this section, you write your first Claude API call. Build 1 sends the whole policy and one claim to Claude, and Claude decides alone.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 3</strong>. Below it is a function named <code>run_conversational</code> that currently returns <code>&quot;invalid&quot;</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return &quot;invalid&quot;  # replace this line in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    system = f&quot;You review expense claims against this policy ({POLICY['version']}).\n{policy_text()}\n{ANSWER_FORMAT}&quot;
+    response = get_client().messages.create(
+        model=MODEL_BALANCED,
+        max_tokens=4096,
+        system=system,
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: claim_facts(claim)}],
+    )
+    return decision_in(text_of(response))
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>get_client().messages.create(...)</code> is the Claude Messages API call. Every Claude app you build sends a request like this one.</li>
+<li><code>system</code> holds the instructions and the policy. <code>messages</code> holds the claim, as the user's turn.</li>
+<li><code>max_tokens</code> is required. It is set high because Claude may use some of it to think before answering.</li>
+<li><code>decision_in</code> and <code>text_of</code> are in <strong>expense_core.py</strong>. They turn the reply into <code>approve</code>, <code>reject</code>, or <code>escalate</code>.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the five <strong>TODO 2</strong> checks pass.</p>
+</li>
+</ol>
+<h2>Build the workflow review</h2>
+<p>In this section, you write Build 2. Claude does one job, which is to read the free-text claim into fields. Plain code then applies the policy, so the decision is the same every time for the same fields.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 3</strong>. Below it is a function named <code>run_workflow</code> that currently returns <code>&quot;escalate&quot;</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return &quot;escalate&quot;  # replace these lines in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    system = (&quot;Extract the expense fields from the claim text. Reply with JSON only, matching this schema exactly:\n&quot;
+              + json.dumps(EXTRACTION_SCHEMA))
+    response = get_client().messages.create(
+        model=MODEL_BALANCED,
+        max_tokens=4096,
+        system=system,
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: claim[&quot;text&quot;]}],
+    )
+    fields = json_in(text_of(response))
+    if not isinstance(fields, dict) or any(key not in fields for key in EXTRACTION_SCHEMA[&quot;required&quot;]):
+        return &quot;escalate&quot;
+    return apply_policy(fields, claim)[0]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The call looks like Build 1, but the instruction is different. Claude gets the schema, not the policy.</li>
+<li>If Claude's reply is missing a field, the claim is escalated to a human. The model never gets to guess a decision.</li>
+<li><code>apply_policy</code> is plain Python in <strong>expense_core.py</strong>. It holds the caps, the receipt rule, and the duplicate check.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the six <strong>TODO 3</strong> checks pass and that Part A shows no <code>[FAIL]</code> lines.</p>
+</li>
+</ol>
+<h2>Run both builds on real claims</h2>
+<ol>
+<li>
+<p>Run the lab by running the following command:</p>
+<div class="cb"><pre><code>python lab.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: This calls Claude 12 times (6 claims, 2 builds) and takes about a minute.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Part 1 lists the five briefs with the architecture your rubric chose. The expense-report review is a <strong>workflow</strong>, not an agent.</li>
+<li>Part 2 is a table with one row per claim: the expected decision, then what each build decided.</li>
+<li>The last line shows how many claims each build got right. The workflow should get at least 5 of 6.</li>
+</ul>
+</li>
+<li>
+<p>Run the checker again:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 22/22 checks passed</code>.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY is missing</code></strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong>A conversational answer shows <code>invalid</code></strong>: Claude's reply was not the JSON asked for. Check that <code>ANSWER_FORMAT</code> is part of the <code>system</code> text in TODO 2.</li>
+<li><strong>Part B says the saved run is not from your current code</strong>: You edited a TODO after the last run. Run <code>python lab.py</code> again.</li>
+<li><strong>The workflow got fewer than 5 of 6 right</strong>: Read the table. A miss means Claude read a field wrongly, not that the policy was wrong. Run <code>python lab.py</code> again, because model output varies slightly between runs.</li>
+</ul>
+<h2>Clean up</h2>
+<p>Close the terminal. Keep your <strong>.env</strong> file private, and do not copy it to another folder.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 3A showed all three builds on all twelve claims, and measured accuracy, cost, and how often the same claim got a different answer. The agentic build comes back in Labs 3.5 to 3.7.</li>
+<li>To see how a design handles a failure at runtime, continue with Lab 3.3.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

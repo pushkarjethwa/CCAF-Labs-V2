@@ -1,0 +1,67 @@
+[
+  {
+    "id": 1, "title": "Internal HR-policy FAQ bot",
+    "brief": "Employees ask questions about leave, benefits and holidays in a chat window. Answers must come from the 40-page HR handbook, which fits in a prompt. A person reads each answer immediately and asks a follow-up if needed.",
+    "signals": {"next_step_controller": "human", "path_predictability": "single_step", "reliability_need": 3, "cost_of_error": 2, "latency_budget": "interactive"},
+    "evidence": {
+      "next_step_controller": "The employee decides the next step by typing the next question. The system never has to decide what to do after answering.",
+      "path_predictability": "One question in, one grounded answer out. No intermediate findings change the plan.",
+      "reliability_need": "Grounded in the handbook, but an employee double-checks anything important with HR.",
+      "cost_of_error": "A wrong answer is embarrassing and correctable; nothing irreversible happens.",
+      "latency_budget": "A person is waiting in a chat window."
+    },
+    "tempting_wrong_answer": "agentic ('it is a bot, so it is an agent')"
+  },
+  {
+    "id": 2, "title": "Expense-report review against policy",
+    "brief": "Every submitted expense report (free text plus attachments) is checked against the T&E policy and ends in exactly one of approve, reject or escalate-to-a-human. Finance audits a sample of decisions every month.",
+    "signals": {"next_step_controller": "process", "path_predictability": "known_branches", "reliability_need": 5, "cost_of_error": 4, "latency_budget": "relaxed"},
+    "evidence": {
+      "next_step_controller": "Finance's written procedure decides the next step: read the claim, check the policy, decide, escalate if unsure. The steps are the same for every claim.",
+      "path_predictability": "The branches are known in advance (approve, reject, escalate) and every violation code is in the policy. There is no discovery that changes the plan.",
+      "reliability_need": "Auditors expect the same claim to get the same decision every time, with a reason they can replay.",
+      "cost_of_error": "Paying a duplicate or non-compliant claim is real money and an audit finding.",
+      "latency_budget": "Claims are processed in a queue; seconds to minutes are fine."
+    },
+    "tempting_wrong_answer": "agentic ('it calls tools, so it is an agent')"
+  },
+  {
+    "id": 3, "title": "Nightly KPI digest email",
+    "brief": "Every night at 02:00 pull yesterday's numbers from three dashboards, compare them with targets, write a three-paragraph plain-English summary and email it to 40 managers.",
+    "signals": {"next_step_controller": "process", "path_predictability": "fixed_sequence", "reliability_need": 4, "cost_of_error": 2, "latency_budget": "relaxed"},
+    "evidence": {
+      "next_step_controller": "A cron schedule and a fixed script decide every step: fetch, compare, summarise, send.",
+      "path_predictability": "Exactly the same four steps every night. Only the data changes.",
+      "reliability_need": "Managers expect it every morning, formatted the same way. A missed or mangled email is noticed.",
+      "cost_of_error": "A mediocre summary is a small annoyance; numbers come from code, not from the model.",
+      "latency_budget": "Runs at 02:00; nobody is waiting."
+    },
+    "tempting_wrong_answer": "agentic ('it fetches data from three tools')"
+  },
+  {
+    "id": 4, "title": "Open-ended competitive research question",
+    "brief": "A strategy analyst asks: 'How is Rival Corp positioning its new product line against us in the mid-market, and what is our weakest flank?' Nobody knows in advance which sources, how many searches, or which follow-up questions will matter.",
+    "signals": {"next_step_controller": "model", "path_predictability": "open_ended", "reliability_need": 2, "cost_of_error": 2, "latency_budget": "relaxed"},
+    "evidence": {
+      "next_step_controller": "What to search next depends on what the last search found. Only the model can pick the next step at run time.",
+      "path_predictability": "Open ended. The number and order of steps cannot be listed in advance.",
+      "reliability_need": "The output is input to a human's thinking, not a record of fact; different valid reports are acceptable.",
+      "cost_of_error": "A weak report costs an analyst some time; she reviews it before anything is decided.",
+      "latency_budget": "Minutes are acceptable for a research brief."
+    },
+    "tempting_wrong_answer": "workflow ('define the five research steps')"
+  },
+  {
+    "id": 5, "title": "Production-incident triage across logs, runbooks and paging",
+    "brief": "An alert fires at 3 a.m. The system must work out what is broken by reading logs, metrics and runbooks, form a hypothesis, test it with more queries, and decide whom to page. Every incident looks different.",
+    "signals": {"next_step_controller": "model", "path_predictability": "open_ended", "reliability_need": 4, "cost_of_error": 5, "latency_budget": "moderate"},
+    "evidence": {
+      "next_step_controller": "Each query is chosen from what the previous query revealed (hypothesis, test, revise). No fixed procedure covers every incident.",
+      "path_predictability": "Open ended: the investigation path differs per incident.",
+      "reliability_need": "On-call engineers rely on it; it must not hallucinate evidence. That is a reason for guardrails, not for a fixed script.",
+      "cost_of_error": "Paging the wrong team or missing a real outage is expensive and public.",
+      "latency_budget": "Minutes matter, but a few seconds per step is fine."
+    },
+    "tempting_wrong_answer": "conversational ('just have it summarise the alert')"
+  }
+]

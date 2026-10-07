@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "properties": {
+    "merchant": {"type": "string"},
+    "date": {"type": "string", "description": "ISO date YYYY-MM-DD; assume the year 2026 when the text gives none"},
+    "category": {"type": "string", "enum": ["meals", "lodging", "airfare", "ground_transport", "software", "client_gift", "conference"]},
+    "amount": {"type": "number", "description": "total claimed, in the original currency, without the currency symbol"},
+    "currency": {"type": "string", "enum": ["USD", "EUR", "GBP"]},
+    "attendees": {"anyOf": [{"type": "integer"}, {"type": "null"}], "description": "people covered by a meal claim, including the submitter; null if not a meal"},
+    "nights": {"anyOf": [{"type": "integer"}, {"type": "null"}], "description": "hotel nights; null if not lodging"},
+    "cabin": {"anyOf": [{"type": "string", "enum": ["economy", "premium_economy", "business", "first"]}, {"type": "null"}], "description": "flight cabin; null if not airfare"},
+    "alcohol_amount": {"type": "number", "description": "amount spent on alcohol in the original currency, 0 if none"},
+    "confidence": {"type": "string", "enum": ["high", "medium", "low"], "description": "how sure you are that every field above is stated in the text rather than guessed"}
+  },
+  "required": ["merchant", "date", "category", "amount", "currency", "attendees", "nights", "cabin", "alcohol_amount", "confidence"],
+  "additionalProperties": false
+}

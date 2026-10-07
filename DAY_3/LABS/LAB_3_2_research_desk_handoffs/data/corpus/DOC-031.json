@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-031",
+  "title": "Kestrel Robotics investor day 2024: targets",
+  "publisher": "Kestrel Robotics IR",
+  "source_type": "press_release",
+  "published_raw": "Nov 14, 2024",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Kestrel Robotics"
+  ],
+  "text": "At its 2024 investor day Kestrel Robotics set a target of revenue above $400M for FY2025 and a software mix near 40%. Targets are not guidance.",
+  "facts": [
+    {
+      "fact_id": "DOC-031#1",
+      "topic": "kestrel_target_fy2025",
+      "statement": "Kestrel Robotics set a target of revenue above $400M for FY2025.",
+      "value": ">$400M target"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

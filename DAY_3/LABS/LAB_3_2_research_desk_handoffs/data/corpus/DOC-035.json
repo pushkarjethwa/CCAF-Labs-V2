@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-035",
+  "title": "Kestrel Robotics Q1 2026 trading update",
+  "publisher": "Kestrel Robotics IR",
+  "source_type": "press_release",
+  "published_raw": "May 6, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "Kestrel Robotics"
+  ],
+  "text": "Kestrel Robotics reported Q1 2026 revenue of $109M, up 16% year over year, and reiterated its software mix goal.",
+  "facts": [
+    {
+      "fact_id": "DOC-035#1",
+      "topic": "kestrel_revenue_q1_2026",
+      "statement": "Kestrel Robotics reported Q1 2026 revenue of $109M, up 16% year over year.",
+      "value": "$109M / 16%"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

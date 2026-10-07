@@ -1,0 +1,277 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build the Same Agent Two Ways with the Anthropic SDK</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build the Same Agent Two Ways with the Anthropic SDK</h1>
+<p>In Demo 3F, you watched the same incident-triage agent built four ways. The goal, the prompt, the tools, and the data never changed. Only one thing changed from build to build: who runs the loop, and where. In this lab, you build the first two of those ways yourself: a manual loop, where you write the loop around <code>client.messages.create</code>, and the Tool Runner, where the SDK runs the loop for you. You then compare them on the same incident, INC-7741 at Nordlicht Logistics.</p>
+<p>You will complete five small pieces of <strong>lab.py</strong>, which add up to 26 lines of code. The lab takes about 30 minutes, and this guide gives you every line. At the end, both builds triage the incident for real.</p>
+<p>This lab continues Demo 3F, so you will recognize the following:</p>
+<ul>
+<li>The goal, the system prompt, and the three read-only tools: <code>list_alerts</code>, <code>get_log_lines</code>, and <code>lookup_indicator</code>.</li>
+<li>Build 1, the manual loop, where you see every moving part of the Messages API.</li>
+<li>Build 2, the Tool Runner, which gives the same result with a fraction of the code.</li>
+<li>The comparison point of the demo: the loop is the only thing that changes, and the answer stays the same.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key. You do not need any other tool for this lab.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_3/LABS/LAB_3_6_two_ways_to_build_an_agent</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+<li>
+<p>Create a new file named <strong>.env</strong> in the lab folder, and add the following line, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Review the starting point</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The checker fails on purpose. Part A tests your code with a scripted stand-in for Claude, so it needs no API key. Part B is skipped until you run the real agents.</p>
+</blockquote>
+</li>
+<li>
+<p>Notice that only two files matter for this lab: <strong>lab.py</strong>, which holds your two builds, and <strong>check.py</strong>. The <strong>incident_kit.py</strong> file holds the goal, the prompt, and the three tools that every build shares, and you do not need to read it.</p>
+</li>
+</ol>
+<h2>Ask Claude in the manual loop</h2>
+<p>In the manual loop, you keep the whole conversation in a list called <code>messages</code>. Each turn, you ask Claude, keep its answer, run any tools it asked for, and send the results back. The loop is already in <strong>lab.py</strong>. You write three pieces inside it.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 2 - BUILD 1: THE MANUAL LOOP</strong>. Below it is the function <code>manual_loop(client)</code>, with a <code>for</code> loop that has three placeholder lines marked 1a, 1b, and 1c.</p>
+</li>
+<li>
+<p>Under the comment <code># 1a - ask Claude</code>, replace the line <code>raise NotImplementedError(&quot;TODO 1a is not done yet&quot;)  # replace these lines in TODO 1a</code> with the following code. Keep the eight-space indent, because the code sits inside the <code>for</code> loop:</p>
+<div class="cb"><pre><code class="language-python">        response = client.messages.create(
+            model=kit.MODEL,
+            max_tokens=4096,
+            system=kit.SYSTEM_PROMPT,
+            tools=tools,
+            messages=messages,
+        )
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then review the call, noting the following details:</p>
+<ul>
+<li><code>model</code> chooses which Claude model answers.</li>
+<li><code>max_tokens</code> limits the length of the answer. The API requires it, and on the latest models it also covers hidden thinking, so keep it generous.</li>
+<li><code>system</code> holds the standing instruction.</li>
+<li><code>tools</code> lists the three tools that Claude may ask you to run.</li>
+<li><code>messages</code> is the whole conversation so far.</li>
+</ul>
+</li>
+</ol>
+<h2>Keep Claude's turn and answer its tool requests</h2>
+<ol>
+<li>
+<p>Under the comment <code># 1b - keep Claude's turn</code>, replace the line <code>pass  # replace this line in TODO 1b</code> with the following code. Keep the eight-space indent:</p>
+<div class="cb"><pre><code class="language-python">        messages.append({&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: response.content})
+</code></pre></div>
+</li>
+<li>
+<p>Under the comment <code># 1c - answer EVERY tool request</code>, replace the line <code>pass  # replace these lines in TODO 1c</code> with the following code. Keep the eight-space indent:</p>
+<div class="cb"><pre><code class="language-python">        results = []
+        for block in response.content:
+            if block.type == &quot;tool_use&quot;:
+                called.append(block.name)
+                text, is_error = run_tool(block.name, block.input)
+                results.append({&quot;type&quot;: &quot;tool_result&quot;, &quot;tool_use_id&quot;: block.id, &quot;content&quot;: text, &quot;is_error&quot;: is_error})
+        messages.append({&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: results})
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run <code>python check.py</code>.</p>
+</li>
+<li>
+<p>Verify that the six lines under <strong>TODO 1</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>Review the loop, noting the following details:</p>
+<ul>
+<li>You keep Claude's whole turn, including its <code>tool_use</code> blocks, because the next request must show Claude what it asked for.</li>
+<li>Claude can ask for several tools in one turn. All the results go back together in one user message, and each result carries the <code>tool_use_id</code> of the request it answers.</li>
+<li>A tool that fails is reported to Claude as a readable error result, so Claude can recover. It does not crash the loop.</li>
+<li>The loop stops when Claude says <code>end_turn</code>, and it is cut off after <code>MAX_TURNS</code> turns. That brake is yours to keep.</li>
+</ul>
+</li>
+</ol>
+<h2>Let the Tool Runner run the loop</h2>
+<p>The Tool Runner uses the same Messages API, but it runs the loop for you. You hand it plain Python functions, and it calls them, builds the tool results, and asks Claude again until Claude stops asking for tools.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 2 - BUILD 2: THE TOOL RUNNER</strong>. Below it are two functions with a placeholder line each: <code>as_runner_tool(spec)</code> and <code>runner_loop(client)</code>.</p>
+</li>
+<li>
+<p>In the <code>as_runner_tool</code> function, replace the line <code>raise NotImplementedError(&quot;TODO 2 is not done yet&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    def call(**kwargs):
+        return spec.run(kwargs)
+    return beta_tool(call, name=spec.name, description=spec.description, input_schema=spec.input_schema)
+</code></pre></div>
+</li>
+<li>
+<p>In the <code>runner_loop</code> function, replace the line <code>raise NotImplementedError(&quot;TODO 2 is not done yet&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    runner = client.beta.messages.tool_runner(
+        model=kit.MODEL,
+        max_tokens=4096,
+        system=kit.SYSTEM_PROMPT,
+        tools=[as_runner_tool(spec) for spec in kit.TOOL_SPECS],
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: kit.GOAL}],
+        max_iterations=kit.MAX_TURNS,
+    )
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run <code>python check.py</code>.</p>
+</li>
+<li>
+<p>Verify that the five lines under <strong>TODO 2</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>Review the runner, noting the following details:</p>
+<ul>
+<li>The runner passes the model's arguments to your function as keyword arguments, so <code>as_runner_tool</code> adapts the shared tool functions, which take a dictionary.</li>
+<li><code>beta_tool</code> needs the function, a name, a description, and an input schema. They are the same ones the manual loop sent.</li>
+<li><code>max_iterations</code> is the same brake as the manual loop, so the comparison is fair.</li>
+<li>The code that reads the runner is already written. It iterates over the turns, and then asks for the final message.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The Tool Runner is still marked as beta in the SDK, so its details can change between versions.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Run both builds</h2>
+<ol>
+<li>
+<p>Run both builds on the incident by running the following command:</p>
+<div class="cb"><pre><code>python lab.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The run uses a small amount of API credit. Each build makes several calls to Claude, and the tool order differs from run to run.</p>
+</blockquote>
+</li>
+<li>
+<p>Verify that the output starts with one summary line per build, similar to the following. The numbers will differ:</p>
+<div class="cb"><pre><code>manual loop  stop_reason=end_turn  turns=3   tools called=3 tokens in/out=2400/450
+tool runner  stop_reason=end_turn  turns=3   tools called=3 tokens in/out=1100/220
+</code></pre></div>
+</li>
+<li>
+<p>Read the two reports printed below the summary, noting the following details:</p>
+<ul>
+<li>Both builds should name <code>bastion-02</code> as the compromised host. The loop changed, but the answer did not.</li>
+<li>The runner reports the tokens of its last turn only, so its token count is not comparable to the manual loop's total.</li>
+</ul>
+<blockquote class="">
+<p><strong>Tip</strong>: A model can occasionally take a different route. If the checker complains about the run, run <code>python lab.py</code> once more before you change any code.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker one last time:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads:</p>
+<div class="cb"><pre><code>RESULT: 15/15 checks passed
+</code></pre></div>
+</li>
+<li>
+<p>Submit the <strong>results/run.json</strong> file as your evidence. There is nothing else to write up.</p>
+</li>
+</ol>
+<h2>Try breaking it (optional)</h2>
+<p>After you reach 15/15, change one thing at a time, run <code>python check.py</code>, and then undo the change.</p>
+<ol>
+<li>
+<p>Delete the line that keeps Claude's turn (1b). Which lines fail, and what would the real API say about the next request?</p>
+</li>
+<li>
+<p>Send each tool result in its own user message instead of one message. Which line fails?</p>
+</li>
+<li>
+<p>Set <code>max_iterations</code> to 2 in the runner. What stop reason does the final message have?</p>
+</li>
+<li>
+<p>Count the lines you wrote for the manual loop and for the runner. What do you get from the extra lines, and what do you give up with the runner?</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li>
+<p><strong>ANTHROPIC_API_KEY is missing</strong>: The <strong>.env</strong> file is not in the lab folder, or it has a typo. Repeat the steps in <em>Set up the lab folder</em>.</p>
+</li>
+<li>
+<p><strong>IndentationError</strong>: A pasted line lost its indent. The manual loop code is indented eight spaces, and the runner code is indented four spaces.</p>
+</li>
+<li>
+<p><strong>NotImplementedError: TODO 1a is not done yet</strong>: The placeholder line is still in the file. Repeat the steps in <em>Ask Claude in the manual loop</em>.</p>
+</li>
+<li>
+<p><strong>NotImplementedError: TODO 2 is not done yet</strong>: One of the two placeholder lines in the runner section is still in the file. There is one in <code>as_runner_tool</code> and one in <code>runner_loop</code>.</p>
+</li>
+<li>
+<p><strong>A TODO line still fails after pasting</strong>: The old placeholder line is still in the file, or you pasted only part of the snippet. Delete the placeholder line named in the step, and paste the whole snippet.</p>
+</li>
+<li>
+<p><strong>Part B says you edited lab.py after the last run</strong>: Run <code>python lab.py</code> again.</p>
+</li>
+</ul>
+<h2>Clean up</h2>
+<p>Delete the <strong>results</strong> folder to reset the lab, and keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<p>The <strong>SOLUTION/lab_solution.py</strong> file is the finished lab. This guide already contains every line you need, so use the file only to find a typo. To learn how the API call works, see <strong>HOW_THE_CODE_WORKS.md</strong> in the <strong>STUDENT_V2</strong> folder.</p>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

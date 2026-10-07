@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-009",
+  "title": "Voltrix 2024 price list",
+  "publisher": "Voltrix Dynamics",
+  "source_type": "datasheet",
+  "published_raw": "Jun 1, 2024",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Voltrix Dynamics"
+  ],
+  "text": "Voltrix 2024 partner price list. The Voltrix V2 list price is $41,000 with a 600 kg payload capacity. Valid through December 2024.",
+  "facts": [
+    {
+      "fact_id": "DOC-009#1",
+      "topic": "voltrix_v2_spec",
+      "statement": "The Voltrix V2 list price is $41,000 with a 600 kg payload capacity.",
+      "value": "$41,000 / 600 kg"
+    }
+  ],
+  "superseded_by": "DOC-007",
+  "mirror_of": null
+}

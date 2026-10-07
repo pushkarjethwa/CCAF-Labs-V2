@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-037",
+  "title": "Pallo P5 legacy datasheet",
+  "publisher": "Pallo Systems",
+  "source_type": "datasheet",
+  "published_raw": "Mar 10, 2023",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "Pallo P5 low-profile robot. The Pallo P5 list price is $24,500 with a 350 kg payload capacity. The P5 is being phased out.",
+  "facts": [
+    {
+      "fact_id": "DOC-037#1",
+      "topic": "pallo_p5_spec",
+      "statement": "The Pallo P5 list price is $24,500 with a 350 kg payload capacity.",
+      "value": "$24,500 / 350 kg"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

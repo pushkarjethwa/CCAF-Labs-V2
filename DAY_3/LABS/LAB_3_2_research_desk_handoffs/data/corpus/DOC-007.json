@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-007",
+  "title": "Voltrix V2 datasheet (2026 pricing)",
+  "publisher": "Voltrix Dynamics",
+  "source_type": "datasheet",
+  "published_raw": "Jan 15, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "Voltrix Dynamics"
+  ],
+  "text": "Voltrix V2 autonomous mobile robot. Navigation: LiDAR plus vision. Runtime: 10 hours. The Voltrix V2 list price is $38,500 with a 600 kg payload capacity. Fleet-software licence is sold separately. Prices exclude installation.",
+  "facts": [
+    {
+      "fact_id": "DOC-007#1",
+      "topic": "voltrix_v2_spec",
+      "statement": "The Voltrix V2 list price is $38,500 with a 600 kg payload capacity.",
+      "value": "$38,500 / 600 kg"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

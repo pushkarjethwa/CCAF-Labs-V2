@@ -1,0 +1,61 @@
+[
+  {"id": "R01", "employee_id": "E101", "attachments": ["receipt_r01.pdf"], "preapproval_id": null,
+   "text": "Team lunch for the platform crew at Luigi's Trattoria, 4 of us, came to $212.00 total. Mar 3. receipt attached.",
+   "truth": {"merchant": "Luigi's Trattoria", "date": "2026-03-03", "category": "meals", "amount": 212.0, "currency": "USD", "attendees": 4, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "approve", "expected_codes": []},
+
+  {"id": "R02", "employee_id": "E102", "attachments": ["receipt_r02.png"], "preapproval_id": null,
+   "text": "Client dinner @ Nobu w/ the Acme folks - 3 people - $228.00 incl. 2 bottles of wine ($54). Mar 5, receipt scan attached.",
+   "truth": {"merchant": "Nobu", "date": "2026-03-05", "category": "meals", "amount": 228.0, "currency": "USD", "attendees": 3, "nights": null, "cabin": null, "alcohol_amount": 54.0},
+   "expected_decision": "escalate", "expected_codes": ["alcohol_present", "meals_over_cap"]},
+
+  {"id": "R03", "employee_id": "E103", "attachments": ["folio_r03.pdf"], "preapproval_id": null,
+   "text": "Hotel Marriott Denver, 3 nights, 870.00 USD all in. Mar 8-11. Folio pdf attached.",
+   "truth": {"merchant": "Marriott Denver", "date": "2026-03-08", "category": "lodging", "amount": 870.0, "currency": "USD", "attendees": null, "nights": 3, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "escalate", "expected_codes": ["lodging_over_cap"]},
+
+  {"id": "R04", "employee_id": "E104", "attachments": ["eticket_r04.pdf"], "preapproval_id": null,
+   "text": "United SFO-JFK, flew business class because the red-eye was full, $2,400.00. Mar 12. e-ticket attached.",
+   "truth": {"merchant": "United Airlines", "date": "2026-03-12", "category": "airfare", "amount": 2400.0, "currency": "USD", "attendees": null, "nights": null, "cabin": "business", "alcohol_amount": 0.0},
+   "expected_decision": "reject", "expected_codes": ["cabin_not_economy", "manager_approval_required"]},
+
+  {"id": "R05", "employee_id": "E105", "attachments": [], "preapproval_id": null,
+   "text": "Taxi from the airport to the office, $18.00, Mar 14. Lost the receipt.",
+   "truth": {"merchant": "City Cab", "date": "2026-03-14", "category": "ground_transport", "amount": 18.0, "currency": "USD", "attendees": null, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "approve", "expected_codes": []},
+
+  {"id": "R06", "employee_id": "E105", "attachments": [], "preapproval_id": null,
+   "text": "Uber to the client site and back, $64.00, Mar 14. No receipt - the app crashed.",
+   "truth": {"merchant": "Uber", "date": "2026-03-14", "category": "ground_transport", "amount": 64.0, "currency": "USD", "attendees": null, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "reject", "expected_codes": ["missing_receipt"]},
+
+  {"id": "R07", "employee_id": "E103", "attachments": ["receipt_r07.pdf"], "preapproval_id": null,
+   "text": "Dinner with the Orion client at Gramercy Tavern, 2 people, $140.00 on Feb 20. Receipt attached.",
+   "truth": {"merchant": "Gramercy Tavern", "date": "2026-02-20", "category": "meals", "amount": 140.0, "currency": "USD", "attendees": 2, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "reject", "expected_codes": ["duplicate_submission"]},
+
+  {"id": "R08", "employee_id": "E108", "attachments": ["facture_r08.pdf"], "preapproval_id": null,
+   "text": "Hotel Ibis Paris Gare de Lyon, 1 night, €240.00 (receipt attached). Mar 18.",
+   "truth": {"merchant": "Hotel Ibis Paris", "date": "2026-03-18", "category": "lodging", "amount": 240.0, "currency": "EUR", "attendees": null, "nights": 1, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "escalate", "expected_codes": ["lodging_over_cap"]},
+
+  {"id": "R09", "employee_id": "E106", "attachments": ["invoice_r09.pdf"], "preapproval_id": null,
+   "text": "Annual Figma license, $480.00, Mar 20. Invoice attached. Haven't got an approval ticket yet.",
+   "truth": {"merchant": "Figma", "date": "2026-03-20", "category": "software", "amount": 480.0, "currency": "USD", "attendees": null, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "reject", "expected_codes": ["missing_preapproval"]},
+
+  {"id": "R10", "employee_id": "E107", "attachments": ["invoice_r10.pdf"], "preapproval_id": "PA-2291",
+   "text": "Figma license for the design team, $480.00, Mar 20, invoice attached, pre-approved under PA-2291.",
+   "truth": {"merchant": "Figma", "date": "2026-03-20", "category": "software", "amount": 480.0, "currency": "USD", "attendees": null, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "approve", "expected_codes": []},
+
+  {"id": "R11", "employee_id": "E102", "attachments": ["receipt_r11.pdf"], "preapproval_id": null,
+   "text": "Gift basket for Delta Logistics' procurement lead (thank-you after the renewal), $85.00, Mar 22, receipt attached.",
+   "truth": {"merchant": "Harry & David", "date": "2026-03-22", "category": "client_gift", "amount": 85.0, "currency": "USD", "attendees": null, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "escalate", "expected_codes": ["client_gift_compliance_review"]},
+
+  {"id": "R12", "employee_id": "E109", "attachments": ["invoice_r12.pdf"], "preapproval_id": null,
+   "text": "Offsite catering for the data team - 15 of us + 2 vendors - Fresh Table Co, $1,260.00, Mar 25. Invoice attached.",
+   "truth": {"merchant": "Fresh Table Co", "date": "2026-03-25", "category": "meals", "amount": 1260.0, "currency": "USD", "attendees": 17, "nights": null, "cabin": null, "alcohol_amount": 0.0},
+   "expected_decision": "escalate", "expected_codes": ["manager_approval_required"]}
+]

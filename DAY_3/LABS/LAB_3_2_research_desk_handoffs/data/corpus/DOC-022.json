@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-022",
+  "title": "NorthGrid N2 datasheet",
+  "publisher": "NorthGrid Automation",
+  "source_type": "datasheet",
+  "published_raw": "Nov 4, 2025",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "NorthGrid Automation"
+  ],
+  "text": "NorthGrid N2 tugger robot. The NorthGrid N2 list price is $26,400 with a 900 kg towing capacity. Runtime: 12 hours.",
+  "facts": [
+    {
+      "fact_id": "DOC-022#1",
+      "topic": "northgrid_n2_spec",
+      "statement": "The NorthGrid N2 list price is $26,400 with a 900 kg towing capacity.",
+      "value": "$26,400 / 900 kg"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

@@ -18,9 +18,12 @@
 mono_crash.*
 
 # Build results
+LAB_Test/
+ClaudeFoundation/
 .opencode/
 _templates/
 TRAINER_V2/
+.claudefenv/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
@@ -429,3 +432,4 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+.opencode

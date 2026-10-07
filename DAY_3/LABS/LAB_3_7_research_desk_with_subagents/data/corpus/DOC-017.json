@@ -1,0 +1,21 @@
+{
+  "doc_id": "DOC-017",
+  "title": "Altus Research: AMR Market Outlook 2023",
+  "publisher": "Altus Research",
+  "source_type": "analyst_report",
+  "published_raw": "03/04/2023",
+  "date_format": "MM/DD/YYYY",
+  "reliability": "high",
+  "companies": [],
+  "text": "Outlook edition published March 4, 2023. The warehouse AMR market will reach $9.8B by 2030 under the base case, a 11% CAGR from 2022. This edition predates the 2024-2025 fleet-software shift and has been superseded by newer outlooks.",
+  "facts": [
+    {
+      "fact_id": "DOC-017#1",
+      "topic": "amr_market_size_2030",
+      "statement": "The warehouse AMR market will reach $9.8B by 2030, a 11% CAGR from 2022.",
+      "value": "$9.8B / 11%"
+    }
+  ],
+  "superseded_by": "DOC-018",
+  "mirror_of": null
+}

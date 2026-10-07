@@ -1,0 +1,7 @@
+{
+  "_comment": "Cached company profile cards used by the overlapping lookup_company_profile tool. Deliberately STALE: refreshed 2026-02, before the Kestrel restatement and before the 2026 share reports disagreed.",
+  "Kestrel Robotics": {"hq": "San Jose", "founded": 2014, "revenue_latest": "$398M (FY2025, preliminary)", "growth_latest": "14%", "market_share_2025": "27%", "card_refreshed": "2026-02-15"},
+  "Voltrix Dynamics": {"hq": "Rotterdam", "founded": 2011, "revenue_latest": "$1.31B (FY2025)", "growth_latest": "n/a", "market_share_2025": "31% (Voltrix leads)", "card_refreshed": "2026-02-15"},
+  "Pallo Systems": {"hq": "Austin", "founded": 2017, "revenue_latest": "n/a", "growth_latest": "n/a", "market_share_2025": "12%", "card_refreshed": "2026-02-15"},
+  "NorthGrid Automation": {"hq": "Columbus", "founded": 2016, "revenue_latest": "$116.4M (FY2024)", "growth_latest": "n/a", "market_share_2025": "n/a", "card_refreshed": "2026-02-15"}
+}

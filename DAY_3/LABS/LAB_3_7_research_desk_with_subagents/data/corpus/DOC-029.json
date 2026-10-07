@@ -1,0 +1,16 @@
+{
+  "doc_id": "DOC-029",
+  "title": "NorthGrid pilot with national retailer",
+  "publisher": "LogisticsToday",
+  "source_type": "news",
+  "published_raw": "Oct 2, 2025",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "NorthGrid Automation"
+  ],
+  "text": "NorthGrid Automation started a six-month pilot of N2 tugger robots at a national retailer's distribution center.",
+  "facts": [],
+  "superseded_by": null,
+  "mirror_of": null
+}

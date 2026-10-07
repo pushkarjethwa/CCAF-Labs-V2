@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-032",
+  "title": "Pallo Systems closes Series C",
+  "publisher": "TechLedger",
+  "source_type": "news",
+  "published_raw": "Aug 5, 2025",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "Pallo Systems closed a $150M Series C round led by two infrastructure funds to expand manufacturing.",
+  "facts": [
+    {
+      "fact_id": "DOC-032#1",
+      "topic": "pallo_funding",
+      "statement": "Pallo Systems closed a $150M Series C round.",
+      "value": "$150M"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-013",
+  "title": "Pallo Systems names Brightline Fulfillment as fulfillment-center partner",
+  "publisher": "Pallo Systems",
+  "source_type": "press_release",
+  "published_raw": "May 20, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "AUSTIN - Pallo Systems today announced Brightline Fulfillment as its new fulfillment-center partner for 2026 deployments. Pallo Systems announced Brightline Fulfillment as its new fulfillment-center partner, covering three regional sites. Financial terms were not disclosed.",
+  "facts": [
+    {
+      "fact_id": "DOC-013#1",
+      "topic": "pallo_partner_2026",
+      "statement": "Pallo Systems announced Brightline Fulfillment as its new fulfillment-center partner for 2026 deployments.",
+      "value": "Brightline Fulfillment"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

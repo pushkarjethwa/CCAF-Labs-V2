@@ -1,0 +1,81 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>LABS</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; </header><main><h1>Day 3 Lab Exercises</h1>
+<p>These hands-on labs follow the Day 3 demos. Each lab uses the same company and data as the demo before it, so you start every lab already knowing the scenario.</p>
+<p>To complete these exercises you need Python 3.10 or later and an Anthropic API key. Setup is in <strong>DAY_0_SETUP_GUIDE.md</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Lab</th>
+<th>Follows</th>
+<th>Folder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Review Expense Claims Two Ways</td>
+<td>Demo 3A</td>
+<td><a href="LAB_3_1_expense_desk_architecture/README.html">LAB_3_1_expense_desk_architecture</a></td>
+</tr>
+<tr>
+<td>Harden the Research Desk</td>
+<td>Demo 3B</td>
+<td><a href="LAB_3_2_research_desk_handoffs/README.html">LAB_3_2_research_desk_handoffs</a></td>
+</tr>
+<tr>
+<td>Make the Warranty Intake Agent Survive Failure</td>
+<td>Demo 3C</td>
+<td><a href="LAB_3_3_warranty_failure_recovery/README.html">LAB_3_3_warranty_failure_recovery</a></td>
+</tr>
+<tr>
+<td>Guard Supplier-Payment Release with Code, Not Prompts</td>
+<td>Demo 3D</td>
+<td><a href="LAB_3_4_payment_release_guard/README.html">LAB_3_4_payment_release_guard</a></td>
+</tr>
+<tr>
+<td>Build Your First Agent with the Claude Agent SDK</td>
+<td>Demo 3E</td>
+<td><a href="LAB_3_5_first_agent_with_agent_sdk/README.html">LAB_3_5_first_agent_with_agent_sdk</a></td>
+</tr>
+<tr>
+<td>Build the Same Agent Two Ways with the Anthropic SDK</td>
+<td>Demo 3F</td>
+<td><a href="LAB_3_6_two_ways_to_build_an_agent/README.html">LAB_3_6_two_ways_to_build_an_agent</a></td>
+</tr>
+<tr>
+<td>Build the Research Desk as a Multi-Agent System</td>
+<td>Demo 3G</td>
+<td><a href="LAB_3_7_research_desk_with_subagents/README.html">LAB_3_7_research_desk_with_subagents</a></td>
+</tr>
+</tbody>
+</table>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

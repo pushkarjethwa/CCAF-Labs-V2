@@ -1,0 +1,12 @@
+{
+  "_comment": "Three synthetic intake requests. 'form' is what the intake UI captured; the customer typed the serial messily on purpose.",
+  "today": "2026-09-30",
+  "cases": [
+    {"id": "C01", "message": "The battery in my Nimbus laptop has swollen and the trackpad is lifting off the case.",
+     "form": {"serial_as_typed": "hx-20481977", "issue_type": "battery_defect", "customer_id": "CUS-1042", "zone": "Z2", "preferred_date": "2026-10-07"}},
+    {"id": "C02", "message": "The display on my Aura 8 purifier went dark yesterday, the fan still runs.",
+     "form": {"serial_as_typed": "KT 55302018", "issue_type": "display_failure", "customer_id": "CUS-2210", "zone": "Z1", "preferred_date": "2026-10-08"}},
+    {"id": "C03", "message": "I dropped my Lumen X2 on a tile floor and the glass shattered. I have Care+.",
+     "form": {"serial_as_typed": "np77120934", "issue_type": "accidental_damage", "customer_id": "CUS-3307", "zone": "Z3", "preferred_date": "2026-10-09"}}
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-011",
+  "title": "NorthGrid Automation annual report 2024",
+  "publisher": "NorthGrid Automation IR",
+  "source_type": "filing",
+  "published_raw": "2025-03-14",
+  "date_format": "YYYY-MM-DD",
+  "reliability": "high",
+  "companies": [
+    "NorthGrid Automation"
+  ],
+  "text": "Selected financial data. NorthGrid Automation FY2024 revenue was $116.4M. Operating margin 9%. Headcount 640.",
+  "facts": [
+    {
+      "fact_id": "DOC-011#1",
+      "topic": "northgrid_revenue_fy2024",
+      "statement": "NorthGrid Automation FY2024 revenue was $116.4M.",
+      "value": "116.4"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

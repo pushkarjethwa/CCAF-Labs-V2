@@ -8,7 +8,7 @@ You are done when `python claude_client.py` inside Lab 0.1 prints a greeting and
 
 - A laptop: Windows 10/11, macOS 13+, or Ubuntu 20.04+, with 4 GB+ RAM and 5 GB free disk, and permission to install software.
 - The **class API key** from the trainer (one-time secure link). It is yours alone and capped at about USD 50.
-- Internet access to `api.anthropic.com`, `pypi.org` and `files.pythonhosted.org` on port 443. From Day 2 also `registry.npmjs.org`; from Day 4 also `github.com` and `downloads.claude.ai`.
+- Internet access to `api.anthropic.com`, `pypi.org` and `files.pythonhosted.org` on port 443. From Day 2 also `registry.npmjs.org`; from Day 3 also `downloads.claude.ai` (Claude Code); from Day 4 also `github.com`.
 
 ## Timeline
 
@@ -81,6 +81,15 @@ python -c "import anthropic, dotenv, jsonschema, mcp, httpx2; print('imports ok'
 ```
 
 `requirements.txt` holds everything for all labs: `anthropic`, `python-dotenv`, `jsonschema`, `mcp`, `httpx2`, `uvicorn`, `pydantic`. The MCP labs (2.4 and 2.6) need `mcp` 2.x. If `mcp` or `httpx2` fails to install, the other labs still work; tell the trainer.
+
+**Day 3 extra package: `claude-agent-sdk`.** Labs 3.5 and 3.7 use the Claude Agent SDK. It is not in the main `requirements.txt`; each of those two lab folders has its own `requirements.txt` that pins it (`claude-agent-sdk==0.2.163`). Install it now so Day 3 does not start with a download:
+
+```
+python -m pip install claude-agent-sdk==0.2.163
+python -c "import claude_agent_sdk; print('sdk ok')"
+```
+
+The SDK starts the Claude Code program from section 8 as a helper process, so Claude Code must be installed too.
 
 Behind a company proxy or TLS inspection? Set `HTTPS_PROXY` (and `PIP_CERT` or `SSL_CERT_FILE` for a company certificate) before running pip. If `pip` fails with `CERTIFICATE_VERIFY_FAILED`, that is TLS inspection: ask IT for the company certificate file.
 
@@ -165,7 +174,7 @@ Before every commit run `git status` and `git diff --staged` and read what you a
 
 Install Node 22 LTS or newer from https://nodejs.org (or `winget install OpenJS.NodeJS.LTS`). Check `node --version` and `npx --version`.
 
-## 8. Claude Code (needed from Day 4)
+## 8. Claude Code (needed from Day 3 for Labs 3.5 and 3.7, and again on Day 4)
 
 Install with ONE method. Windows PowerShell: `irm https://claude.ai/install.ps1 | iex`. macOS/Linux: `curl -fsSL https://claude.ai/install.sh | bash`. Open a **new** terminal and check `claude --version` and `claude doctor`.
 
@@ -176,7 +185,7 @@ $bin = "$env:USERPROFILE\.local\bin"
 [Environment]::SetEnvironmentVariable("Path", $env:Path + ";$bin", "User")
 ```
 
-then open a new terminal. In this course Claude Code uses the **class API key**: with `ANTHROPIC_API_KEY` set, start `claude`, approve the key when asked, trust the folder, and type `/status` to confirm the API key is the credential in use. Do not `/login` with a personal subscription during the class, or your usage will not land in the capped class workspace. A free claude.ai plan does not include Claude Code. Install commands change often: if one fails, the official page "Troubleshoot installation and login" wins.
+then open a new terminal. Labs 3.5 and 3.7 on Day 3 need `claude --version` to print a version; they use the class API key through the SDK and do not need you to sign in. In this course Claude Code uses the **class API key**: with `ANTHROPIC_API_KEY` set, start `claude`, approve the key when asked, trust the folder, and type `/status` to confirm the API key is the credential in use. Do not `/login` with a personal subscription during the class, or your usage will not land in the capped class workspace. A free claude.ai plan does not include Claude Code. Install commands change often: if one fails, the official page "Troubleshoot installation and login" wins.
 
 ## Troubleshooting
 
@@ -196,6 +205,8 @@ then open a new terminal. In this course Claude Code uses the **class API key**:
 | Connection timeout or proxy errors | Set `HTTPS_PROXY`; ask IT to allow the hosts listed under "What you need" |
 | Lab 2.4/2.6 cannot import `mcp` or `httpx2` | Re-run `python -m pip install -r requirements.txt`; use Python 3.12 or 3.13 |
 | `claude` not recognized | See section 8 PATH fix; open a new terminal |
+| `No module named claude_agent_sdk` (Labs 3.5, 3.7) | Run `python -m pip install claude-agent-sdk==0.2.163` in the active environment |
+| Lab 3.5 or 3.7 says the Claude Code CLI was not found | Install Claude Code (section 8) and check `claude --version` in a new terminal |
 
 ## What to send the trainer
 
@@ -209,4 +220,5 @@ If anything fails, send the **exact output** of `python --version`, `pip list` (
 - [ ] `python claude_client.py` in Lab 0.1 prints a greeting and `[usage]`
 - [ ] Git, GitHub account with 2FA, `gh auth status` (before Day 4)
 - [ ] Node 22+ (before Day 2)
-- [ ] Claude Code installed and `/status` shows the API key (before Day 4)
+- [ ] `claude-agent-sdk` installed; `python -c "import claude_agent_sdk"` runs without error (before Day 3)
+- [ ] Claude Code installed, `claude --version` works (before Day 3), and `/status` shows the API key (before Day 4)

@@ -1,0 +1,9 @@
+{
+  "_comment": "Mock product-registration database (synthetic). Keys are canonical serials: two letters + eight digits.",
+  "registrations": {
+    "HX20481977": {"product": "Nimbus Pro 14 laptop",  "plan": "BASIC",     "purchase_date": "2026-02-10", "customer_id": "CUS-1042"},
+    "KT55302018": {"product": "Aura 8 air purifier",   "plan": "EXTENDED",  "purchase_date": "2025-03-22", "customer_id": "CUS-2210"},
+    "NP77120934": {"product": "Lumen X2 phone",        "plan": "CARE_PLUS", "purchase_date": "2025-11-03", "customer_id": "CUS-3307"},
+    "ZT10004455": {"product": "Strata 5 desk monitor", "plan": "BASIC",     "purchase_date": "2024-01-05", "customer_id": "CUS-0871"}
+  }
+}

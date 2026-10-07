@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-002",
+  "title": "Kestrel Robotics annual filing (10-K excerpt) for FY2025",
+  "publisher": "SEC EDGAR mirror",
+  "source_type": "filing",
+  "published_raw": "2026-04-02",
+  "date_format": "YYYY-MM-DD",
+  "reliability": "high",
+  "companies": [
+    "Kestrel Robotics"
+  ],
+  "text": "Item 7. Results of operations. After completion of the audit, Kestrel Robotics recognised an adjustment to multi-year service contracts. Kestrel Robotics reported FY2025 revenue of $412M, up 18% year over year (restated after the audit adjustment; supersedes the February preliminary release). Subscription revenue represented 38% of the total.",
+  "facts": [
+    {
+      "fact_id": "DOC-002#1",
+      "topic": "kestrel_revenue_fy2025",
+      "statement": "Kestrel Robotics reported FY2025 revenue of $412M, up 18% year over year (restated after the audit adjustment; supersedes the February preliminary release).",
+      "value": "$412M / 18%"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

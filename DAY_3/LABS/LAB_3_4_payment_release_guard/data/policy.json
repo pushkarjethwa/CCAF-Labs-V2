@@ -1,0 +1,21 @@
+{
+  "policy_version": "payrel-policy/1.1.0",
+  "amount_mid_tier": 10000.0,
+  "amount_dual_control": 250000.0,
+  "bank_change_window_days": 30,
+  "conflict_abs_tolerance": 50.0,
+  "conflict_pct_tolerance": 0.02,
+  "model_doubt_below": 0.70,
+  "escalate_at_points": 3,
+  "required_evidence": ["invoice", "po", "goods_receipt", "bank_history", "approver"],
+  "bypass_patterns": [
+    "skip (the )?(usual |normal )?(approval|checks?|controls?)",
+    "(do not|don't) loop in",
+    "bypass",
+    "without (the )?approval",
+    "no need (for|to) (approval|verify|check)"
+  ],
+  "urgency_patterns": ["urgent", "asap", "immediately", "within the hour", "right away"],
+  "points": {"AMOUNT_TIER": 1, "BANK_CHANGE_RECENT": 3, "VENDOR_NEW_LT30": 2, "VENDOR_NEW_LT90": 1, "URGENCY": 1, "MODEL_DOUBT": 1},
+  "_changelog": "1.1.0: thresholds moved from code constants into this file; behaviour identical to the Stage-2 gate 1.0.0 on the 12 labelled cases, EXCEPT that a missing/invalid model proposal is now a hard escalation (NO_MODEL_PROPOSAL) instead of one risk point. Any change here must re-run tests/test_policy.py and bump policy_version."
+}

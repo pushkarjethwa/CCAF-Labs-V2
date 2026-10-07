@@ -1,0 +1,24 @@
+{
+  "doc_id": "DOC-006",
+  "title": "Altus Research: Warehouse Robotics Share Report 2024",
+  "publisher": "Altus Research",
+  "source_type": "analyst_report",
+  "published_raw": "2025-03-11",
+  "date_format": "YYYY-MM-DD",
+  "reliability": "high",
+  "companies": [
+    "Voltrix Dynamics",
+    "Kestrel Robotics"
+  ],
+  "text": "Methodology: share is computed on 2024 units shipped. By 2024 units shipped, Voltrix Dynamics led the warehouse AMR market with 28% share, ahead of Kestrel Robotics at 25%. This edition covers calendar year 2024 only.",
+  "facts": [
+    {
+      "fact_id": "DOC-006#1",
+      "topic": "amr_market_share_2024",
+      "statement": "By 2024 units shipped, Voltrix Dynamics led the warehouse AMR market with 28% share, ahead of Kestrel Robotics at 25%.",
+      "value": "unit-basis-2024: Voltrix 28%, Kestrel 25%"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

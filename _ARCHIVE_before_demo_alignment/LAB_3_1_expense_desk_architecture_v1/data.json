@@ -1,0 +1,166 @@
+{
+ "company": "ACME Finance Operations",
+ "policy_version": "ACME-T&E-2026.2",
+ "max_agents": 1,
+ "briefs": [
+  {
+   "id": "FB-1",
+   "title": "Ask Finance chat for employees",
+   "text": "Employees open a chat window and ask things like 'Can I expense a taxi home after 9pm?' or 'What is the hotel cap in Denver?'. Answers must come from the ACME T&E policy, which fits in one prompt. The employee reads each answer immediately and decides what to ask next.",
+   "facts": {
+    "next_step_controller": "human",
+    "path_predictability": "single_step",
+    "reliability_need": 3,
+    "cost_of_error": 2,
+    "latency_budget": "interactive"
+   },
+   "evidence": {
+    "next_step_controller": "The employee decides the next step by typing the next question. The system never has to decide what to do after answering.",
+    "path_predictability": "One question in, one grounded answer out. No intermediate finding changes the plan."
+   }
+  },
+  {
+   "id": "FB-2",
+   "title": "Month-end card reconciliation",
+   "text": "On the last working day of each month, finance matches every line of the corporate-card statement to a submitted expense claim, then lists the unmatched lines. The steps are the same every month: load the statement, load the claims, match, list the leftovers, email the list to the controller.",
+   "facts": {
+    "next_step_controller": "process",
+    "path_predictability": "fixed_sequence",
+    "reliability_need": 4,
+    "cost_of_error": 3,
+    "latency_budget": "relaxed"
+   },
+   "evidence": {
+    "next_step_controller": "The month-end checklist decides the next step, not a person and not the model.",
+    "path_predictability": "The sequence is fixed and known: load, load, match, list, email. Nothing found along the way changes it."
+   }
+  },
+  {
+   "id": "FB-3",
+   "title": "Receipt attachment triage",
+   "text": "Every uploaded receipt is given exactly one label: readable, unreadable or wrong_document. A routing table then sends it to a queue: readable to the claims check, unreadable to a re-upload request, wrong_document to a human clerk. Receipts never affect each other.",
+   "facts": {
+    "next_step_controller": "process",
+    "path_predictability": "known_branches",
+    "reliability_need": 4,
+    "cost_of_error": 2,
+    "latency_budget": "relaxed"
+   },
+   "evidence": {
+    "next_step_controller": "The routing table decides where each receipt goes. The model only produces the label.",
+    "path_predictability": "The three branches are known in advance and every label has exactly one route."
+   }
+  },
+  {
+   "id": "FB-4",
+   "title": "Suspected expense-fraud investigation",
+   "text": "Internal Audit flags one employee, 'E104 may be splitting hotel bills to stay under the 250 USD cap'. An analyst assistant must find out whether that is true. It can read the employee's claim history, look up merchants, and compare other employees' claims at the same merchants. Which record to look at next depends on what the last lookup revealed, and the investigation ends when the evidence is enough.",
+   "facts": {
+    "next_step_controller": "model",
+    "path_predictability": "open_ended",
+    "reliability_need": 3,
+    "cost_of_error": 5,
+    "latency_budget": "moderate"
+   },
+   "evidence": {
+    "next_step_controller": "Nobody can say in advance which lookup comes next. The assistant decides from what it just found.",
+    "path_predictability": "The path is open-ended: each result changes what to check next, and it stops when it has enough evidence."
+   }
+  }
+ ],
+ "steps": [
+  {
+   "id": "E1",
+   "name": "read_claim",
+   "description": "Turn the employee's free-text claim ('Team lunch at Luigi's, 4 of us, $212.00, Mar 3') into fields: merchant, date, category, amount, currency, attendees, nights, cabin, alcohol_amount.",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": true,
+    "side_effects": "none",
+    "systems": [
+     "claim inbox"
+    ]
+   }
+  },
+  {
+   "id": "E2",
+   "name": "convert_to_usd",
+   "description": "Convert the claimed amount to USD at the fixed finance rates (EUR 1.10, GBP 1.27 per unit).",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": false,
+    "side_effects": "none",
+    "systems": [
+     "finance rate table"
+    ]
+   }
+  },
+  {
+   "id": "E3",
+   "name": "check_duplicate",
+   "description": "Reject a claim that repeats an earlier one: same employee, merchant, date and amount.",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": false,
+    "side_effects": "none",
+    "systems": [
+     "employee claim history"
+    ]
+   }
+  },
+  {
+   "id": "E4",
+   "name": "check_preapproval",
+   "description": "Look up the pre-approval ticket (for example PA-2291 for software) and report whether it is valid and its maximum amount.",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": false,
+    "side_effects": "none",
+    "systems": [
+     "pre-approval register"
+    ]
+   }
+  },
+  {
+   "id": "E5",
+   "name": "apply_policy",
+   "description": "Apply the receipt rule, the 1000 USD manager limit and the category caps. Return approve, reject or escalate with violation codes.",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": false,
+    "side_effects": "none",
+    "systems": [
+     "T&E policy"
+    ]
+   }
+  },
+  {
+   "id": "E6",
+   "name": "investigate_escalation",
+   "description": "For an escalated claim that Audit has flagged as suspicious, find out why: read history, look up merchants, compare other employees at the same merchant. Stop when the evidence is enough.",
+   "facts": {
+    "path_known_in_advance": false,
+    "needs_free_text_judgment": true,
+    "side_effects": "none (read-only)",
+    "systems": [
+     "employee claim history",
+     "merchant records",
+     "card statements"
+    ]
+   }
+  },
+  {
+   "id": "E7",
+   "name": "write_reviewer_note",
+   "description": "Write a two-sentence note for the human reviewer that explains the decision and quotes the violation codes exactly.",
+   "facts": {
+    "path_known_in_advance": true,
+    "needs_free_text_judgment": true,
+    "side_effects": "none",
+    "systems": [
+     "claim record"
+    ]
+   }
+  }
+ ]
+}

@@ -84,10 +84,13 @@ Four labs, all built the same way. In each one you write **a few small decisions
 
 | Lab | The story | What you decide (you write) | Real Claude does | Time |
 |---|---|---|---|---|
-| [3.1 Product recall: choose the architecture](DAY_3/LABS/LAB_3_1_product_recall_architecture) | A kettle recall. Which of four briefs needs an agent, a workflow or just a chat? Which of seven steps is an agent, a tool or a fixed step? | Two tables (12 rows). No JSON | One critique of your design | 25 min |
-| [3.2 Cyber incident: hub and spoke](DAY_3/LABS/LAB_3_2_cyber_incident_hub_and_spoke) | A coordinator hands work to four specialists and must not leak private context | What a valid hand-off is, what each specialist may see, when to retry, who depends on whom (6 small rules) | The log-analysis specialist | 40 min |
-| [3.3 Release readiness pipeline](DAY_3/LABS/LAB_3_3_release_readiness_pipeline) | A four-stage pipeline where a model answer, a tool or a service can fail | Validate, classify the error, back off, check the cache, pick the recovery (6 small functions) | The extract stage | 40 min |
-| [3.4 Data-centre maintenance agent](DAY_3/LABS/LAB_3_4_datacenter_maintenance_agent_sdk) | A maintenance agent that must never touch the tier-0 database rack, whatever the prompt says | A guard with Agent SDK hooks: policy, fail-closed hook, pause and resume for human approval, audit, SDK options | The whole agent | 45 min |
+| [3.1 Expense desk: review claims two ways](DAY_3/LABS/LAB_3_1_expense_desk_architecture/README.md) | ACME Finance (Demo 3A). Vote on the five briefs, then review six claims as a conversation and as a workflow | The rubric and two Claude calls (26 lines) | Both reviews | 25 min |
+| [3.2 Research desk: hand-offs](DAY_3/LABS/LAB_3_2_research_desk_handoffs/README.md) | The research desk (Demo 3B). What a valid hand-off is, what each specialist may see, and what to do when two reliable reports disagree | Contracts, minimal briefs, a conflict rule and one writer call (22 lines) | The writer | 45 min |
+| [3.3 Warranty claims: failure recovery](DAY_3/LABS/LAB_3_3_warranty_failure_recovery/README.md) | Warranty intake (Demo 3C). Classify each failure and pick the recovery | Classifier, recovery table, corrective message and one call (26 lines) | The intake agent | 30 min |
+| [3.4 Supplier payments: release guard](DAY_3/LABS/LAB_3_4_payment_release_guard/README.md) | Payment release (Demo 3D). The model proposes; code decides and a hook enforces | Gate rules, idempotency key, release hook and one call (43 lines) | The proposal | 40 min |
+| [3.5 First agent with the Agent SDK](DAY_3/LABS/LAB_3_5_first_agent_with_agent_sdk/README.md) | Incident INC-7741 (Demo 3E). Configure a read-only agent | Tool specs, system prompt, options and the run (32 lines) | The whole agent | 30 min |
+| [3.6 Two ways to build an agent](DAY_3/LABS/LAB_3_6_two_ways_to_build_an_agent/README.md) | The same incident agent (Demo 3F), as a manual loop and with the Tool Runner | Loop pieces and Tool Runner functions (26 lines) | The whole agent | 30 min |
+| [3.7 Research desk with subagents](DAY_3/LABS/LAB_3_7_research_desk_with_subagents/README.md) | The research desk again (Demo 3G), built with Agent SDK subagents | Two subagents, a leak guard and options (38 lines) | The coordinator and writer | 40 min |
 
 How a Day 3 lab differs from the labs above:
 

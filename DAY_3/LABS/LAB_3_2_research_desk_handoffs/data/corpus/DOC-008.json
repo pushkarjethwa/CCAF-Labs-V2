@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-008",
+  "title": "Pallo P7 datasheet",
+  "publisher": "Pallo Systems",
+  "source_type": "datasheet",
+  "published_raw": "Feb 20, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "Pallo P7 low-profile autonomous mobile robot. Navigation: vision-only. Runtime: 8 hours. The Pallo P7 list price is $29,900 with a 450 kg payload capacity. Fleet-software licence is bundled. Prices exclude installation.",
+  "facts": [
+    {
+      "fact_id": "DOC-008#1",
+      "topic": "pallo_p7_spec",
+      "statement": "The Pallo P7 list price is $29,900 with a 450 kg payload capacity.",
+      "value": "$29,900 / 450 kg"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

@@ -1,0 +1,25 @@
+{
+  "version": "ACME-T&E-2026.2",
+  "receipt_required_over_usd": 25,
+  "manager_approval_over_usd": 1000,
+  "fx_to_usd": {"USD": 1.0, "EUR": 1.10, "GBP": 1.27},
+  "categories": {
+    "meals": {"per_person_cap_usd": 75, "alcohol_reimbursable": false},
+    "lodging": {"per_night_cap_usd": 250},
+    "airfare": {"allowed_cabins": ["economy"]},
+    "ground_transport": {"cap_usd": 100},
+    "software": {"requires_preapproval": true},
+    "client_gift": {"cap_usd": 100, "always_escalate": true},
+    "conference": {}
+  },
+  "text": {
+    "general": "General rules. A receipt is required for any single expense over 25 USD; without it the claim is rejected. Any claim over 1000 USD (after conversion) needs manager approval, so it is escalated to a human. Foreign-currency claims are converted at the fixed finance rates (EUR 1.10, GBP 1.27 per unit) before any cap is applied. A claim that duplicates an earlier one (same employee, merchant, date and amount) is rejected as a duplicate. Decision policy: any hard violation means reject; otherwise any soft violation means escalate to a human reviewer; otherwise approve.",
+    "meals": "Meals. The cap is 75 USD per person per meal, computed as the USD total divided by the number of attendees. Alcohol is not reimbursable; a claim that contains an alcohol line is escalated so a human can approve a partial payment. Exceeding the per-person cap is escalated, not rejected.",
+    "lodging": "Lodging. The cap is 250 USD per night, computed as the USD total divided by the number of nights. Exceeding the cap is escalated for a human to judge (conference rates, sold-out city).",
+    "airfare": "Airfare. Economy cabin only. Premium economy, business and first class are rejected unless a pre-approval exists; the rejection is a hard violation.",
+    "ground_transport": "Ground transport. Taxis, rideshare and rail up to 100 USD per trip are fine; above that the claim is escalated. The general receipt rule applies (over 25 USD needs a receipt).",
+    "software": "Software and subscriptions. Every software purchase needs a valid pre-approval ticket (format PA-nnnn) whose category is software and whose limit covers the amount. No valid pre-approval is a hard violation and the claim is rejected.",
+    "client_gift": "Client gifts. Always escalated to Compliance regardless of amount, because of anti-bribery rules. Gifts over 100 USD are additionally flagged as over the cap.",
+    "conference": "Conference and training fees. Reimbursed with a receipt; the general over-1000-USD manager approval rule applies."
+  }
+}

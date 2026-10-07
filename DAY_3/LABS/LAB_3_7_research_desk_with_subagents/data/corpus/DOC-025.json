@@ -1,0 +1,21 @@
+{
+  "doc_id": "DOC-025",
+  "title": "Warehouse labor cost study 2025",
+  "publisher": "Meridian Analytics",
+  "source_type": "analyst_report",
+  "published_raw": "08/09/2025",
+  "date_format": "DD/MM/YYYY",
+  "reliability": "medium",
+  "companies": [],
+  "text": "Average fully loaded warehouse labor cost reached $31.40 per hour in 2025 across the surveyed regions, increasing automation payback pressure.",
+  "facts": [
+    {
+      "fact_id": "DOC-025#1",
+      "topic": "warehouse_labor_cost_2025",
+      "statement": "Average fully loaded warehouse labor cost reached $31.40 per hour in 2025.",
+      "value": "$31.40/h"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

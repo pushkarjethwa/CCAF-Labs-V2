@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-021",
+  "title": "Kestrel K3 datasheet",
+  "publisher": "Kestrel Robotics",
+  "source_type": "datasheet",
+  "published_raw": "Mar 3, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "high",
+  "companies": [
+    "Kestrel Robotics"
+  ],
+  "text": "Kestrel K3 shelf-lifting robot. The Kestrel K3 list price is $33,200 with a 500 kg payload capacity. Runtime: 9 hours.",
+  "facts": [
+    {
+      "fact_id": "DOC-021#1",
+      "topic": "kestrel_k3_spec",
+      "statement": "The Kestrel K3 list price is $33,200 with a 500 kg payload capacity.",
+      "value": "$33,200 / 500 kg"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

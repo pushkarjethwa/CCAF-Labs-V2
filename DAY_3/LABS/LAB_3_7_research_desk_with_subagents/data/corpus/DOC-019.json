@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-019",
+  "title": "Voltrix Dynamics FY2025 earnings call summary",
+  "publisher": "FinTranscripts",
+  "source_type": "news",
+  "published_raw": "Feb 26, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Voltrix Dynamics"
+  ],
+  "text": "Voltrix Dynamics discussed FY2025 results. Voltrix Dynamics reported FY2025 revenue of $1.31B. Management highlighted fleet-software attach rates and a larger service backlog.",
+  "facts": [
+    {
+      "fact_id": "DOC-019#1",
+      "topic": "voltrix_revenue_fy2025",
+      "statement": "Voltrix Dynamics reported FY2025 revenue of $1.31B.",
+      "value": "$1.31B"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

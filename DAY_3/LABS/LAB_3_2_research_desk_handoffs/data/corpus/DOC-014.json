@@ -1,0 +1,23 @@
+{
+  "doc_id": "DOC-014",
+  "title": "Pallo and Brightline sign multi-site deployment deal",
+  "publisher": "LogisticsToday",
+  "source_type": "news",
+  "published_raw": "May 21, 2026",
+  "date_format": "Mon D, YYYY",
+  "reliability": "medium",
+  "companies": [
+    "Pallo Systems"
+  ],
+  "text": "LogisticsToday reports that Pallo Systems and Brightline Fulfillment signed a multi-site deployment agreement, confirming Brightline Fulfillment as the new fulfillment-center partner of Pallo Systems.",
+  "facts": [
+    {
+      "fact_id": "DOC-014#1",
+      "topic": "pallo_partner_2026",
+      "statement": "Pallo Systems and Brightline Fulfillment signed a multi-site deployment agreement, making Brightline Fulfillment the new fulfillment-center partner.",
+      "value": "Brightline Fulfillment"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

@@ -1,0 +1,25 @@
+{
+  "doc_id": "DOC-004",
+  "title": "Meridian Analytics: AMR Market Share Tracker 2025 (by revenue)",
+  "publisher": "Meridian Analytics",
+  "source_type": "analyst_report",
+  "published_raw": "03/03/2026",
+  "date_format": "DD/MM/YYYY",
+  "reliability": "high",
+  "companies": [
+    "Voltrix Dynamics",
+    "Kestrel Robotics",
+    "Pallo Systems"
+  ],
+  "text": "Methodology: share is computed on recognised 2025 revenue from warehouse AMR hardware and attached software, 41 vendors surveyed. By 2025 revenue, Voltrix Dynamics led the warehouse AMR market with 31% share, ahead of Kestrel Robotics at 27% and Pallo Systems at 12%. Share figures exclude services revenue.",
+  "facts": [
+    {
+      "fact_id": "DOC-004#1",
+      "topic": "amr_market_share_2025",
+      "statement": "By 2025 revenue, Voltrix Dynamics led the warehouse AMR market with 31% share, ahead of Kestrel Robotics at 27%.",
+      "value": "revenue-basis: Voltrix 31%, Kestrel 27%"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

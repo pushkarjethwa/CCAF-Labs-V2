@@ -1,0 +1,19 @@
+{
+  "history": {
+    "E101": [{"merchant": "Luigi's Trattoria", "date": "2026-02-10", "amount_usd": 188.0}],
+    "E102": [{"merchant": "Nobu", "date": "2026-01-29", "amount_usd": 301.0}],
+    "E103": [
+      {"merchant": "Gramercy Tavern", "date": "2026-02-20", "amount_usd": 140.0},
+      {"merchant": "Marriott Chicago", "date": "2026-02-02", "amount_usd": 640.0}
+    ],
+    "E104": [],
+    "E105": [{"merchant": "City Cab", "date": "2026-03-01", "amount_usd": 22.0}],
+    "E106": [],
+    "E107": [{"merchant": "Figma", "date": "2025-03-20", "amount_usd": 450.0}],
+    "E108": [{"merchant": "Hotel Ibis Paris", "date": "2025-11-18", "amount_usd": 230.0}],
+    "E109": []
+  },
+  "preapprovals": {
+    "PA-2291": {"valid": true, "category": "software", "max_usd": 600}
+  }
+}

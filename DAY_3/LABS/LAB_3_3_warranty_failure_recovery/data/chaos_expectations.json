@@ -1,0 +1,13 @@
+{
+  "_comment": "Ground truth for the chaos matrix. Per fault: expected error class, recovery label, attempts at the faulted step, and final outcome per step. The matrix test compares against this.",
+  "faults": {
+    "tool_drift":         {"class": "tool",        "recovery": "alt-args retry",                 "attempts": 2, "outcome": {"lookup_product_registration": "completed", "check_warranty_terms": "completed", "create_claim": "completed", "schedule_pickup": "completed"}},
+    "tool_hard":          {"class": "tool",        "recovery": "alt-args retry -> fallback tool","attempts": 2, "outcome": {"lookup_product_registration": "completed_degraded", "check_warranty_terms": "completed_degraded", "create_claim": "completed_degraded", "schedule_pickup": "completed_degraded"}},
+    "reasoning":          {"class": "reasoning",   "recovery": "corrective re-prompt",           "attempts": 2, "outcome": {"lookup_product_registration": "completed", "check_warranty_terms": "completed", "create_claim": "completed", "schedule_pickup": "completed"}},
+    "reasoning_stubborn": {"class": "reasoning",   "recovery": "re-prompt x2 -> human escalation","attempts": 3, "outcome": {"lookup_product_registration": "escalated", "check_warranty_terms": "escalated", "create_claim": "escalated", "schedule_pickup": "escalated"}},
+    "permission":         {"class": "permission",  "recovery": "no retry -> human escalation",   "attempts": 1, "outcome": {"lookup_product_registration": "escalated", "check_warranty_terms": "escalated", "create_claim": "escalated", "schedule_pickup": "escalated"}},
+    "env_transient":      {"class": "environment", "recovery": "backoff+jitter retry",           "attempts": 3, "outcome": {"lookup_product_registration": "completed", "check_warranty_terms": "completed", "create_claim": "completed", "schedule_pickup": "completed"}},
+    "env_outage":         {"class": "environment", "recovery": "backoff -> breaker OPEN -> pause+alert", "attempts": 3, "outcome": {"lookup_product_registration": "paused_alerted", "check_warranty_terms": "paused_alerted", "create_claim": "paused_alerted", "schedule_pickup": "paused_alerted"}},
+    "unknown":            {"class": "unknown",     "recovery": "no retry -> human escalation",   "attempts": 1, "outcome": {"lookup_product_registration": "escalated", "check_warranty_terms": "escalated", "create_claim": "escalated", "schedule_pickup": "escalated"}}
+  }
+}

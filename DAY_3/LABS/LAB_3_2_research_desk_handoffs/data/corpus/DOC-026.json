@@ -1,0 +1,21 @@
+{
+  "doc_id": "DOC-026",
+  "title": "Robotics venture funding 2025 review",
+  "publisher": "Altus Research",
+  "source_type": "analyst_report",
+  "published_raw": "2026-01-30",
+  "date_format": "YYYY-MM-DD",
+  "reliability": "medium",
+  "companies": [],
+  "text": "Venture funding into warehouse robotics reached $2.1B in 2025, concentrated in software-first start-ups.",
+  "facts": [
+    {
+      "fact_id": "DOC-026#1",
+      "topic": "robotics_funding_2025",
+      "statement": "Venture funding into warehouse robotics reached $2.1B in 2025.",
+      "value": "$2.1B"
+    }
+  ],
+  "superseded_by": null,
+  "mirror_of": null
+}

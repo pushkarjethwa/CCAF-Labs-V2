@@ -1,0 +1,10 @@
+{
+  "_comment": "Mock warranty terms (synthetic). A claim is covered only when the plan is unexpired AND the issue type is in the plan's covered list.",
+  "plans": {
+    "BASIC":     {"months": 12, "rule_id": "R-BASIC-DEFECT", "covered": ["manufacturing_defect", "battery_defect"]},
+    "EXTENDED":  {"months": 36, "rule_id": "R-EXT-DEFECT",   "covered": ["manufacturing_defect", "battery_defect", "display_failure"]},
+    "CARE_PLUS": {"months": 24, "rule_id": "R-CARE-COVER",   "covered": ["manufacturing_defect", "battery_defect", "display_failure", "accidental_damage"]}
+  },
+  "excluded_rule_id": "R-EXCLUDED",
+  "expired_rule_id": "R-EXPIRED"
+}
