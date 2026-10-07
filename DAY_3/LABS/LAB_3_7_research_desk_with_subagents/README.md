@@ -8,7 +8,7 @@ lab:
 
 In Demo 3G, you watched the final design of the research desk written with the Claude Agent SDK. A coordinator delegates each question to four specialists: a searcher, an analyst, a fact-checker, and a writer. The coordinator holds a confidential client note and never researches anything itself. Three controls made the desk safe: each specialist has only the tools its job needs, a hook blocks any brief that contains the confidential note, and a conflict between reliable sources goes to a human. In this lab, you write those controls yourself, for the same desk, with the same corpus and the same questions.
 
-You will complete three pieces of **lab.py**, which add up to 38 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.
+You will complete three pieces of **lab.py**, which add up to 39 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.
 
 This lab continues Demo 3G, so you will recognize the following:
 
@@ -87,7 +87,8 @@ Least privilege means that a specialist cannot misuse a tool it does not have. T
             description="Re-reads cited documents and checks that each claim is supported. Flags conflicts between sources.",
             prompt="You verify claims. For each claim and doc_id you are given, fetch the document and compare. "
                    "Reply per claim with SUPPORTED or NOT SUPPORTED. If two high-reliability documents give different "
-                   "answers to the same question, reply CONFLICT and state both values and their bases. Never choose between them.",
+                   "answers for what the question asks about, or name different leaders, reply CONFLICT, even when the two documents use "
+                   "different bases such as revenue and units. State both values and their bases. Never choose between them: a human decides.",
             tools=[mcp("fetch_document")],
             maxTurns=8,
         ),

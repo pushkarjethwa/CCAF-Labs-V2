@@ -1,0 +1,266 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Choose a Claude Model for 100,000 Invoices</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 1 - Prompt Engineering and Structured Output</header><main><h1>Choose a Claude Model for 100,000 Invoices</h1>
+<p>In Demo 1A, you watched Larkspur Components try to label every inbound invoice <strong>low</strong>, <strong>medium</strong>, <strong>high</strong>, or <strong>hold</strong> before any money moves. The company has 100,000 invoices to label, and an old rules engine that gets half of the test invoices wrong. In the demo, you ran the same invoices through three Claude models, and found that the answer to &quot;which model?&quot; is usually a design, not the biggest model. In this lab, you run the same stages yourself, and you write three small pieces along the way.</p>
+<p>You will complete three pieces of <strong>lab.py</strong>, which add up to 23 lines of code. The lab takes about 30 minutes, and this guide gives you every line. At the end, you have a measured recommendation for 100,000 invoices.</p>
+<p>This lab continues Demo 1A, so you will recognize the following:</p>
+<ul>
+<li>The company (Larkspur Components), the 24 labelled invoices, and the four risk labels. This lab uses 8 of the 24 so that it runs quickly.</li>
+<li>The three model tiers: fast (Haiku class), balanced (Sonnet class), and premium (Opus class).</li>
+<li>The stages from the demo: one hard invoice in plain text, the strict answer format, the tournament, and cheap-first routing.</li>
+<li>The hard invoice <strong>inv_017</strong>, where the bank account on the invoice has changed.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_1/LABS/LAB_1A_model_tournament</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Look at the invoices before using any model</h2>
+<ol>
+<li>
+<p>Run stage 0 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 0
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Stage 0 makes no Claude call, so it is free.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The invoice text that a model is shown for <strong>inv_017</strong>. The model never sees the right answer.</li>
+<li>How many invoices the old rules engine gets right, and how many of the <strong>hold</strong> invoices it catches.</li>
+<li>The price table, which shows what each model costs for 100,000 invoices at about 650 tokens in and 140 tokens out per invoice.</li>
+</ul>
+</li>
+<li>
+<p>Run the checker to see your starting point:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The checker fails on purpose, because the starter code contains placeholders. Only the checks on the given data pass.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Ask the three models in plain text</h2>
+<p>In this section, you write your first Claude API call. It sends one invoice to a model and returns the answer.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 3</strong>. Below it is a function named <code>ask_plain</code> that currently stops with <code>NotImplementedError</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 1: write the Claude call&quot;)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    return get_client().messages.create(
+        model=model,
+        max_tokens=2000,
+        system=plain_system(policy),
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: case.view}],
+    )
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>get_client().messages.create(...)</code> is the Claude Messages API call. Every Claude app sends a request like this one.</li>
+<li><code>system</code> holds the instructions, which include the four labels and what each means. <code>messages</code> holds the invoice text, as the user's turn.</li>
+<li><code>model</code> is passed in, so the same function can talk to all three models.</li>
+<li><code>max_tokens</code> is required, and it is generous because Claude may use some of it to think before answering.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each model's answer to <strong>inv_017</strong>, with its tokens, speed, and cost.</li>
+<li>The table at the end, which shows the label that a naive script would read from each answer. A model may say &quot;hold&quot; while the script reads a different word, because free text is not a contract.</li>
+</ul>
+</li>
+</ol>
+<h2>Ask for an answer your code can read</h2>
+<p>In this section, you change the call so that Claude must answer in a fixed JSON format.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 3</strong>. Below it is a function named <code>ask_structured</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 2: write the Claude call with output_config&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return get_client().messages.create(
+        model=model,
+        max_tokens=max_tokens,
+        system=structured_system(policy),
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: case.view}],
+        output_config={&quot;format&quot;: OUTPUT_FORMAT},
+    )
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The call is the same as in TODO 1, with one new argument: <code>output_config={&quot;format&quot;: OUTPUT_FORMAT}</code>. <code>OUTPUT_FORMAT</code> is a JSON schema that allows only the four labels, a list of reasons, and a confidence number.</li>
+<li><code>structured_system</code> asks for a label, one to four short reasons that cite facts, and a confidence between 0 and 1.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 2 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Part A shows each model's label, confidence, and whether the answer passed the structure check and the meaning check. A script can now route on <code>label</code> and <code>confidence</code>.</li>
+<li>Part B shows requests that the API rejects on purpose, such as sending <code>temperature</code>. These cost no tokens. They show what your models accept today.</li>
+</ul>
+</li>
+</ol>
+<h2>Run the tournament</h2>
+<p>There is no code to write in this section. The tournament runs all three models over eight invoices, using the two calls you wrote.</p>
+<ol>
+<li>
+<p>Run stage 3 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: This calls Claude 24 times and takes a few minutes. Read the <strong>PREDICT</strong> line first, and make your own guess before the tables print.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the tables, noting the following details:</p>
+<ul>
+<li>Table 1 shows how many invoices each model got right and how many of the <strong>hold</strong> invoices it caught. A missed <strong>hold</strong> is paid out, so the hold recall matters more than the accuracy.</li>
+<li>Table 2 shows the cost of 100,000 invoices on each model.</li>
+<li>The final lines show what the extra money bought. With only eight invoices, one invoice is not evidence.</li>
+</ul>
+</li>
+</ol>
+<h2>Route cheap-first</h2>
+<p>In this section, you write the rule that decides when the cheap model's answer is not trusted. A router sends every invoice to the fast model first, and asks a stronger model only when your rule says so.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 3</strong>. Below it is a block that starts with <code>MIN_CONFIDENCE = 0.0</code>.</p>
+</li>
+<li>
+<p>Replace the whole block, from the line <code>MIN_CONFIDENCE = 0.0</code> to the line <code>return []  # replace these lines in TODO 3</code>, with the following code. Keep the indentation exactly as shown:</p>
+<div class="cb"><pre><code class="language-python">MIN_CONFIDENCE = 0.75
+HIGH_VALUE_USD = 10_000
+
+
+def escalation_reasons(first, amount_usd):
+    reasons = []
+    if not first.verdict.usable:
+        reasons.append(&quot;unusable_output&quot;)
+    elif first.verdict.confidence &lt; MIN_CONFIDENCE:
+        reasons.append(&quot;low_confidence&quot;)
+    if abs(amount_usd) &gt;= HIGH_VALUE_USD:
+        reasons.append(&quot;high_value&quot;)
+    return reasons
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>An empty list means that the fast model's answer stands. Any reason sends the invoice to the balanced model.</li>
+<li><code>abs(amount_usd)</code> makes a credit note of -15,000 count as high value, the same as an invoice of 15,000.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run stage 4 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 4
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The table lists the invoices that the router escalated, with the reason. Every invoice of 10,000 or more is in it.</li>
+<li>The <strong>BLIND SPOT</strong> line tells you whether the fast model was wrong with high confidence on any invoice. Confidence alone would have let those through.</li>
+<li>Part B compares the strategies and ends in a <strong>RECOMMENDATION</strong>: the cheapest option that meets the risk rule of catching every <strong>hold</strong>.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 31/31 checks passed</code>.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY is missing</code></strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>model not found</code></strong>: A model name is retired. Set <code>CLAUDE_MODEL_FAST</code>, <code>CLAUDE_MODEL_BALANCED</code>, or <code>CLAUDE_MODEL_PREMIUM</code> to a current model, and run again.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again. Network errors are not part of the lab.</li>
+<li><strong>Your tournament numbers differ from a classmate's</strong>: This is normal. Models give different answers between runs, and eight invoices is a small sample.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 1A ran the same stages on all 24 invoices, with an effort sweep and a hardened router that survives a model outage. To use all 24 invoices here, add <code>--all-cases</code> to stages 0, 3 and 4.</li>
+<li>The next lab, Lab 1B, takes a one-line prompt through several versions and measures each change.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

@@ -1,0 +1,298 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Catch Records That Are Valid but Wrong</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 1 - Prompt Engineering and Structured Output</header><main><h1>Catch Records That Are Valid but Wrong</h1>
+<p>In Demo 1C, you watched an accounts-payable team send supplier invoices through Claude with a JSON schema. Every record passed the schema, and some of them were still wrong about money. The team then added defences one at a time: business rules, a single corrective retry that made one record worse, a grounding check that compares every number with the document, a bounded retry loop, and a human review queue. After each defence, the demo printed how many wrong records still reached the ledger. In this lab, you run the same stages yourself, and you write four small pieces along the way.</p>
+<p>You will complete four pieces of <strong>lab.py</strong>, which add up to 29 lines of code. The lab takes about 35 minutes, and this guide gives you every line. At the end, you have a validate-and-retry loop that accepts a record only when its numbers are printed in the document, and sends everything else to a human.</p>
+<p>This lab continues Demo 1C, so you will recognize the following:</p>
+<ul>
+<li>The Larkspur supplier invoices: an itemised Acme invoice, a lump-sum Acme invoice (<strong>inv_002</strong>, the demo's failure), a Northwind invoice with sales tax, a German invoice with decimal commas, a Lantern invoice in yuan, an invoice with three lines that must add up, an invoice with an illegible tax line (<strong>inv_009</strong>), and an invoice with 12 line items (<strong>inv_010</strong>). The lab uses 8 of the 11 invoices.</li>
+<li>The recorded bad outputs: four records that the demo saved. Each one is valid against the schema.</li>
+<li>The five stages, in the same order as the demo.</li>
+<li>The ledger, where a posted row is the point of no return because payments are scheduled from it.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_1/LABS/LAB_1C_structured_output_failure_lab</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Write the call that every stage uses</h2>
+<p>In this section, you write the Claude API call. Every stage sends an invoice to Claude through this function, and asks for structured output, which means that the reply must match a JSON schema.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 4</strong>. Below it is a function named <code>ask_extraction</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 1: call Claude with the system prompt and the schema&quot;)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    return get_client().messages.create(
+        model=model,
+        max_tokens=max_tokens,
+        system=core.SYSTEM,
+        messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: user}],
+        output_config={&quot;format&quot;: core.OUTPUT_FORMAT},
+    )
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>get_client().messages.create(...)</code> is the Claude Messages API call.</li>
+<li><code>system</code> holds the extraction rules. <code>messages</code> holds the invoice, as the user's turn. <code>max_tokens</code> is the reply limit, and on newer models it also covers hidden thinking tokens.</li>
+<li><code>output_config={&quot;format&quot;: core.OUTPUT_FORMAT}</code> is how the API accepts a JSON schema. The reply is then valid JSON with the required fields. There is no <code>temperature</code>, no forced tool, and no prefill, because newer models reject them.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the five <strong>TODO 1</strong> checks pass. The other checks still fail.</p>
+</li>
+</ol>
+<h2>Run stage 1: the schema passes, the business is wrong</h2>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Part A replays four outputs that the demo recorded, without calling Claude. Every one is valid against the schema, and the table shows which fields disagree with the document.</li>
+<li>Part B extracts the 8 invoices live and posts every schema-valid record to the ledger. A strong model may get all of them right. The schema is still not what made them right: it checks the shape, not the money.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the arithmetic rule</h2>
+<p>In this section, you write the first business rule: subtotal plus tax must equal the total. The other rules (tax rate, dates, currency, line items) are already written.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4</strong>. Below it is a function named <code>arithmetic_issues</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return []  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    expected = core.money(core.D(rec[&quot;subtotal&quot;]) + core.D(rec[&quot;tax_amount&quot;]))
+    if abs(expected - core.D(rec[&quot;total&quot;])) &gt; core.TOLERANCE:
+        return [core.issue(&quot;total&quot;, &quot;semantic&quot;, f&quot;total {rec['total']} != subtotal {rec['subtotal']} + tax_amount {rec['tax_amount']} = {expected}&quot;)]
+    return []
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The function returns a list of issues. An empty list means that the record adds up.</li>
+<li><code>core.TOLERANCE</code> is two cents, which lets a rounded amount pass.</li>
+<li>The message says what the total should be, because the retry in stage 3 sends this message back to the model.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 2:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The rules catch the recorded wrong total, which is the original error on <strong>inv_002</strong>.</li>
+<li>The rules miss the other three recorded outputs, including the <strong>silent subtotal edit</strong> and the <strong>locale misparse</strong>. Both are perfectly consistent, and both are wrong.</li>
+</ul>
+</li>
+</ol>
+<h2>Run stage 3: one corrective retry</h2>
+<ol>
+<li>
+<p>Run stage 3 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>A record that fails a rule is sent back to the model once, with the original request, the invalid output, and the failures. A record that then passes every rule is accepted.</li>
+<li>The replay at the end shows the failure that matters. Told that the total did not match, a model can make the arithmetic pass by rewriting the subtotal and the tax instead of fixing the total. Every rule is green, and the ledger holds a wrong record.</li>
+<li>A live model often repairs <strong>inv_002</strong> correctly, especially because the correction prompt says that printed figures are authoritative. To see the weaker prompt that many teams write first, run <code>python lab.py --stage 3 --prompt naive</code>.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the grounding check</h2>
+<p>In this section, you write the check that stops the failure in stage 3. The rules check that the numbers agree with each other. Grounding checks that the numbers agree with the document: every number in the record must be printed in the invoice.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4</strong>. Below it is a function named <code>grounding_issues</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return []  # replace these lines in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    printed = core.extract_numbers(source_text)
+    issues = []
+    for path, value in core.numeric_fields(rec):
+        if not any(abs(value - number) &lt;= core.TOL for number in printed):
+            issues.append(core.issue(path, &quot;grounding&quot;, f&quot;{path}={value} is not printed anywhere in the document; do not change printed figures to make totals balance&quot;))
+    return issues
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>core.extract_numbers</code> reads every number that is printed in the invoice, including <code>1.000,00</code> in European format.</li>
+<li>A number that is not printed, such as a subtotal of 109.32 that the model computed, becomes an issue.</li>
+<li>Grounding is a tripwire, not proof. It cannot check dates or text, and it can be fooled when a wrong number happens to appear in the document.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+</ol>
+<h2>Write the retry policy</h2>
+<p>In this section, you write the decision that follows every model response. Retrying is a decision, not a reflex: a refusal must not be retried, a truncated reply needs more room, and an invoice that contradicts itself must go to a human.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4</strong>. Below it is a function named <code>decide</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return core.ACCEPT, &quot;TODO 4 not written yet&quot;  # replace these lines in TODO 4</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    attempts_left = attempt &lt; max_attempts
+    if status == &quot;refusal&quot;:
+        return core.REVIEW, &quot;refusal: not retried&quot;
+    if status == &quot;truncated&quot;:
+        if attempts_left and max_tokens &lt; max_tokens_cap:
+            return core.RETRY_LARGER, &quot;stop_reason=max_tokens: retry with larger max_tokens&quot;
+        return core.REVIEW, &quot;truncated and cannot retry&quot;
+    if not issues:
+        return core.ACCEPT, &quot;all validators passed&quot;
+    if attempts_left:
+        return core.RETRY_CORRECT, f&quot;{len(issues)} issue(s): retry with a correction prompt&quot;
+    return core.REVIEW, f&quot;exhausted {max_attempts} attempts with {len(issues)} open issue(s)&quot;
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The function branches on what happened (<code>status</code>) before it looks at the issues. A refusal and a truncated reply have no usable content.</li>
+<li>A truncated reply is retried with a bigger <code>max_tokens</code>, because a correction prompt cannot fix a reply that was cut off.</li>
+<li>When attempts run out, the decision is <code>REVIEW</code>. The loop never edits a record. It accepts the model's output unchanged, or it refuses it.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 4:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 4
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Stage 4 starts every invoice with <code>max_tokens</code> of 400, which is too small for the 12-line invoice on purpose.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Part A shows that grounding catches all four recorded outputs, including the two that every rule accepted.</li>
+<li><strong>inv_010</strong> is truncated on its first attempt and retried with a larger limit.</li>
+<li><strong>inv_009</strong> has an illegible tax line and a handwritten total written over a printed one. No retry can fix a document that contradicts itself, so it ends in review.</li>
+<li>The last line counts silent corruptions: accepted records that disagree with the document. With grounding, it should be 0.</li>
+</ul>
+</li>
+</ol>
+<h2>Run stage 5: review queue, metrics, and a cheaper first pass</h2>
+<ol>
+<li>
+<p>Run stage 5 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 5
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: This runs the whole set twice, so it calls Claude about 30 times.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each document that the loop gives up on goes to a review queue, and the ledger gets a parked row that payment runs ignore. Dropping the record and posting the last attempt are the two wrong answers.</li>
+<li>The three numbers that tell you whether the design is healthy: the retry rate, the fallback rate (the human workload you are buying), and the cost per accepted record.</li>
+<li>The second configuration tries the fast model twice and escalates to the balanced model. Compare its cost per accepted record and its fallback rate with the first configuration. Cheaper is only better if the silent corruptions stay at 0.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 41/41 checks passed</code>. The exact count may differ if you did not run every stage.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: TODO 1 is not done yet.</li>
+<li><strong>Stage 4 accepts everything in one attempt</strong>: TODO 3 or TODO 4 still holds the starter lines.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your numbers differ from a classmate's</strong>: This is normal. Models give different answers between runs, and the live parts of stages 1 to 3 depend on whether the model makes a mistake that day. The recorded outputs always give the same result.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 1C ran all 11 invoices. To use them here, add <code>--all-docs</code> to a stage.</li>
+<li>The next lab, Lab 1D, is about the cost of running a pipeline like this one: prompt caching, token counting, and batch processing.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

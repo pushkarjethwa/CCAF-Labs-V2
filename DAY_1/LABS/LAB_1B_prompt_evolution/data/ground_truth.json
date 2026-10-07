@@ -1,0 +1,129 @@
+{
+  "D01": {
+    "invoice_number": "INV-2025-0412", "vendor": "Halcyon Office Supply Co.", "invoice_date": "2025-03-03",
+    "due_date": "2025-04-02", "currency": "USD", "subtotal": 453.10, "tax": 37.38, "total": 490.48,
+    "line_items": [
+      {"description": "Copy paper, 20lb, 500 sht ream", "qty": 12, "unit_price": 5.40},
+      {"description": "Toner cartridge HP 26A black", "qty": 4, "unit_price": 89.95},
+      {"description": "Desk organizer, mesh", "qty": 2, "unit_price": 14.25}
+    ],
+    "po_number": "88213"
+  },
+  "D02": {
+    "invoice_number": "RE-2025-10477", "vendor": "Brenner Präzisionswerkzeuge GmbH", "invoice_date": "2025-04-03",
+    "due_date": "2025-04-17", "currency": "EUR", "subtotal": 2183.50, "tax": 414.87, "total": 2598.37,
+    "line_items": [
+      {"description": "Spannzange ER32, 10 mm", "qty": 8, "unit_price": 42.50},
+      {"description": "Fräser HM Ø12 Z3", "qty": 5, "unit_price": 118.90},
+      {"description": "Messschieber digital 150 mm", "qty": 1, "unit_price": 1249.00}
+    ],
+    "po_number": "4500123981"
+  },
+  "D03": {
+    "invoice_number": "SP/25/003317", "vendor": "Stonewall & Pearce Ltd", "invoice_date": "2025-03-04",
+    "due_date": null, "currency": "GBP", "subtotal": 652.00, "tax": 130.40, "total": 782.40,
+    "line_items": [
+      {"description": "Ash worktop 2400x620x38", "qty": 3, "unit_price": 186.00},
+      {"description": "Edge banding roll 50m", "qty": 2, "unit_price": 24.50},
+      {"description": "Delivery (pallet)", "qty": 1, "unit_price": 45.00}
+    ],
+    "po_number": "LS-5521"
+  },
+  "D04": {
+    "invoice_number": "NF-88102", "vendor": "Northgate Freight Lines Inc.", "invoice_date": "2025-02-26",
+    "due_date": "2025-03-28", "currency": "CAD", "subtotal": 2956.80, "tax": 443.52, "total": 3400.32,
+    "line_items": [
+      {"description": "Ocean freight, 40ft container", "qty": 1, "unit_price": 2140.00},
+      {"description": "Terminal handling (THC)", "qty": 1, "unit_price": 310.00},
+      {"description": "Chassis rental, per day", "qty": 2, "unit_price": 95.00},
+      {"description": "Fuel surcharge (12%)", "qty": 1, "unit_price": 316.80}
+    ],
+    "po_number": null
+  },
+  "D05": {
+    "invoice_number": "CN-2025-0077", "vendor": "Tasman Garden & Irrigation Pty Ltd", "invoice_date": "2025-03-12",
+    "due_date": null, "currency": "AUD", "subtotal": -169.00, "tax": -16.90, "total": -185.90,
+    "line_items": [
+      {"description": "Drip emitter kit 50pk", "qty": -3, "unit_price": 38.00},
+      {"description": "Pressure regulator 3/4\"", "qty": -2, "unit_price": 27.50}
+    ],
+    "po_number": null
+  },
+  "D06": {
+    "invoice_number": "0071194", "vendor": "Ardmore Industrial Fasteners, Inc.", "invoice_date": "2025-03-18",
+    "due_date": "2025-05-02", "currency": "USD", "subtotal": 1372.60, "tax": 96.08, "total": 1468.68,
+    "line_items": [
+      {"description": "Hex bolt M10x40 zinc", "qty": 500, "unit_price": 0.62},
+      {"description": "Flange nut M10", "qty": 250, "unit_price": 0.31},
+      {"description": "Anchor bolt 1/2 x 6 HDG", "qty": 40, "unit_price": 3.95},
+      {"description": "Threaded rod 3/8 x 6ft", "qty": 12, "unit_price": 14.80},
+      {"description": "Washer flat M10 zinc DIN 125A", "qty": 200, "unit_price": 0.09},
+      {"description": "Lag screw box 100ct", "qty": 6, "unit_price": 41.25},
+      {"description": "Concrete anchor sleeve 25pk", "qty": 3, "unit_price": 88.00},
+      {"description": "Freight - pallet", "qty": 1, "unit_price": 120.00}
+    ],
+    "po_number": "C-90412"
+  },
+  "D07": {
+    "invoice_number": "F-20931", "vendor": "Nordlys Laboratorieutrustning AB", "invoice_date": "2025-03-21",
+    "due_date": "2025-04-20", "currency": "SEK", "subtotal": 9164.00, "tax": 2291.00, "total": 11455.00,
+    "line_items": [
+      {"description": "Pipett 100-1000 µl, justerbar", "qty": 4, "unit_price": 1450.00},
+      {"description": "Pipettspetsar 1000 µl (rack 96)", "qty": 20, "unit_price": 78.50},
+      {"description": "Labbrock, stl M", "qty": 6, "unit_price": 299.00}
+    ],
+    "po_number": null
+  },
+  "D08": {
+    "invoice_number": "KM-30958", "vendor": "Kestrel Marine Freight B.V.", "invoice_date": "2025-03-05",
+    "due_date": "2025-04-04", "currency": "EUR", "subtotal": 2849.00, "tax": 598.29, "total": 3447.29,
+    "line_items": [
+      {"description": "Ocean freight, 40ft container", "qty": 1, "unit_price": 1980.00},
+      {"description": "Terminal handling", "qty": 1, "unit_price": 340.00},
+      {"description": "Chassis rental, per day", "qty": 3, "unit_price": 90.00},
+      {"description": "Fuel surcharge (10%)", "qty": 1, "unit_price": 259.00}
+    ],
+    "po_number": "NL-2209"
+  },
+  "D09": {
+    "invoice_number": "SPP-250309-017", "vendor": "Shimizu Precision Parts Co., Ltd.", "invoice_date": "2025-03-09",
+    "due_date": "2025-04-30", "currency": "JPY", "subtotal": 108900, "tax": 10890, "total": 119790,
+    "line_items": [
+      {"description": "Bearing 6204ZZ", "qty": 120, "unit_price": 340},
+      {"description": "Shaft collar 20mm", "qty": 60, "unit_price": 275},
+      {"description": "Linear guide rail 400mm", "qty": 4, "unit_price": 12900}
+    ],
+    "po_number": "25-0188"
+  },
+  "D10": {
+    "invoice_number": "BC-55120", "vendor": "Bluewater Cargo Services LLC", "invoice_date": "2025-03-12",
+    "due_date": null, "currency": "USD", "subtotal": 3511.20, "tax": 0.00, "total": 3511.20,
+    "line_items": [
+      {"description": "Ocean freight, 40ft container", "qty": 1, "unit_price": 2480.00},
+      {"description": "Terminal handling", "qty": 1, "unit_price": 295.00},
+      {"description": "Chassis rental, per day", "qty": 4, "unit_price": 90.00},
+      {"description": "Fuel surcharge (12%)", "qty": 1, "unit_price": 376.20}
+    ],
+    "po_number": null
+  },
+  "D11": {
+    "invoice_number": "FA-2025-1182", "vendor": "Maison Delacroix SARL", "invoice_date": "2025-03-05",
+    "due_date": "2025-04-04", "currency": "EUR", "subtotal": 935.70, "tax": 187.14, "total": 1122.84,
+    "line_items": [
+      {"description": "Nappe lin brodée 140x240", "qty": 6, "unit_price": 89.00},
+      {"description": "Serviettes lin (lot de 12)", "qty": 4, "unit_price": 64.50},
+      {"description": "Chemin de table velours", "qty": 3, "unit_price": 47.90}
+    ],
+    "po_number": "BC-2025-0642"
+  },
+  "D12": {
+    "invoice_number": "TI/25-26/0481", "vendor": "Sunrise Lab Consumables Pvt. Ltd.", "invoice_date": "2025-03-07",
+    "due_date": null, "currency": "INR", "subtotal": 35550.00, "tax": 6399.00, "total": 41949.00,
+    "line_items": [
+      {"description": "Nitrile gloves, M (box/100)", "qty": 50, "unit_price": 285.00},
+      {"description": "Sample vials 5ml (pack/50)", "qty": 30, "unit_price": 410.00},
+      {"description": "Pipette tips 200ul (pack/96)", "qty": 25, "unit_price": 360.00}
+    ],
+    "po_number": null
+  }
+}

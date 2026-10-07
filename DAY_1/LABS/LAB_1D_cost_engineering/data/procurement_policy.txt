@@ -1,0 +1,210 @@
+GLOBAL PROCUREMENT AND SUPPLIER INVOICE POLICY
+Document owner: Group Finance Shared Services | Revision: 14 | Classification: Internal
+Applies to every supplier invoice entering the accounts-payable workflow.
+
+SECTION 1. PURPOSE AND SCOPE
+1.1 This policy governs the verification of supplier invoices received by Accounts Payable on behalf of all group entities.
+1.2 An invoice is COMPLIANT only if it violates none of the verifiable clauses listed in Sections 2 to 6. Each verifiable clause carries an identifier of the form P-x.y. Clauses without such an identifier are operational guidance and are not verified from the invoice alone.
+1.3 Amounts are compared in United States dollars. The field 'total_usd' on the invoice record is the authoritative USD-equivalent total.
+1.4 When an invoice violates several clauses, all violated identifiers are reported, in ascending order.
+1.5 Where the goods receipt is posted after the invoice date, the Financial Controller shall escalate to the Procurement Steering Committee the supporting documentation within 10 business days. The record must be retained in the contract repository for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+1.6 Where the vendor requests a change of bank details, the Internal Audit liaison shall archive in the document management system the service acceptance certificate within 15 business days. The record must be retained in the document management system for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+1.7 Where the vendor requests a change of bank details, the Regional Finance Director shall archive in the document management system the goods receipt note within 7 business days. The record must be retained in the document management system for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+
+SECTION 2. VENDOR ELIGIBILITY
+P-2.1 The vendor named on the invoice MUST appear on the Approved Vendor List (Appendix A), matched by vendor_id. A vendor name that resembles a listed vendor but carries a different vendor_id is NOT approved.
+2.2 Where the delivery date slips beyond the agreed window, the Accounts Payable Manager shall log in the vendor master record the signed statement of work within 5 business days. The record must be retained in the document management system for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+2.3 Where the vendor requests a change of bank details, the Regional Finance Director shall archive in the document management system the service acceptance certificate within 2 business days. The record must be retained in the document management system for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+2.4 Where the vendor requests a change of bank details, the Financial Controller shall confirm in writing the receipt of the supporting documentation within 5 business days. The record must be retained in the contract repository for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+
+SECTION 3. PURCHASE ORDERS AND APPROVAL THRESHOLDS
+P-3.1 Any invoice whose total_usd is strictly greater than 2,500.00 MUST quote a purchase order number. An invoice of exactly 2,500.00 does not require a purchase order.
+P-3.2 Any invoice whose total_usd is strictly greater than 25,000.00 MUST carry an approval with the role CFO in its approvals list. An invoice of exactly 25,000.00 does not require CFO approval.
+3.3 Where a second invoice arrives for the same purchase order line, the Regional Finance Director shall notify the requesting cost centre owner of the three-way match result within 5 business days. The record must be retained in the ERP vendor ledger for 5 years and is subject to a 3% sample review by Internal Audit each quarter.
+3.4 Where the delivery date slips beyond the agreed window, the Regional Finance Director shall confirm in writing the receipt of the approval trail within 10 business days. The record must be retained in the shared services case tool for 10 years and is subject to a 2% sample review by Internal Audit each quarter.
+3.5 Where a variance above two percent is detected, the Vendor Master Data Steward shall notify the requesting cost centre owner of any variance above tolerance within 7 business days. The record must be retained in the shared services case tool for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+
+SECTION 4. TAX AND CURRENCY
+P-4.1 The invoice MUST show the vendor tax identifier (EIN, VAT or GST number). An invoice whose tax_id is missing is non-compliant.
+P-4.2 Invoices MUST be denominated in USD, EUR or GBP. Any other currency is permitted only when treasury_preapproval is true.
+4.3 Where the vendor requests a change of bank details, the Regional Finance Director shall review and countersign any variance above tolerance within 3 business days. The record must be retained in the contract repository for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+4.4 Where a second invoice arrives for the same purchase order line, the Vendor Master Data Steward shall reconcile against the purchase order ledger the supporting documentation within 15 business days. The record must be retained in the document management system for 7 years and is subject to a 1% sample review by Internal Audit each quarter.
+4.5 Where the cost centre owner changes during the fiscal period, the Compliance Officer shall escalate to the Procurement Steering Committee the three-way match result within 10 business days. The record must be retained in the contract repository for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+
+SECTION 5. PAYMENT TERMS AND PROHIBITED SPEND
+P-5.1 Payment terms shorter than 30 days (terms_days < 30) are non-compliant unless the invoice offers an early-payment discount of at least 2.0 percent (early_pay_discount_pct >= 2.0).
+P-5.2 Spend in the categories 'gift cards' and 'cash advances' is prohibited and can never be paid against a supplier invoice.
+5.3 Where an invoice references a purchase order that has been closed, the Accounts Payable Manager shall confirm in writing the receipt of any variance above tolerance within 3 business days. The record must be retained in the contract repository for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+5.4 Where the delivery date slips beyond the agreed window, the Financial Controller shall archive in the document management system the three-way match result within 7 business days. The record must be retained in the document management system for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+5.5 Where a variance above two percent is detected, the Internal Audit liaison shall notify the requesting cost centre owner of the goods receipt note within 7 business days. The record must be retained in the ERP vendor ledger for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 6. INVOICE TIMELINESS
+P-6.1 An invoice MUST be received within 90 days of the invoice date. If received_date minus invoice_date is greater than 90 days the invoice is non-compliant; exactly 90 days is acceptable.
+6.2 Where the delivery date slips beyond the agreed window, the Procurement Category Lead shall validate against the contract repository any variance above tolerance within 10 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 2% sample review by Internal Audit each quarter.
+6.3 Where the delivery date slips beyond the agreed window, the Accounts Payable Manager shall log in the vendor master record the supporting documentation within 15 business days. The record must be retained in the document management system for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+6.4 Where a second invoice arrives for the same purchase order line, the Regional Finance Director shall reconcile against the purchase order ledger the service acceptance certificate within 3 business days. The record must be retained in the ERP vendor ledger for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 7. TRAVEL AND EXPENSE REIMBURSEMENT
+7.1 Where the delivery date slips beyond the agreed window, the Internal Audit liaison shall escalate to the Procurement Steering Committee any variance above tolerance within 7 business days. The record must be retained in the contract repository for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+7.2 Where the goods receipt is posted after the invoice date, the Compliance Officer shall validate against the contract repository the signed statement of work within 3 business days. The record must be retained in the shared services case tool for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+7.3 Where a variance above two percent is detected, the Procurement Category Lead shall notify the requesting cost centre owner of the service acceptance certificate within 2 business days. The record must be retained in the shared services case tool for 7 years and is subject to a 1% sample review by Internal Audit each quarter.
+
+SECTION 8. CAPITAL EXPENDITURE
+8.1 Where the goods receipt is posted after the invoice date, the Internal Audit liaison shall reconcile against the purchase order ledger the goods receipt note within 2 business days. The record must be retained in the shared services case tool for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+8.2 Where the goods receipt is posted after the invoice date, the Department Head shall confirm in writing the receipt of the signed statement of work within 7 business days. The record must be retained in the document management system for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+8.3 Where a second invoice arrives for the same purchase order line, the Financial Controller shall archive in the document management system any variance above tolerance within 2 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 9. CONTRACT MANAGEMENT
+9.1 Where the contract reaches ninety percent of its approved value, the Internal Audit liaison shall notify the requesting cost centre owner of the signed statement of work within 3 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+9.2 Where the contract reaches ninety percent of its approved value, the Department Head shall reconcile against the purchase order ledger the supporting documentation within 5 business days. The record must be retained in the contract repository for 7 years and is subject to a 1% sample review by Internal Audit each quarter.
+9.3 Where the cost centre owner changes during the fiscal period, the Regional Finance Director shall validate against the contract repository the three-way match result within 7 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 10. DATA PROTECTION AND INFORMATION SECURITY
+10.1 Where the vendor requests a change of bank details, the Internal Audit liaison shall archive in the document management system the service acceptance certificate within 7 business days. The record must be retained in the contract repository for 10 years and is subject to a 1% sample review by Internal Audit each quarter.
+10.2 Where an invoice references a purchase order that has been closed, the Regional Finance Director shall reconcile against the purchase order ledger the supporting documentation within 5 business days. The record must be retained in the shared services case tool for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+10.3 Where the cost centre owner changes during the fiscal period, the Procurement Category Lead shall validate against the contract repository the goods receipt note within 10 business days. The record must be retained in the shared services case tool for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 11. SUSTAINABILITY AND SUPPLIER DIVERSITY
+11.1 Where the cost centre owner changes during the fiscal period, the Compliance Officer shall reconcile against the purchase order ledger the goods receipt note within 10 business days. The record must be retained in the contract repository for 10 years and is subject to a 1% sample review by Internal Audit each quarter.
+11.2 Where the contract reaches ninety percent of its approved value, the Compliance Officer shall review and countersign the approval trail within 3 business days. The record must be retained in the contract repository for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+11.3 Where an invoice references a purchase order that has been closed, the Financial Controller shall log in the vendor master record the goods receipt note within 3 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 12. CONFLICTS OF INTEREST AND GIFTS
+12.1 Where the contract reaches ninety percent of its approved value, the Compliance Officer shall archive in the document management system any variance above tolerance within 5 business days. The record must be retained in the contract repository for 5 years and is subject to a 3% sample review by Internal Audit each quarter.
+12.2 Where the cost centre owner changes during the fiscal period, the Internal Audit liaison shall validate against the contract repository the goods receipt note within 3 business days. The record must be retained in the contract repository for 10 years and is subject to a 5% sample review by Internal Audit each quarter.
+12.3 Where a second invoice arrives for the same purchase order line, the Compliance Officer shall notify the requesting cost centre owner of the supporting documentation within 2 business days. The record must be retained in the document management system for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 13. SANCTIONS AND EXPORT CONTROLS
+13.1 Where the vendor requests a change of bank details, the Department Head shall confirm in writing the receipt of the approval trail within 15 business days. The record must be retained in the document management system for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+13.2 Where the delivery date slips beyond the agreed window, the Regional Finance Director shall notify the requesting cost centre owner of the service acceptance certificate within 15 business days. The record must be retained in the document management system for 10 years and is subject to a 1% sample review by Internal Audit each quarter.
+13.3 Where a second invoice arrives for the same purchase order line, the Compliance Officer shall validate against the contract repository the three-way match result within 3 business days. The record must be retained in the shared services case tool for 10 years and is subject to a 1% sample review by Internal Audit each quarter.
+
+SECTION 14. EXCEPTIONS AND ESCALATION
+14.1 Where a second invoice arrives for the same purchase order line, the Procurement Category Lead shall escalate to the Procurement Steering Committee the service acceptance certificate within 3 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+14.2 Where the delivery date slips beyond the agreed window, the Vendor Master Data Steward shall review and countersign the three-way match result within 10 business days. The record must be retained in the document management system for 7 years and is subject to a 1% sample review by Internal Audit each quarter.
+14.3 Where the vendor requests a change of bank details, the Internal Audit liaison shall archive in the document management system the goods receipt note within 5 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 15. AUDIT AND RECORD RETENTION
+15.1 Where the goods receipt is posted after the invoice date, the Internal Audit liaison shall notify the requesting cost centre owner of the service acceptance certificate within 5 business days. The record must be retained in the contract repository for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+15.2 Where the delivery date slips beyond the agreed window, the Internal Audit liaison shall review and countersign any variance above tolerance within 2 business days. The record must be retained in the shared services case tool for 10 years and is subject to a 5% sample review by Internal Audit each quarter.
+15.3 Where the contract reaches ninety percent of its approved value, the Procurement Category Lead shall escalate to the Procurement Steering Committee the signed statement of work within 10 business days. The record must be retained in the contract repository for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 16. BUSINESS CONTINUITY FOR FINANCE OPERATIONS
+16.1 Where the vendor requests a change of bank details, the Procurement Category Lead shall confirm in writing the receipt of the signed statement of work within 7 business days. The record must be retained in the shared services case tool for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+16.2 Where an invoice references a purchase order that has been closed, the Accounts Payable Manager shall validate against the contract repository the signed statement of work within 2 business days. The record must be retained in the contract repository for 5 years and is subject to a 1% sample review by Internal Audit each quarter.
+16.3 Where the contract reaches ninety percent of its approved value, the Regional Finance Director shall notify the requesting cost centre owner of the three-way match result within 15 business days. The record must be retained in the contract repository for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+APPENDIX A. APPROVED VENDOR LIST (vendor_id | name | category | tier)
+VND-1001 | Northwind Facilities | Office supplies | Strategic
+VND-1002 | Bluepeak Maintenance | IT hardware | Preferred
+VND-1003 | Harbor Facilities | Cloud and software | Approved
+VND-1004 | Quartz Maintenance | Professional services | Strategic
+VND-1005 | Ironwood Facilities | Facilities and maintenance | Preferred
+VND-1006 | Lumen Maintenance | Logistics and freight | Approved
+VND-1007 | Cobalt Facilities | Catering and events | Strategic
+VND-1008 | Meridian Maintenance | Security services | Preferred
+VND-1009 | Summit Facilities | Staffing | Approved
+VND-1010 | Granite Maintenance | Training and development | Strategic
+VND-1011 | Willow Facilities | Office supplies | Preferred
+VND-1012 | Atlas Maintenance | IT hardware | Approved
+VND-1013 | Falcon Facilities | Cloud and software | Strategic
+VND-1014 | Redwood Maintenance | Professional services | Preferred
+VND-1015 | Vertex Facilities | Facilities and maintenance | Approved
+VND-1016 | Evergreen Maintenance | Logistics and freight | Strategic
+VND-1017 | Pioneer Facilities | Catering and events | Preferred
+VND-1018 | Beacon Maintenance | Security services | Approved
+VND-1019 | Sterling Facilities | Staffing | Strategic
+VND-1020 | Aurora Maintenance | Training and development | Preferred
+VND-1021 | Northwind Facilities | Office supplies | Approved
+VND-1022 | Bluepeak Maintenance | IT hardware | Strategic
+VND-1023 | Harbor Facilities | Cloud and software | Preferred
+VND-1024 | Quartz Maintenance | Professional services | Approved
+VND-1025 | Ironwood Facilities | Facilities and maintenance | Strategic
+VND-1026 | Lumen Maintenance | Logistics and freight | Preferred
+VND-1027 | Cobalt Facilities | Catering and events | Approved
+VND-1028 | Meridian Maintenance | Security services | Strategic
+VND-1029 | Summit Facilities | Staffing | Preferred
+VND-1030 | Granite Maintenance | Training and development | Approved
+VND-1031 | Willow Facilities | Office supplies | Strategic
+VND-1032 | Atlas Maintenance | IT hardware | Preferred
+VND-1033 | Falcon Facilities | Cloud and software | Approved
+VND-1034 | Redwood Maintenance | Professional services | Strategic
+VND-1035 | Vertex Facilities | Facilities and maintenance | Preferred
+VND-1036 | Evergreen Maintenance | Logistics and freight | Approved
+VND-1037 | Pioneer Facilities | Catering and events | Strategic
+VND-1038 | Beacon Maintenance | Security services | Preferred
+VND-1039 | Sterling Facilities | Staffing | Approved
+VND-1040 | Aurora Maintenance | Training and development | Strategic
+VND-1041 | Northwind Facilities | Office supplies | Preferred
+VND-1042 | Bluepeak Maintenance | IT hardware | Approved
+VND-1043 | Harbor Facilities | Cloud and software | Strategic
+VND-1044 | Quartz Maintenance | Professional services | Preferred
+VND-1045 | Ironwood Facilities | Facilities and maintenance | Approved
+VND-1046 | Lumen Maintenance | Logistics and freight | Strategic
+VND-1047 | Cobalt Facilities | Catering and events | Preferred
+VND-1048 | Meridian Maintenance | Security services | Approved
+VND-1049 | Summit Facilities | Staffing | Strategic
+VND-1050 | Granite Maintenance | Training and development | Preferred
+VND-1051 | Willow Facilities | Office supplies | Approved
+VND-1052 | Atlas Maintenance | IT hardware | Strategic
+Vendors absent from this list are not approved, whatever their name.
+
+APPENDIX B. APPROVAL MATRIX
+Up to 2,500.00 USD: AP Manager. 2,500.01 to 25,000.00 USD: AP Manager and Department Head. Above 25,000.00 USD: AP Manager, Department Head, VP Finance and CFO.
+
+APPENDIX C. SPEND CATEGORY CODES (code | category | GL account | review frequency)
+CAT-300 | Office supplies | GL-6100 | quarterly
+CAT-301 | IT hardware | GL-6113 | quarterly
+CAT-302 | Cloud and software | GL-6126 | monthly
+CAT-303 | Professional services | GL-6139 | quarterly
+CAT-304 | Facilities and maintenance | GL-6152 | semi-annual
+CAT-305 | Logistics and freight | GL-6165 | monthly
+CAT-306 | Catering and events | GL-6178 | quarterly
+CAT-307 | Security services | GL-6191 | semi-annual
+CAT-308 | Staffing | GL-6204 | quarterly
+CAT-309 | Training and development | GL-6217 | quarterly
+CAT-310 | Gift cards | GL-6230 | monthly
+CAT-311 | Cash advances | GL-6243 | quarterly
+CAT-312 | Marketing | GL-6256 | quarterly
+CAT-313 | Legal fees | GL-6269 | quarterly
+CAT-314 | Travel | GL-6282 | semi-annual
+CAT-315 | Utilities | GL-6295 | quarterly
+CAT-316 | Office supplies | GL-6308 | quarterly
+CAT-317 | IT hardware | GL-6321 | monthly
+CAT-318 | Cloud and software | GL-6334 | monthly
+CAT-319 | Professional services | GL-6347 | semi-annual
+CAT-320 | Facilities and maintenance | GL-6360 | monthly
+CAT-321 | Logistics and freight | GL-6373 | semi-annual
+CAT-322 | Catering and events | GL-6386 | quarterly
+CAT-323 | Security services | GL-6399 | monthly
+CAT-324 | Staffing | GL-6412 | monthly
+CAT-325 | Training and development | GL-6425 | monthly
+CAT-326 | Gift cards | GL-6438 | quarterly
+CAT-327 | Cash advances | GL-6451 | monthly
+CAT-328 | Marketing | GL-6464 | quarterly
+CAT-329 | Legal fees | GL-6477 | monthly
+CAT-330 | Travel | GL-6490 | quarterly
+CAT-331 | Utilities | GL-6503 | semi-annual
+CAT-332 | Office supplies | GL-6516 | semi-annual
+CAT-333 | IT hardware | GL-6529 | semi-annual
+CAT-334 | Cloud and software | GL-6542 | monthly
+CAT-335 | Professional services | GL-6555 | semi-annual
+CAT-336 | Facilities and maintenance | GL-6568 | quarterly
+CAT-337 | Logistics and freight | GL-6581 | monthly
+CAT-338 | Catering and events | GL-6594 | monthly
+CAT-339 | Security services | GL-6607 | semi-annual
+CAT-340 | Staffing | GL-6620 | quarterly
+CAT-341 | Training and development | GL-6633 | monthly
+CAT-342 | Gift cards | GL-6646 | monthly
+CAT-343 | Cash advances | GL-6659 | monthly
+CAT-344 | Marketing | GL-6672 | quarterly
+CAT-345 | Legal fees | GL-6685 | quarterly
+CAT-346 | Travel | GL-6698 | quarterly
+CAT-347 | Utilities | GL-6711 | monthly
+
+APPENDIX D. GLOSSARY
+Three-way match: Comparison of purchase order, goods receipt and invoice before payment.
+Total_usd: USD-equivalent invoice total used for every threshold test in this policy.
+Treasury pre-approval: Written approval from Group Treasury to transact in a non-standard currency.
+Early-payment discount: Percentage reduction offered by the vendor for payment before the standard due date.
+Split invoice: Several invoices raised to keep each below an approval threshold; reportable to Internal Audit.

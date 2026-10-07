@@ -1,0 +1,267 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Cut the Cost of a Policy Check Without Breaking It</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 1 - Prompt Engineering and Structured Output</header><main><h1>Cut the cost of a policy check without breaking it</h1>
+<p>In Demo 1D, you watched an accounts-payable team check supplier invoices against a 6,000-token procurement policy. The policy is the same on every request, so about 95 percent of every request is the same text, billed at full price 100,000 times a month. The team then applied three cost levers: counting tokens before sending, caching the policy, and batching the work. Each lever has a silent way to fail, and the demo showed all of them: an oversized scan that costs more than the whole day's budget, an audit stamp that makes the cache useless without any error, and a batch whose results come back in a different order. In this lab, you run the same stages yourself, and you write four small pieces along the way.</p>
+<p>You will complete four pieces of <strong>lab.py</strong>, which add up to 19 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, you have a checker that caches its policy, refuses oversized requests, and joins batch results safely.</p>
+<p>This lab continues Demo 1D, so you will recognize the following:</p>
+<ul>
+<li>The Group Accounts Payable policy checker: a verdict for each invoice (compliant or not, with the clauses it violates), checked against ground truth.</li>
+<li>The 30 invoices and the 25,000-character procurement policy. The lab uses 10 of the 30 invoices so that it runs quickly and cheaply.</li>
+<li>The fast model (a Haiku-class model, which needs a prefix of at least 4,096 tokens before it caches anything) and the balanced model.</li>
+<li>The projection to 100,000 invoices a month, and the cost table that compares normal, cached, batch, and batch plus cache.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_1/LABS/LAB_1D_cost_engineering</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Write the call that every stage uses</h2>
+<p>In this section, you write the Claude API call. Every stage sends a complete request to Claude through this function.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 4</strong>. Below it is a function named <code>ask_checker</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 1: send the request to Claude&quot;)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    return get_client().messages.create(
+        model=request[&quot;model&quot;],
+        max_tokens=request[&quot;max_tokens&quot;],
+        system=request[&quot;system&quot;],
+        messages=request[&quot;messages&quot;],
+        output_config=request[&quot;output_config&quot;],
+    )
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>get_client().messages.create(...)</code> is the Claude Messages API call.</li>
+<li>The <code>request</code> is already complete. It holds the model, the <code>max_tokens</code> limit, the <code>system</code> blocks (the instructions and the policy), the <code>messages</code> (the invoice), and the <code>output_config</code> (the JSON schema for the verdict).</li>
+<li>The <code>system</code> value is a list of blocks instead of a string. That is what lets you mark a block for caching in a later section.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the four <strong>TODO 1</strong> checks pass. The other checks still fail.</p>
+</li>
+</ol>
+<h2>Run stage 1: meter the baseline</h2>
+<ol>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each row is one request. The columns are the uncached input tokens, the tokens written to the cache, the tokens read from the cache, the output tokens, and the cost. Cache columns are 0 because nothing is cached yet.</li>
+<li>The policy is about 95 percent of every request, and every request pays full price for it.</li>
+<li>The projection at the end multiplies the measured average by 100,000 invoices a month. Note the difference between the fast and the balanced model.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the token counter</h2>
+<p>In this section, you write the call that counts the tokens of a request without running it. A gate in front of every send can then refuse a request that is too big, before it costs anything.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 2 of 4</strong>. Below it is a function named <code>count_request_tokens</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 2: count the tokens&quot;)  # replace these lines in TODO 2</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    counted = get_client().messages.count_tokens(
+        model=request[&quot;model&quot;],
+        system=request[&quot;system&quot;],
+        messages=request[&quot;messages&quot;],
+    )
+    return counted.input_tokens
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>count_tokens</code> is free, and it does not use caching. It is rate-limited separately from message creation, and it returns an estimate.</li>
+<li>It accepts the model, the system blocks and the messages. It does not accept <code>max_tokens</code>, so you must not pass it.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 2:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>A normal request is several thousand tokens, and the policy is most of it.</li>
+<li>The ceiling is set 20 percent above the largest normal request. The gate allows a normal invoice and refuses a 60-page OCR dump, which would have been sent to the model at full price.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the cache breakpoint</h2>
+<p>In this section, you write the code that marks the policy for prompt caching. The cache stores everything up to a marked block, so the second request pays one tenth of the normal price for it.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 4</strong>. Below it is a function named <code>system_blocks</code>.</p>
+</li>
+<li>
+<p>Replace the line <code>return [{&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: text}]  # replace these lines in TODO 3</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    block = {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: text}
+    if cache:
+        block[&quot;cache_control&quot;] = {&quot;type&quot;: &quot;ephemeral&quot;, **({&quot;ttl&quot;: ttl} if ttl else {})}
+    return [block]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>cache_control={&quot;type&quot;: &quot;ephemeral&quot;}</code> marks the end of the part of the prompt that can be cached. Everything before it must be byte-for-byte identical in the next request.</li>
+<li>The optional <code>ttl</code> of <code>&quot;1h&quot;</code> keeps the entry for an hour, instead of the default five minutes. A one-hour write costs twice the normal price, and a five-minute write costs 1.25 times.</li>
+<li>There is no error if caching does not work. You can only see it in the cache columns of the usage.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 3:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li><strong>A</strong>: The first request writes the cache. Every later request reads it, and its cost falls by about 90 percent for the policy part.</li>
+<li><strong>B</strong>: The audit stamp, which holds a request id and a timestamp, is added to the top of the system prompt. Caching is still switched on, and there is no error, but the cache reads stay 0. Every call pays the write surcharge, so the bill is higher than with no caching at all.</li>
+<li><strong>C</strong>: The prefix comparison finds the first differing line, and it names the request id and the timestamp as the volatile content.</li>
+<li><strong>D</strong>: The same stamp moves into the user turn, after the cache breakpoint. The prefix is the same on every request, and the reads come back.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the batch code</h2>
+<p>In this section, you write two small functions for the Message Batches API. A batch is half the price, and it can take up to 24 hours, so it suits work that can wait. Its results come back in any order.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 4 of 4</strong>. Below it are two functions.</p>
+</li>
+<li>
+<p>Replace the line <code>return []  # replace these lines in TODO 4 (first function)</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return [{&quot;custom_id&quot;: invoice_id, &quot;params&quot;: request} for invoice_id, request in zip(invoice_ids, requests)]
+</code></pre></div>
+</li>
+<li>
+<p>Replace the line <code>return {}  # replace these lines in TODO 4 (second function)</code> with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    return {entry.custom_id: entry for entry in entries}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>A batch is a list of requests. Each one has a <code>custom_id</code> and the <code>params</code> that you would send to <code>messages.create</code>.</li>
+<li>The <code>custom_id</code> is the only safe way to match a result to its invoice. The results do not come back in the order you submitted them.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 4:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 4
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: A batch usually finishes in a few minutes, but the API allows up to 24 hours. The stage waits up to 10 minutes. If the batch has not ended, the stage prints a batch id. Run <code>python lab.py --stage 4 --collect &lt;the batch id&gt;</code> later to continue.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Whether the results arrived in the order that you submitted them. Do not rely on it.</li>
+<li>The positional join pairs several invoices with another invoice's verdict. It raises no exception, and ten results for ten invoices look perfect.</li>
+<li>The join on <code>custom_id</code>, with the checks for missing results and for an <code>invoice_id</code> that does not match the <code>custom_id</code>, passes.</li>
+<li>The cost table for the same invoices: normal, cached, and batch plus cache. A batch is a flat 50 percent discount, and its caching is best-effort. Below the break-even hit rate, caching costs more than not caching.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 32/32 checks passed</code>. The exact count may differ if you did not run every stage.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY</code> is missing</strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: TODO 1 or TODO 2 is not done yet.</li>
+<li><strong><code>count_tokens() got an unexpected keyword argument 'max_tokens'</code></strong>: Remove <code>max_tokens</code> from the counting call.</li>
+<li><strong>The cache reads are 0 in stage 3 A</strong>: TODO 3 still holds the starter line, or the fast model's prefix is under 4,096 tokens. Check that you did not use the short policy.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your cost numbers differ from a classmate's</strong>: This is normal. Token counts and prices depend on the model version, and a batch's cache hits are best-effort.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Cache entries expire by themselves after five minutes (or one hour for the batch). Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 1D ran all 30 invoices, and it added the second silent no-cache: a prefix below the model's minimum, which the API ignores without any error. To use all 30 invoices here, add <code>--all-docs</code> to a stage.</li>
+<li>Day 2 moves from single requests to tool use: Claude choosing and calling your functions.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

@@ -91,7 +91,7 @@ PRICE_PER_MTOK = {
 
 def cost_usd(response):
     """Estimate what one call cost. Cached input is cheaper to read (0.1x) and dearer to write (1.25x)."""
-    price_in, price_out = PRICE_PER_MTOK.get(response.model, (0.0, 0.0))
+    price_in, price_out = next((p for name, p in PRICE_PER_MTOK.items() if response.model.startswith(name)), (0.0, 0.0))  # the API reports dated names such as claude-haiku-4-5-20251001
     usage = response.usage
     cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
     cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0

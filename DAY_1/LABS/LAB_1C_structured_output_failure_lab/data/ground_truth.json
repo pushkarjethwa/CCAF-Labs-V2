@@ -1,0 +1,316 @@
+{
+ "inv_001": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "ACM-2026-0114",
+   "vendor_name": "Acme Industrial Supply Pvt Ltd",
+   "invoice_date": "2026-03-02",
+   "due_date": "2026-04-01",
+   "currency": "INR",
+   "line_items": [
+    {
+     "description": "Hex bolts M12 (box)",
+     "quantity": 10,
+     "unit_price": 45.5,
+     "amount": 455.0
+    },
+    {
+     "description": "Washers 12mm (pack)",
+     "quantity": 20,
+     "unit_price": 12.25,
+     "amount": 245.0
+    }
+   ],
+   "subtotal": 700.0,
+   "tax_rate_percent": 18,
+   "tax_amount": 126.0,
+   "total": 826.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_002": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "ACM-2026-0131",
+   "vendor_name": "Acme Industrial Supply Pvt Ltd",
+   "invoice_date": "2026-03-09",
+   "due_date": "2026-04-08",
+   "currency": "INR",
+   "line_items": [],
+   "subtotal": 100.0,
+   "tax_rate_percent": 18,
+   "tax_amount": 18.0,
+   "total": 118.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_003": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "NW-77213",
+   "vendor_name": "Northwind Logistics",
+   "invoice_date": "2026-02-10",
+   "due_date": "2026-03-12",
+   "currency": "USD",
+   "line_items": [
+    {
+     "description": "Pallet freight, Memphis TN to Dayton OH",
+     "quantity": 4,
+     "unit_price": 50.0,
+     "amount": 200.0
+    }
+   ],
+   "subtotal": 200.0,
+   "tax_rate_percent": 8.25,
+   "tax_amount": 16.5,
+   "total": 216.5,
+   "extraction_notes": ""
+  }
+ },
+ "inv_004": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "RW-2026-5530",
+   "vendor_name": "Rheinwerk Maschinenbau GmbH",
+   "invoice_date": "2026-03-05",
+   "due_date": "2026-04-04",
+   "currency": "EUR",
+   "line_items": [
+    {
+     "description": "Fraesspindel Wartung",
+     "quantity": 1,
+     "unit_price": 1000.0,
+     "amount": 1000.0
+    }
+   ],
+   "subtotal": 1000.0,
+   "tax_rate_percent": 19,
+   "tax_amount": 190.0,
+   "total": 1190.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_005": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "BP/2026/0042",
+   "vendor_name": "Brightpath Consulting Ltd",
+   "invoice_date": "2026-03-12",
+   "due_date": "2026-04-11",
+   "currency": "GBP",
+   "line_items": [
+    {
+     "description": "Strategy workshop (2 days)",
+     "quantity": 2,
+     "unit_price": 1500.0,
+     "amount": 3000.0
+    }
+   ],
+   "subtotal": 3000.0,
+   "tax_rate_percent": 20,
+   "tax_amount": 600.0,
+   "total": 3600.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_006": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "2026-LT-0907",
+   "vendor_name": "Lantern Trading Co",
+   "invoice_date": "2026-01-15",
+   "due_date": "2026-02-14",
+   "currency": "CNY",
+   "line_items": [
+    {
+     "description": "Paper lanterns (red)",
+     "quantity": 100,
+     "unit_price": 8.0,
+     "amount": 800.0
+    }
+   ],
+   "subtotal": 800.0,
+   "tax_rate_percent": 13,
+   "tax_amount": 104.0,
+   "total": 904.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_007": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "NW-77340",
+   "vendor_name": "Northwind Logistics",
+   "invoice_date": "2026-02-18",
+   "due_date": "2026-03-20",
+   "currency": "USD",
+   "line_items": [
+    {
+     "description": "Crating labour",
+     "quantity": 3,
+     "unit_price": 60.0,
+     "amount": 180.0
+    },
+    {
+     "description": "Fuel surcharge",
+     "quantity": 1,
+     "unit_price": 45.0,
+     "amount": 45.0
+    },
+    {
+     "description": "Cargo insurance",
+     "quantity": 1,
+     "unit_price": 225.0,
+     "amount": 225.0
+    }
+   ],
+   "subtotal": 450.0,
+   "tax_rate_percent": 8.25,
+   "tax_amount": 37.13,
+   "total": 487.13,
+   "extraction_notes": ""
+  }
+ },
+ "inv_008": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "HF-10458",
+   "vendor_name": "Harbor & Finch Stationers",
+   "invoice_date": "2026-03-20",
+   "due_date": "2026-04-19",
+   "currency": "USD",
+   "line_items": [
+    {
+     "description": "Bulk notebooks, 1 lot",
+     "quantity": 1,
+     "unit_price": 333.33,
+     "amount": 333.33
+    }
+   ],
+   "subtotal": 333.33,
+   "tax_rate_percent": 7.5,
+   "tax_amount": 25.0,
+   "total": 358.33,
+   "extraction_notes": ""
+  }
+ },
+ "inv_009": {
+  "expect_review": true,
+  "truth": {
+   "needs_review": true,
+   "why": "Handwritten total 1,250.00 overwrites printed 1,298.00; GST amount illegible. Only a human can decide."
+  }
+ },
+ "inv_010": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "ACM-2026-0163",
+   "vendor_name": "Acme Industrial Supply Pvt Ltd",
+   "invoice_date": "2026-03-16",
+   "due_date": "2026-04-15",
+   "currency": "INR",
+   "line_items": [
+    {
+     "description": "Bearing 6204",
+     "quantity": 4,
+     "unit_price": 12.5,
+     "amount": 50.0
+    },
+    {
+     "description": "Bearing 6205",
+     "quantity": 4,
+     "unit_price": 14.0,
+     "amount": 56.0
+    },
+    {
+     "description": "V-belt A42",
+     "quantity": 6,
+     "unit_price": 8.75,
+     "amount": 52.5
+    },
+    {
+     "description": "V-belt B51",
+     "quantity": 6,
+     "unit_price": 10.2,
+     "amount": 61.2
+    },
+    {
+     "description": "Grease cartridge",
+     "quantity": 12,
+     "unit_price": 3.4,
+     "amount": 40.8
+    },
+    {
+     "description": "Hose clamp 25mm",
+     "quantity": 50,
+     "unit_price": 0.65,
+     "amount": 32.5
+    },
+    {
+     "description": "Hose clamp 40mm",
+     "quantity": 50,
+     "unit_price": 0.9,
+     "amount": 45.0
+    },
+    {
+     "description": "Gasket set G7",
+     "quantity": 3,
+     "unit_price": 22.0,
+     "amount": 66.0
+    },
+    {
+     "description": "Oil seal 35x52",
+     "quantity": 10,
+     "unit_price": 5.1,
+     "amount": 51.0
+    },
+    {
+     "description": "Coupling 38mm",
+     "quantity": 2,
+     "unit_price": 64.0,
+     "amount": 128.0
+    },
+    {
+     "description": "Shaft key 10x8",
+     "quantity": 20,
+     "unit_price": 1.25,
+     "amount": 25.0
+    },
+    {
+     "description": "Lock nut KM6",
+     "quantity": 15,
+     "unit_price": 2.8,
+     "amount": 42.0
+    }
+   ],
+   "subtotal": 650.0,
+   "tax_rate_percent": 18,
+   "tax_amount": 117.0,
+   "total": 767.0,
+   "extraction_notes": ""
+  }
+ },
+ "inv_011": {
+  "expect_review": false,
+  "truth": {
+   "invoice_number": "BP/2026/0051",
+   "vendor_name": "Brightpath Consulting Ltd",
+   "invoice_date": "2026-03-25",
+   "due_date": "2026-04-24",
+   "currency": "GBP",
+   "line_items": [
+    {
+     "description": "Advisory retainer (March)",
+     "quantity": 1,
+     "unit_price": 2000.0,
+     "amount": 2000.0
+    }
+   ],
+   "subtotal": 2000.0,
+   "tax_rate_percent": 20,
+   "tax_amount": 400.0,
+   "total": 2400.0,
+   "extraction_notes": ""
+  }
+ }
+}

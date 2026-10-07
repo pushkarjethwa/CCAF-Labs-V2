@@ -1,0 +1,16 @@
+{
+  "_comment": "Routing policy as DATA so risk owners can change thresholds without a code release. Tier names are aliases (fast/balanced/premium); model ids live only in config/models.py.",
+  "min_confidence": 0.75,
+  "high_value_usd": 10000,
+  "tiers": {"first": "fast", "second": "balanced", "adjudicator": "premium"},
+  "efforts": {"fast": null, "balanced": null, "premium": null},
+  "max_tokens": 4000,
+  "adjudicate_only_on_hold_disagreement": true,
+  "queues": {
+    "low": "auto_pay_cycle",
+    "medium": "clerk_check",
+    "high": "manager_review",
+    "hold": "block_and_verify_out_of_band",
+    "none": "human_triage"
+  }
+}

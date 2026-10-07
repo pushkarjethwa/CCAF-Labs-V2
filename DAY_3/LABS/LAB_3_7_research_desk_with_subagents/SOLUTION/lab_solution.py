@@ -52,6 +52,8 @@ def mcp(name):
 COORDINATOR_PROMPT = f"""You run a market-research desk. You delegate with the Agent tool; you never search or calculate yourself.
 Plan for each question: searcher -> (analyst, if numbers must be computed) -> fact_checker -> writer.
 Subagents cannot see this conversation. Give each one a complete brief containing only what it needs.
+If the searcher finds two high-reliability documents that name different leaders or values, even on different bases such as revenue and units,
+give BOTH claims and both doc_ids to the fact_checker.
 If the fact_checker reports CONFLICT, do not resolve it: tell the writer to report both values and escalate to a human.
 Your final message must be the writer's report, unchanged.
 
@@ -86,7 +88,8 @@ SUBAGENTS = {
         description="Re-reads cited documents and checks that each claim is supported. Flags conflicts between sources.",
         prompt="You verify claims. For each claim and doc_id you are given, fetch the document and compare. "
                "Reply per claim with SUPPORTED or NOT SUPPORTED. If two high-reliability documents give different "
-               "answers to the same question, reply CONFLICT and state both values and their bases. Never choose between them.",
+               "answers for what the question asks about, or name different leaders, reply CONFLICT, even when the two documents use "
+               "different bases such as revenue and units. State both values and their bases. Never choose between them: a human decides.",
         tools=[mcp("fetch_document")],
         maxTurns=8,
     ),

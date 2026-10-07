@@ -1,0 +1,88 @@
+{
+ "_comment": "Known-bad model outputs used by STAGE_04 and the tests. Each is schema-valid. 'passes_semantic' says whether the five arithmetic/business validators accept it.",
+ "fixtures": [
+  {
+   "name": "silent_subtotal_edit",
+   "doc_id": "inv_002",
+   "passes_semantic": true,
+   "story": "total 129 was wrong; the 'repair' rewrote subtotal and tax so arithmetic passes",
+   "record": {
+    "invoice_number": "ACM-2026-0131",
+    "vendor_name": "Acme Industrial Supply Pvt Ltd",
+    "invoice_date": "2026-03-09",
+    "due_date": "2026-04-08",
+    "currency": "INR",
+    "line_items": [],
+    "subtotal": 109.32,
+    "tax_rate_percent": 18,
+    "tax_amount": 19.68,
+    "total": 129.0,
+    "extraction_notes": ""
+   }
+  },
+  {
+   "name": "locale_misparse",
+   "doc_id": "inv_004",
+   "passes_semantic": true,
+   "story": "1.000,00 read as 1.0; 1.0 + 0.19 = 1.19 at 19%: perfectly consistent, perfectly wrong",
+   "record": {
+    "invoice_number": "RW-2026-5530",
+    "vendor_name": "Rheinwerk Maschinenbau GmbH",
+    "invoice_date": "2026-03-05",
+    "due_date": "2026-04-04",
+    "currency": "EUR",
+    "line_items": [
+     {
+      "description": "Fraesspindel Wartung",
+      "quantity": 1,
+      "unit_price": 1.0,
+      "amount": 1.0
+     }
+    ],
+    "subtotal": 1.0,
+    "tax_rate_percent": 19,
+    "tax_amount": 0.19,
+    "total": 1.19,
+    "extraction_notes": ""
+   }
+  },
+  {
+   "name": "computed_illegible_tax",
+   "doc_id": "inv_009",
+   "passes_semantic": true,
+   "story": "GST was illegible; the model computed 198.00 and the totals reconcile",
+   "record": {
+    "invoice_number": "ACM-2026-0158",
+    "vendor_name": "Acme Industrial Supply Pvt Ltd",
+    "invoice_date": "2026-03-14",
+    "due_date": "2026-04-13",
+    "currency": "INR",
+    "line_items": [],
+    "subtotal": 1100.0,
+    "tax_rate_percent": 18,
+    "tax_amount": 198.0,
+    "total": 1298.0,
+    "extraction_notes": "GST illegible; computed as 18% of subtotal."
+   }
+  },
+  {
+   "name": "wrong_total_only",
+   "doc_id": "inv_002",
+   "passes_semantic": false,
+   "story": "the original first-pass error: total 129 contradicts 100 + 18",
+   "record": {
+    "invoice_number": "ACM-2026-0131",
+    "vendor_name": "Acme Industrial Supply Pvt Ltd",
+    "invoice_date": "2026-03-09",
+    "due_date": "2026-04-08",
+    "currency": "INR",
+    "line_items": [],
+    "subtotal": 100.0,
+    "tax_rate_percent": 18,
+    "tax_amount": 18.0,
+    "total": 129.0,
+    "extraction_notes": ""
+   }
+  }
+ ]
+}

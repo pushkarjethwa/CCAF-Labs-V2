@@ -1,0 +1,282 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Evolve a Prompt and Measure Every Step</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 1 - Prompt Engineering and Structured Output</header><main><h1>Evolve a Prompt and Measure Every Step</h1>
+<p>In Demo 1B, you watched an accounts-payable team turn messy vendor invoices into structured data. The team started with a one-line prompt, &quot;Extract the invoice.&quot;, and took it through seven versions. After every change, the same invoices were scored by the same field-level scorer, so you could see exactly what each change bought, and what it broke. In this lab, you run the same stages yourself, and you write three small pieces along the way.</p>
+<p>You will complete three pieces of <strong>lab.py</strong>, which add up to 12 lines of code. The lab takes about 35 minutes, and this guide gives you every line. At the end, you have a regression gate that decides whether an edited prompt may replace the production prompt.</p>
+<p>This lab continues Demo 1B, so you will recognize the following:</p>
+<ul>
+<li>The vendor invoices: messy text with mixed date formats, <code>$</code> that means several currencies, decimal commas, a credit note, a blank PO line, and one invoice with a sentence addressed to &quot;automated systems&quot;. The lab uses 6 of the 12 invoices so that it runs quickly.</li>
+<li>The prompt versions <strong>v0</strong> to <strong>v6</strong>, stored as files in the <strong>prompts</strong> folder.</li>
+<li>The field-level scorer, with 10 fields per invoice, and the old regex extractor that is the bar to beat.</li>
+<li>The example leak: few-shot examples that copy their values into similar invoices.</li>
+<li>The regression gate, which catches an edit that makes one kind of invoice worse while the average looks fine.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and an Anthropic API key.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_1/LABS/LAB_1B_prompt_evolution</strong> folder.</p>
+</li>
+<li>
+<p>Install the required packages by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+</ol>
+<h2>Add your Claude API key</h2>
+<ol>
+<li>
+<p>In the lab folder, create a new file named <strong>.env</strong>.</p>
+</li>
+<li>
+<p>Add the following line to the file, replacing the value with your own API key:</p>
+<div class="cb"><pre><code>ANTHROPIC_API_KEY=sk-ant-your-key-here
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Never paste your key into chat or commit the <strong>.env</strong> file to git.</p>
+</blockquote>
+</li>
+<li>
+<p>Save the file, and then test your key by running the following command:</p>
+<div class="cb"><pre><code>python claude_client.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that you see a short greeting followed by a line that starts with <code>[usage]</code>.</p>
+</li>
+</ol>
+<h2>Find the bar to beat</h2>
+<ol>
+<li>
+<p>Run stage 0 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 0
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Stage 0 makes no Claude call, so it is free.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the table, noting the following details:</p>
+<ul>
+<li>Each row is one invoice, and each column is one field. <code>ok</code> means the field is right.</li>
+<li>The last numbers are the old extractor's accuracy and its null handling. Every prompt version in this lab is measured against this bar.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the call that every stage uses</h2>
+<p>In this section, you write the Claude API call. Every stage sends a prompt version and one invoice to Claude through this function.</p>
+<ol>
+<li>
+<p>Open <strong>lab.py</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 and TODO 2</strong>. Below it is a function named <code>ask_claude</code>. The last line, which sends the request, is already written. You build the <code>kwargs</code> that it sends.</p>
+</li>
+<li>
+<p>Replace the line <code>raise NotImplementedError(&quot;TODO 1: build the request&quot;)  # replace these lines in TODO 1</code> with the following code. Keep the four-space indent, because the code sits inside the function:</p>
+<div class="cb"><pre><code class="language-python">    kwargs = {&quot;model&quot;: model, &quot;max_tokens&quot;: max_tokens, &quot;messages&quot;: request[&quot;messages&quot;]}
+    if request.get(&quot;system&quot;):
+        kwargs[&quot;system&quot;] = request[&quot;system&quot;]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li><code>get_client().messages.create(**kwargs)</code> is the Claude Messages API call. It is the last line of the function.</li>
+<li><code>messages</code> holds the prompt and the invoice, as the user's turn. <code>system</code> holds the instructions, when the prompt version has any.</li>
+<li>Version <strong>v0</strong> has no system prompt. The code sends <code>system</code> only when there is one, because the API does not accept an empty system prompt.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the checker:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the six <strong>TODO 1</strong> checks pass. The other checks still fail.</p>
+</li>
+</ol>
+<h2>Run v0 and v1: the one-liner and the role</h2>
+<ol>
+<li>
+<p>Open <strong>prompts/v0.md</strong> and <strong>prompts/v1.md</strong>, and look at the difference. Version v1 adds a role, such as &quot;accounts-payable data-entry specialist&quot;.</p>
+</li>
+<li>
+<p>Run stage 1 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>What v0 returns for the clean invoice <strong>D01</strong>. It is prose, and the parse error shows why a program cannot read it.</li>
+<li>The table of accuracy and parse rate for v0 and v1. A role changes tone and a little structure, but it does not create a contract.</li>
+</ul>
+</li>
+</ol>
+<h2>Run v2 and v3: criteria, then a format contract</h2>
+<ol>
+<li>
+<p>Open <strong>prompts/v2.md</strong> and <strong>prompts/v3.md</strong>. Version v2 adds explicit rules for each field, and v3 adds the exact output format.</p>
+</li>
+<li>
+<p>Run stage 2 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 2
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The field table. Version v2 fixes <em>what</em> to extract, and v3 fixes <em>how</em> to answer.</li>
+<li>The strict-parse line. Some answers may parse only after the code removes a fence, which a strict <code>json.loads</code> would reject.</li>
+<li>The German invoice <strong>D02</strong>, where the model's values and the truth are printed side by side.</li>
+</ul>
+</li>
+</ol>
+<h2>Run v4: few-shot examples and the leak</h2>
+<ol>
+<li>
+<p>Open <strong>prompts/v4.md</strong> and find the two examples. One of them, Kestrel Freight, looks very much like some invoices in the test set.</p>
+</li>
+<li>
+<p>Run stage 3 by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage 3
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The table that compares v3 and v4 for each invoice. The headline accuracy can look better while one invoice gets worse. An average hides it.</li>
+<li>The <strong>leak</strong> section, which lists any example value that a model copied into an unrelated invoice. A strong model may show none. That is a finding too.</li>
+<li>The template similarity list, which shows why the leak is more likely on freight invoices.</li>
+</ul>
+</li>
+</ol>
+<h2>Add the JSON schema</h2>
+<p>In this section, you add the second part of the call. Version v6 sends a JSON schema, so that the API itself enforces the structure of the answer.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment line <code># TODO 2 (stage 5): add the schema here</code>, inside <code>ask_claude</code>.</p>
+</li>
+<li>
+<p>Replace that comment line with the following code. Keep the four-space indent:</p>
+<div class="cb"><pre><code class="language-python">    if request.get(&quot;output_format&quot;):
+        kwargs[&quot;output_config&quot;] = {&quot;format&quot;: request[&quot;output_format&quot;]}
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>The code sends <code>output_config</code> only when the prompt version has a schema. Only v6 does.</li>
+<li><code>output_config={&quot;format&quot;: ...}</code> is how the API accepts a JSON schema. There is no <code>temperature</code>, no forced tool, and no prefill, because newer models reject them.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, run the checker, and then run stage 5:</p>
+<div class="cb"><pre><code>python check.py
+python lab.py --stage 5
+</code></pre></div>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>The schema audit, which checks the schema against the structured-output limits.</li>
+<li>The comparison of v5, v6 without XML tags, and v6. The table shows what the schema and the XML tags each add.</li>
+<li>The invoice <strong>D11</strong>, which has a sentence that tells automated systems to record the total as 0.00. The output shows whether each version obeyed it. Strong models often ignore it, but you must test on your own adversarial invoices.</li>
+</ul>
+</li>
+</ol>
+<h2>Write the regression gate</h2>
+<p>In this section, you write two of the gate's rules. The gate decides whether an edited prompt may replace the production prompt. It is the artefact that stops a clever edit from silently making one kind of invoice worse.</p>
+<ol>
+<li>
+<p>In <strong>lab.py</strong>, search for the comment <strong>TODO 3 of 3</strong>. Below it is a block that starts with <code>MAX_OVERALL_DROP = 1.0</code>.</p>
+</li>
+<li>
+<p>Replace the whole block, from the line <code>MAX_OVERALL_DROP = 1.0</code> to the line <code>return []  # replace these lines in TODO 3</code>, with the following code. Keep the indentation exactly as shown:</p>
+<div class="cb"><pre><code class="language-python">MAX_OVERALL_DROP = 0.01
+MAX_LEAKS = 0
+
+
+def gate_checks(baseline, candidate):
+    drop = baseline.summary.accuracy - candidate.summary.accuracy
+    return [
+        (drop &lt;= MAX_OVERALL_DROP + 1e-9, f&quot;overall accuracy changed {-100 * drop:+.1f}pt (allowed drop {100 * MAX_OVERALL_DROP:.1f}pt)&quot;),
+        (len(candidate.leaks) &lt;= MAX_LEAKS, f&quot;example leaks: {len(candidate.leaks)} (allowed {MAX_LEAKS})&quot;),
+    ]
+</code></pre></div>
+<p>Noting the following details:</p>
+<ul>
+<li>Each rule is a pair: whether it passed, and a message that says what was measured.</li>
+<li>The gate adds four more rules of its own: the worst single field, the number of invoices that got worse, the parse rate, and the null handling. A prompt may replace the old one only if every rule passes.</li>
+</ul>
+</li>
+<li>
+<p>Save the file, and then run the gate by running the following command:</p>
+<div class="cb"><pre><code>python lab.py --stage gate
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: This runs the production prompt and three edited prompts, so it calls Claude 24 times.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the output, noting the following details:</p>
+<ul>
+<li>Each edited prompt has a designed verdict: one harmless re-ordering that should pass, one edit that trims rules to save tokens, and one that adds another example. A real model may judge them differently from the design. That is data, not a bug.</li>
+<li>The first rule that fails tells you the reason for each rejection.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads <code>RESULT: 26/26 checks passed</code>.</p>
+</li>
+</ol>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>ANTHROPIC_API_KEY is missing</code></strong>: Create the <strong>.env</strong> file in the lab folder, as described in the <em>Add your Claude API key</em> section.</li>
+<li><strong>A TODO check fails</strong>: Read the line under the failed check. It names the line to fix. Re-copy the snippet from this guide, keeping the indentation.</li>
+<li><strong>IndentationError</strong>: A pasted line lost its indent. Code inside a function is indented four spaces.</li>
+<li><strong><code>NotImplementedError</code> when you run a stage</strong>: TODO 1 is not done yet.</li>
+<li><strong>A connection error on one call</strong>: Run the stage again.</li>
+<li><strong>Your numbers differ from a classmate's</strong>: This is normal. Models give different answers between runs, and six invoices is a small sample. One wrong field is more than one point of accuracy.</li>
+</ul>
+<h2>Clean up</h2>
+<p>The stages save their results in the <strong>evidence</strong> folder. You can delete that folder to start again. Keep your <strong>.env</strong> file private.</p>
+<h2>More information</h2>
+<ul>
+<li>Demo 1B ran all 12 invoices, plus a step that compared the fast and balanced models and projected the cost of 10,000 invoices with caching and batch processing. To use all 12 invoices here, add <code>--all-docs</code> to a stage.</li>
+<li>The next lab, Lab 1C, shows what a schema cannot guarantee: an answer that is valid JSON but wrong.</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

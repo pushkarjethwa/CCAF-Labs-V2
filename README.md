@@ -10,8 +10,10 @@ Everything is in `NEW_LABS/` (new labs and the run-it-yourself versions of the t
 
 | Trainer demo | Your version | What you run |
 |---|---|---|
-| Day 1, Demo 1A: Model behavior tournament | [Lab 1A](NEW_LABS/LAB_1A_model_tournament) | `python demo.py --stage 0` ... `5` |
-| Day 1, Demo 1B: Prompt evolution workshop | [Lab 1B](NEW_LABS/LAB_1B_prompt_evolution) | `python demo.py --stage 0` ... `6`, `vault`, `gate` |
+| Day 1, Demo 1A: Model behavior tournament | [Lab 1A](DAY_1/LABS/LAB_1A_model_tournament) | `python lab.py --stage 0` ... `4` |
+| Day 1, Demo 1B: Prompt evolution workshop | [Lab 1B](DAY_1/LABS/LAB_1B_prompt_evolution) | `python lab.py --stage 0` ... `5`, `gate` |
+| Day 1, Demo 1C: Structured-output failure lab | [Lab 1C](DAY_1/LABS/LAB_1C_structured_output_failure_lab) | `python lab.py --stage 1` ... `5` |
+| Day 1, Demo 1D: Cost engineering | [Lab 1D](DAY_1/LABS/LAB_1D_cost_engineering) | `python lab.py --stage 1` ... `4` |
 | Day 2, Demo 2.0: Intro to tool use | [Lab 2.0](NEW_LABS/LAB_2_0_intro_to_tool_use) | `python lab.py --step 1` ... `3` |
 
 The Day 3 demos (3A to 3G) are the trainer's, in `TRAINER_V2/DAY_3/DEMOS`. If your trainer shares that folder you can re-run any of them: see [Day 3 demos](#day-3-demos-what-the-trainer-shows) below.
@@ -58,12 +60,10 @@ The loop for every lab: read the README, edit `lab.py`, run `python check.py` un
 
 | Lab | What it is about | Time |
 |---|---|---|
-| [1A Model tournament (demo version)](NEW_LABS/LAB_1A_model_tournament) | Run the trainer's Demo 1A yourself: compare Haiku, Sonnet and Opus classes on 24 invoices, structured output, routing, cost for 100k records | 60-75 min |
-| [1B Prompt evolution (demo version)](NEW_LABS/LAB_1B_prompt_evolution) | Run the trainer's Demo 1B yourself: v0 to v6 prompts on 12 messy invoices, example leak, schema, model and cost comparison, prompt vault and regression gate | 60-75 min |
-| [1.1 HR roster classification](DAY_1/LABS/LAB_1_1_hr_roster_classification) | Compare model sizes on one task: which is good enough, and what does it cost at scale | 30 min |
-| [1.2 IT incident normalization](DAY_1/LABS/LAB_1_2_it_incident_normalization) | Evolve a prompt and a JSON schema step by step, and measure each change | 35 min |
-| [1.3 Warehouse receiving emails](DAY_1/LABS/LAB_1_3_warehouse_receiving_extraction) | Extract data, validate it, and retry with the error fed back to the model | 35 min |
-| [1.4 PO reconciliation service](DAY_1/LABS/LAB_1_4_po_reconciliation_service) | A validated, cached, batched service: cost engineering | 40 min |
+| [1A Model tournament](DAY_1/LABS/LAB_1A_model_tournament) | Run Demo 1A's stages on invoices: three model classes, structured output, an escalation rule. You write 23 lines | 30 min |
+| [1B Prompt evolution](DAY_1/LABS/LAB_1B_prompt_evolution) | Run Demo 1B's prompt versions v0 to v6 on invoices, add a schema, and write the regression gate. You write 12 lines | 35 min |
+| [1C Structured-output failure lab](DAY_1/LABS/LAB_1C_structured_output_failure_lab) | Valid JSON that is wrong about money: business rules, grounding, a bounded retry loop and a review queue. You write 29 lines | 35 min |
+| [1D Cost engineering](DAY_1/LABS/LAB_1D_cost_engineering) | Token counting, prompt caching (and how it breaks silently) and batch processing. You write 19 lines | 40 min |
 | [1.5 Prompt caching (new)](NEW_LABS/LAB_1_5_prompt_caching) | Mark a long prefix as cacheable, read cache hits, see what breaks the cache | 30 min |
 
 ### Day 2: Tool design and MCP (D2)

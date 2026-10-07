@@ -1,0 +1,98 @@
+GLOBAL PROCUREMENT AND SUPPLIER INVOICE POLICY
+Document owner: Group Finance Shared Services | Revision: 14 | Classification: Internal
+Applies to every supplier invoice entering the accounts-payable workflow.
+
+SECTION 1. PURPOSE AND SCOPE
+1.1 This policy governs the verification of supplier invoices received by Accounts Payable on behalf of all group entities.
+1.2 An invoice is COMPLIANT only if it violates none of the verifiable clauses listed in Sections 2 to 6. Each verifiable clause carries an identifier of the form P-x.y. Clauses without such an identifier are operational guidance and are not verified from the invoice alone.
+1.3 Amounts are compared in United States dollars. The field 'total_usd' on the invoice record is the authoritative USD-equivalent total.
+1.4 When an invoice violates several clauses, all violated identifiers are reported, in ascending order.
+1.5 Where the goods receipt is posted after the invoice date, the Accounts Payable Manager shall escalate to the Procurement Steering Committee the goods receipt note within 3 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 5% sample review by Internal Audit each quarter.
+1.6 Where a variance above two percent is detected, the Accounts Payable Manager shall notify the requesting cost centre owner of the supporting documentation within 10 business days. The record must be retained in the ERP vendor ledger for 5 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 2. VENDOR ELIGIBILITY
+P-2.1 The vendor named on the invoice MUST appear on the Approved Vendor List (Appendix A), matched by vendor_id. A vendor name that resembles a listed vendor but carries a different vendor_id is NOT approved.
+2.2 Where the contract reaches ninety percent of its approved value, the Regional Finance Director shall validate against the contract repository the signed statement of work within 5 business days. The record must be retained in the ERP vendor ledger for 7 years and is subject to a 3% sample review by Internal Audit each quarter.
+2.3 Where an invoice references a purchase order that has been closed, the Accounts Payable Manager shall archive in the document management system the signed statement of work within 3 business days. The record must be retained in the ERP vendor ledger for 5 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 3. PURCHASE ORDERS AND APPROVAL THRESHOLDS
+P-3.1 Any invoice whose total_usd is strictly greater than 2,500.00 MUST quote a purchase order number. An invoice of exactly 2,500.00 does not require a purchase order.
+P-3.2 Any invoice whose total_usd is strictly greater than 25,000.00 MUST carry an approval with the role CFO in its approvals list. An invoice of exactly 25,000.00 does not require CFO approval.
+3.3 Where the delivery date slips beyond the agreed window, the Vendor Master Data Steward shall validate against the contract repository the supporting documentation within 15 business days. The record must be retained in the shared services case tool for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+3.4 Where an invoice references a purchase order that has been closed, the Financial Controller shall escalate to the Procurement Steering Committee the approval trail within 7 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 4. TAX AND CURRENCY
+P-4.1 The invoice MUST show the vendor tax identifier (EIN, VAT or GST number). An invoice whose tax_id is missing is non-compliant.
+P-4.2 Invoices MUST be denominated in USD, EUR or GBP. Any other currency is permitted only when treasury_preapproval is true.
+4.3 Where a variance above two percent is detected, the Accounts Payable Manager shall escalate to the Procurement Steering Committee the service acceptance certificate within 3 business days. The record must be retained in the contract repository for 10 years and is subject to a 1% sample review by Internal Audit each quarter.
+4.4 Where the delivery date slips beyond the agreed window, the Procurement Category Lead shall confirm in writing the receipt of the supporting documentation within 15 business days. The record must be retained in the contract repository for 10 years and is subject to a 5% sample review by Internal Audit each quarter.
+
+SECTION 5. PAYMENT TERMS AND PROHIBITED SPEND
+P-5.1 Payment terms shorter than 30 days (terms_days < 30) are non-compliant unless the invoice offers an early-payment discount of at least 2.0 percent (early_pay_discount_pct >= 2.0).
+P-5.2 Spend in the categories 'gift cards' and 'cash advances' is prohibited and can never be paid against a supplier invoice.
+5.3 Where the goods receipt is posted after the invoice date, the Internal Audit liaison shall review and countersign the supporting documentation within 2 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+5.4 Where a second invoice arrives for the same purchase order line, the Compliance Officer shall log in the vendor master record the supporting documentation within 5 business days. The record must be retained in the ERP vendor ledger for 10 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+SECTION 6. INVOICE TIMELINESS
+P-6.1 An invoice MUST be received within 90 days of the invoice date. If received_date minus invoice_date is greater than 90 days the invoice is non-compliant; exactly 90 days is acceptable.
+6.2 Where a second invoice arrives for the same purchase order line, the Compliance Officer shall archive in the document management system the goods receipt note within 7 business days. The record must be retained in the contract repository for 10 years and is subject to a 3% sample review by Internal Audit each quarter.
+6.3 Where the goods receipt is posted after the invoice date, the Procurement Category Lead shall confirm in writing the receipt of the goods receipt note within 3 business days. The record must be retained in the document management system for 7 years and is subject to a 2% sample review by Internal Audit each quarter.
+
+APPENDIX A. APPROVED VENDOR LIST (vendor_id | name | category | tier)
+VND-1001 | Northwind Facilities | Office supplies | Strategic
+VND-1002 | Bluepeak Maintenance | IT hardware | Preferred
+VND-1003 | Harbor Facilities | Cloud and software | Approved
+VND-1004 | Quartz Maintenance | Professional services | Strategic
+VND-1005 | Ironwood Facilities | Facilities and maintenance | Preferred
+VND-1006 | Lumen Maintenance | Logistics and freight | Approved
+VND-1007 | Cobalt Facilities | Catering and events | Strategic
+VND-1008 | Meridian Maintenance | Security services | Preferred
+VND-1009 | Summit Facilities | Staffing | Approved
+VND-1010 | Granite Maintenance | Training and development | Strategic
+VND-1011 | Willow Facilities | Office supplies | Preferred
+VND-1012 | Atlas Maintenance | IT hardware | Approved
+VND-1013 | Falcon Facilities | Cloud and software | Strategic
+VND-1014 | Redwood Maintenance | Professional services | Preferred
+VND-1015 | Vertex Facilities | Facilities and maintenance | Approved
+VND-1016 | Evergreen Maintenance | Logistics and freight | Strategic
+VND-1017 | Pioneer Facilities | Catering and events | Preferred
+VND-1018 | Beacon Maintenance | Security services | Approved
+VND-1019 | Sterling Facilities | Staffing | Strategic
+VND-1020 | Aurora Maintenance | Training and development | Preferred
+VND-1021 | Northwind Facilities | Office supplies | Approved
+VND-1022 | Bluepeak Maintenance | IT hardware | Strategic
+VND-1023 | Harbor Facilities | Cloud and software | Preferred
+VND-1024 | Quartz Maintenance | Professional services | Approved
+VND-1025 | Ironwood Facilities | Facilities and maintenance | Strategic
+VND-1026 | Lumen Maintenance | Logistics and freight | Preferred
+VND-1027 | Cobalt Facilities | Catering and events | Approved
+VND-1028 | Meridian Maintenance | Security services | Strategic
+VND-1029 | Summit Facilities | Staffing | Preferred
+VND-1030 | Granite Maintenance | Training and development | Approved
+VND-1031 | Willow Facilities | Office supplies | Strategic
+VND-1032 | Atlas Maintenance | IT hardware | Preferred
+VND-1033 | Falcon Facilities | Cloud and software | Approved
+VND-1034 | Redwood Maintenance | Professional services | Strategic
+VND-1035 | Vertex Facilities | Facilities and maintenance | Preferred
+VND-1036 | Evergreen Maintenance | Logistics and freight | Approved
+VND-1037 | Pioneer Facilities | Catering and events | Strategic
+VND-1038 | Beacon Maintenance | Security services | Preferred
+VND-1039 | Sterling Facilities | Staffing | Approved
+VND-1040 | Aurora Maintenance | Training and development | Strategic
+VND-1041 | Northwind Facilities | Office supplies | Preferred
+VND-1042 | Bluepeak Maintenance | IT hardware | Approved
+VND-1043 | Harbor Facilities | Cloud and software | Strategic
+VND-1044 | Quartz Maintenance | Professional services | Preferred
+VND-1045 | Ironwood Facilities | Facilities and maintenance | Approved
+VND-1046 | Lumen Maintenance | Logistics and freight | Strategic
+VND-1047 | Cobalt Facilities | Catering and events | Preferred
+VND-1048 | Meridian Maintenance | Security services | Approved
+VND-1049 | Summit Facilities | Staffing | Strategic
+VND-1050 | Granite Maintenance | Training and development | Preferred
+VND-1051 | Willow Facilities | Office supplies | Approved
+VND-1052 | Atlas Maintenance | IT hardware | Strategic
+Vendors absent from this list are not approved, whatever their name.
+
+APPENDIX B. APPROVAL MATRIX
+Up to 2,500.00 USD: AP Manager. 2,500.01 to 25,000.00 USD: AP Manager and Department Head. Above 25,000.00 USD: AP Manager, Department Head, VP Finance and CFO.
+

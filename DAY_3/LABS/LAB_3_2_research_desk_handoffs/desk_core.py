@@ -24,8 +24,9 @@ ROLES = {
                            "documents; convert dates carefully. Report the exact facts that answer the question, and label any low-reliability claim as a rumour.",
                  "tools": ["search_corpus", "fetch_document"], "turns": 10},
     "analyst": {"prompt": "You calculate. Use your tools for every number; never do arithmetic in your head.", "tools": ["cagr", "divide"], "turns": 5},
-    "fact_checker": {"prompt": "You verify claims. Fetch the cited document and compare. If another current, high-reliability document answers the same question "
-                               "differently, the verdict is CONFLICT: never choose between them.", "tools": ["fetch_document", "search_corpus"], "turns": 8},
+    "fact_checker": {"prompt": "You verify claims. Fetch the cited document and compare. If another current, high-reliability document gives a different leader or a different value for what the "
+                               "question asks about, the verdict is CONFLICT, even when the two documents use different bases such as revenue and units. "
+                               "State both values and both bases in the detail. Never choose between them: a human decides which basis counts.", "tools": ["fetch_document", "search_corpus"], "turns": 8},
 }
 WRITER_SYSTEM = ("You write the final report from the facts you are given, using exact figures and nothing else. Name the winner of any comparison in a "
                  "sentence such as '<product> is cheaper'. Quote no figure from a superseded or low-reliability source, except a rumour clearly "

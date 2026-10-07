@@ -1,0 +1,49 @@
+{
+  "ex_a_kestrel": {
+    "invoice_number": "KF-20417",
+    "vendor": "Kestrel Freight Ltd",
+    "invoice_date": "2025-02-11",
+    "due_date": "2025-03-14",
+    "currency": "USD",
+    "subtotal": 2570.40,
+    "tax": 0.00,
+    "total": 2570.40,
+    "line_items": [
+      {"description": "Ocean freight, 20ft container", "qty": 1, "unit_price": 1850.00},
+      {"description": "Terminal handling", "qty": 1, "unit_price": 275.00},
+      {"description": "Chassis rental, per day", "qty": 2, "unit_price": 85.00},
+      {"description": "Fuel surcharge (12%)", "qty": 1, "unit_price": 275.40}
+    ],
+    "po_number": "PO-77120"
+  },
+  "ex_b_redwood": {
+    "invoice_number": "RJ-9034",
+    "vendor": "Redwood Janitorial Wholesale",
+    "invoice_date": "2025-01-20",
+    "due_date": "2025-02-19",
+    "currency": "USD",
+    "subtotal": 512.00,
+    "tax": 30.72,
+    "total": 542.72,
+    "line_items": [
+      {"description": "Floor cleaner concentrate 1gal", "qty": 24, "unit_price": 18.75},
+      {"description": "Microfiber mop head", "qty": 10, "unit_price": 6.20}
+    ],
+    "po_number": "4471"
+  },
+  "ex_c_okonkwo": {
+    "invoice_number": "2025/114",
+    "vendor": "Okonkwo & Webb Consulting LLP",
+    "invoice_date": "2025-02-14",
+    "due_date": null,
+    "currency": "GBP",
+    "subtotal": 3412.40,
+    "tax": 682.48,
+    "total": 4094.88,
+    "line_items": [
+      {"description": "Advisory services - January engagement (fixed fee)", "qty": 1, "unit_price": 3200.00},
+      {"description": "Travel and subsistence (at cost)", "qty": 1, "unit_price": 212.40}
+    ],
+    "po_number": null
+  }
+}

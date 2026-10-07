@@ -30,7 +30,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 @media print{header{display:none}pre{white-space:pre-wrap}}
 </style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 3 - Agentic Architecture and Orchestration</header><main><h1>Build the Research Desk as a Multi-Agent System</h1>
 <p>In Demo 3G, you watched the final design of the research desk written with the Claude Agent SDK. A coordinator delegates each question to four specialists: a searcher, an analyst, a fact-checker, and a writer. The coordinator holds a confidential client note and never researches anything itself. Three controls made the desk safe: each specialist has only the tools its job needs, a hook blocks any brief that contains the confidential note, and a conflict between reliable sources goes to a human. In this lab, you write those controls yourself, for the same desk, with the same corpus and the same questions.</p>
-<p>You will complete three pieces of <strong>lab.py</strong>, which add up to 38 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.</p>
+<p>You will complete three pieces of <strong>lab.py</strong>, which add up to 39 lines of code. The lab takes about 40 minutes, and this guide gives you every line. At the end, the desk answers two real questions, and a scorer checks the answers against the ground truth.</p>
 <p>This lab continues Demo 3G, so you will recognize the following:</p>
 <ul>
 <li>The research desk, its 40-document corpus, its five tools, and the confidential client note about Pallo Systems.</li>
@@ -113,7 +113,8 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
         description=&quot;Re-reads cited documents and checks that each claim is supported. Flags conflicts between sources.&quot;,
         prompt=&quot;You verify claims. For each claim and doc_id you are given, fetch the document and compare. &quot;
                &quot;Reply per claim with SUPPORTED or NOT SUPPORTED. If two high-reliability documents give different &quot;
-               &quot;answers to the same question, reply CONFLICT and state both values and their bases. Never choose between them.&quot;,
+               &quot;answers for what the question asks about, or name different leaders, reply CONFLICT, even when the two documents use &quot;
+               &quot;different bases such as revenue and units. State both values and their bases. Never choose between them: a human decides.&quot;,
         tools=[mcp(&quot;fetch_document&quot;)],
         maxTurns=8,
     ),

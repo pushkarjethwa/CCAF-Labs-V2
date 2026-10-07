@@ -1,0 +1,11 @@
+{
+ "_comment": "Vendor master data used by the tax-rate and currency validators. Illustrative values for the demo, not tax advice.",
+ "vendors": [
+  {"vendor_id": "V-ACME", "names": ["Acme Industrial Supply Pvt Ltd"], "currency": "INR", "allowed_tax_rates": [0, 5, 12, 18]},
+  {"vendor_id": "V-NRTH", "names": ["Northwind Logistics"], "currency": "USD", "allowed_tax_rates": [0, 8.25]},
+  {"vendor_id": "V-RHNW", "names": ["Rheinwerk Maschinenbau GmbH"], "currency": "EUR", "allowed_tax_rates": [0, 7, 19]},
+  {"vendor_id": "V-LNTN", "names": ["Lantern Trading Co"], "currency": "CNY", "allowed_tax_rates": [0, 6, 9, 13]},
+  {"vendor_id": "V-BRPT", "names": ["Brightpath Consulting Ltd"], "currency": "GBP", "allowed_tax_rates": [0, 5, 20]},
+  {"vendor_id": "V-HRFN", "names": ["Harbor & Finch Stationers"], "currency": "USD", "allowed_tax_rates": [0, 7.5]}
+ ]
+}

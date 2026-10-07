@@ -1,0 +1,159 @@
+{
+ "INV-2026-0101": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0102": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0103": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0104": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-2.1"
+  ]
+ },
+ "INV-2026-0105": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-3.1"
+  ]
+ },
+ "INV-2026-0106": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0107": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-3.2"
+  ]
+ },
+ "INV-2026-0108": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-4.1"
+  ]
+ },
+ "INV-2026-0109": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-4.2"
+  ]
+ },
+ "INV-2026-0110": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0111": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-5.1"
+  ]
+ },
+ "INV-2026-0112": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0113": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-5.2"
+  ]
+ },
+ "INV-2026-0114": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-6.1"
+  ]
+ },
+ "INV-2026-0115": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0116": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-2.1",
+   "P-3.1"
+  ]
+ },
+ "INV-2026-0117": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0118": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-4.1",
+   "P-6.1"
+  ]
+ },
+ "INV-2026-0119": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0120": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0121": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0122": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-3.1",
+   "P-5.2"
+  ]
+ },
+ "INV-2026-0123": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0124": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-4.2"
+  ]
+ },
+ "INV-2026-0125": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0126": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-4.1",
+   "P-5.1"
+  ]
+ },
+ "INV-2026-0127": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0128": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-2.1",
+   "P-5.1",
+   "P-6.1"
+  ]
+ },
+ "INV-2026-0129": {
+  "compliant": true,
+  "violated_clauses": []
+ },
+ "INV-2026-0130": {
+  "compliant": false,
+  "violated_clauses": [
+   "P-3.1",
+   "P-3.2"
+  ]
+ }
+}
