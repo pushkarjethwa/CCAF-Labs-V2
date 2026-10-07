@@ -18,6 +18,7 @@
 mono_crash.*
 
 # Build results
+_ARCHIVE_before_demo_alignment/
 LAB_Test/
 #ClaudeFoundation/
 .opencode/
