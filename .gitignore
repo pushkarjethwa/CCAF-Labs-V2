@@ -21,6 +21,7 @@ mono_crash.*
 # Build results
 _ARCHIVE_before_demo_alignment/
 LAB_Test/
+.claude/
 STUDY_GUIDES/
 STUDY_GUIDE/
 #ClaudeFoundation/
