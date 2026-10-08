@@ -1,0 +1,311 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Build an API-Contract Review Skill, Hook and Subagent</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code Configuration and Workflows</header><main><h1>Build an API-contract review skill, hook and subagent</h1>
+<p>In Demo 4C, you turned a long architecture-review prompt into a reusable capability for a billing service: a skill, a script, a hook and a read-only subagent. In this lab, you do the same for a different repository. <strong>shipcalc</strong> is a small shipping-quote library at a logistics company. Its public API is described in <strong>docs/API_CONTRACT.json</strong>, but reviews of API changes are inconsistent, because each reviewer checks different things. You build one reusable <code>/api-contract-review</code> capability for it, live in Claude Code.</p>
+<p>You will complete four small pieces of the repository, which add up to 22 lines, and this guide gives you every line. The lab takes about 40 minutes. At the end, one command reviews a change, a script supplies the evidence, a hook logs the work, and a read-only subagent answers the hard question.</p>
+<p>This lab continues Demo 4C, so you will recognize the following:</p>
+<ul>
+<li>A skill is a folder with a <strong>SKILL.md</strong>. Its front matter has a name and a description that says when to use it, and the references load only when a step reads them.</li>
+<li>A script finds the evidence without a model, and Claude confirms and explains it.</li>
+<li>A hook is configured in <strong>.claude/settings.json</strong>. Claude Code runs it at a lifecycle event, and it works quietly.</li>
+<li>A subagent has its own context and only the tools you list, so a read-only reviewer cannot edit anything.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<blockquote class="">
+<p><strong>Note</strong>: This lab needs the Claude Code command-line tool and Python 3.10 or later. No API key is needed for <strong>check.py</strong>. The live steps use your Claude Code sign-in.</p>
+</blockquote>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_4/LABS/LAB_4_3_shipping_skill_hook_subagent</strong> folder.</p>
+</li>
+<li>
+<p>Install the required package by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the Claude Code command-line tool is installed by running the following command:</p>
+<div class="cb"><pre><code>claude --version
+</code></pre></div>
+</li>
+<li>
+<p>Open a second terminal in the <strong>STARTER</strong> folder of the lab. This is the <strong>shipcalc</strong> repository, and it is where you run Claude Code. Keep the first terminal for the checker.</p>
+</li>
+<li>
+<p>Notice the files you will work with, all inside <strong>STARTER</strong>:</p>
+<ul>
+<li><strong>.claude/skills/api-contract-review/SKILL.md</strong>: the skill. Its front matter has a blank to fill.</li>
+<li><strong>.claude/skills/api-contract-review/scripts/diff_contract.py</strong>: the script that compares the contract with the code. One loop is blank.</li>
+<li><strong>.claude/settings.json</strong>: the hook configuration. The hooks block is blank.</li>
+<li><strong>.claude/hooks/audit_log.py</strong>: the hook script. It is finished, so you only read it.</li>
+<li><strong>.claude/agents/contract-reviewer.md</strong>: the subagent. Its description and tool list are blank.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The skill's three reference files are already in the <strong>references</strong> folder, and <strong>docs/API_CONTRACT.json</strong> is the contract the review compares against.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Create the skill</h2>
+<p>A skill is a folder with a <strong>SKILL.md</strong>. Claude holds only the name and the description until you invoke it, so the description has to say what the skill does and when to use it.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/.claude/skills/api-contract-review/SKILL.md</strong> in your code editor.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 1 of 4</strong>. It sits in the front matter, under the <code>name</code> line.</p>
+</li>
+<li>
+<p>Replace that comment line with the following lines:</p>
+<div class="cb"><pre><code class="language-yaml">description: Review a change to the shipcalc public API against docs/API_CONTRACT.json - parameters, return type, units and errors. Use when the user asks for an API, contract or breaking-change review of a diff, branch or module.
+argument-hint: &quot;[path-or-branch]&quot;
+allowed-tools: Read Grep Glob Bash(python *diff_contract.py *)
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run the following command in the first terminal:</p>
+<div class="cb"><pre><code>python check.py --stage 1
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the five lines under <strong>Stage 1</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>Review the file, noting the following details:</p>
+<ul>
+<li>The <code>description</code> starts with what the skill does and ends with a <code>Use when</code> clause. Claude uses that clause to decide when to load the skill.</li>
+<li>The skill is named <code>api-contract-review</code>, never <code>review</code>, because <code>review</code> collides with a bundled command. Verify on your Claude Code version.</li>
+<li><code>allowed-tools</code> pre-approves the tools for the turn, including the one script command. It does not restrict the other tools.</li>
+<li>The body uses <code>$ARGUMENTS</code>, which Claude Code replaces with whatever you type after the command.</li>
+<li>The body is short. The rules are in three files in <strong>references/</strong>, which Claude reads only when a step tells it to.</li>
+</ul>
+</li>
+<li>
+<p>In the second terminal, start Claude Code in the <strong>STARTER</strong> folder, and enter the following prompt:</p>
+<div class="cb"><pre><code>/api-contract-review src/shipcalc/quote.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Claude reads the references and reports in the format that <strong>output-format.md</strong> asks for. The script is not finished yet, so it reports no candidates. Stage 2 fixes that.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Add the supporting script</h2>
+<p>The script is the deterministic part of the review. It compares the contract with the code and prints one line for each difference, so the evidence does not depend on what the model notices.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/.claude/skills/api-contract-review/scripts/diff_contract.py</strong>.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 2 of 4</strong>. It sits inside the loop <code>for entry in contract[&quot;public&quot;]:</code>.</p>
+</li>
+<li>
+<p>Replace that comment line with the following code. Keep the eight-space indent, because the code sits inside the loop:</p>
+<div class="cb"><pre><code class="language-python">        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == entry[&quot;function&quot;]:
+                params = [arg.arg for arg in node.args.args]
+                if params != entry[&quot;params&quot;]:
+                    hits.append((entry[&quot;file&quot;], node.lineno, &quot;%s params %s != contract %s&quot; % (node.name, params, entry[&quot;params&quot;])))
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run <code>python check.py --stage 2</code> in the first terminal.</p>
+</li>
+<li>
+<p>Verify that the five lines under <strong>Stage 2</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>In the <strong>STARTER</strong> folder, run the script yourself:</p>
+<div class="cb"><pre><code>python .claude/skills/api-contract-review/scripts/diff_contract.py --root .
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the output reads:</p>
+<div class="cb"><pre><code>src/shipcalc/quote.py:8 get_quote params ['parcel', 'carrier', 'zone', 'rush'] != contract ['parcel', 'carrier', 'zone']
+contract scan: 1 candidate(s)
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: A teammate added an optional <code>rush</code> parameter to <code>get_quote</code>, and the contract was not updated. This is the issue the scanner exists to find.</p>
+</blockquote>
+</li>
+<li>
+<p>In Claude Code, enter <code>/exit</code>, start <code>claude</code> again in the <strong>STARTER</strong> folder, and run the review again:</p>
+<div class="cb"><pre><code>/api-contract-review src/shipcalc/quote.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the script line <code>src/shipcalc/quote.py:8 ...</code> appears in the tool output, and that Claude reports it as a finding with the file and line.</p>
+<blockquote class="">
+<p><strong>Note</strong>: Claude Code reads skills when it starts, so restart it after each stage. Verify on your Claude Code version whether a restart is still needed.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the script, noting the following details:</p>
+<ul>
+<li>The script reads <strong>docs/API_CONTRACT.json</strong> and parses the code with <code>ast</code>, so it needs no model and gives the same answer every time.</li>
+<li>It always exits with code 0. The output is evidence for the reviewer, not a verdict.</li>
+<li>The same line is printed by the script, and Claude confirms it by reading the code. Deterministic where you can be, model where you must be.</li>
+</ul>
+</li>
+</ol>
+<h2>Configure the hook</h2>
+<p>A hook is a script that Claude Code runs at a lifecycle event, whatever Claude decides to do. The script receives the tool call as JSON on its standard input. Here the hook works quietly: it writes one audit line for every edit and command.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/.claude/hooks/audit_log.py</strong>, and read it. It reads the JSON from stdin, builds one entry with the tool, its target and an <code>ok</code> flag, and appends it to <strong>.claude/logs/tool_audit.jsonl</strong>.</p>
+<blockquote class="">
+<p><strong>Note</strong>: The result of a PostToolUse call arrives under the <code>tool_response</code> key. The script prints nothing and always exits with code 0.</p>
+</blockquote>
+</li>
+<li>
+<p>Open <strong>STARTER/.claude/settings.json</strong>. Search for the line <code>&quot;hooks&quot;: {}</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following code:</p>
+<div class="cb"><pre><code class="language-json">  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Edit|Write|MultiEdit|Bash&quot;,
+        &quot;hooks&quot;: [
+          {&quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;python \&quot;$CLAUDE_PROJECT_DIR/.claude/hooks/audit_log.py\&quot;&quot;, &quot;timeout&quot;: 10}
+        ]
+      }
+    ]
+  }
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then run <code>python check.py --stage 3</code> in the first terminal.</p>
+</li>
+<li>
+<p>Verify that the six lines under <strong>Stage 3</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>Review the configuration, noting the following details:</p>
+<ul>
+<li>An event (<code>PostToolUse</code>), a matcher that names the tools, and a command: these are the three parts of every hook.</li>
+<li>The command uses <code>$CLAUDE_PROJECT_DIR</code>, so it works from any folder, and it has a <code>timeout</code> in seconds.</li>
+<li>The <code>permissions</code> block that was already in the file keeps the fake carrier keys in <strong>config/credentials</strong> out of Claude's reach. It is not part of the hook.</li>
+<li>A line in a skill that asks for an audit trail is advice. This hook is the guarantee, because Claude Code runs it for every matching call.</li>
+</ul>
+</li>
+<li>
+<p>In Claude Code, enter <code>/exit</code>, start <code>claude</code> again, and run <code>/hooks</code> to see the configured hook. Then enter these prompts, one at a time:</p>
+<div class="cb"><pre><code>/api-contract-review src/shipcalc/quote.py
+</code></pre></div>
+<div class="cb"><pre><code>Write the review you just gave to reports/api-contract-review.md
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Nothing interrupts the review. You may be asked for the usual permission to write the file. Verify the <code>/hooks</code> output and the hook command on Windows on your Claude Code version.</p>
+</blockquote>
+</li>
+<li>
+<p>In the first terminal, show the audit log. On Windows, run <code>type STARTER\.claude\logs\tool_audit.jsonl</code>. On macOS or Linux, run <code>cat STARTER/.claude/logs/tool_audit.jsonl</code>.</p>
+</li>
+<li>
+<p>Verify that the log has at least two lines: one for the script run (<code>&quot;tool&quot;: &quot;Bash&quot;</code>) and one for the report (<code>&quot;tool&quot;: &quot;Write&quot;</code>).</p>
+</li>
+</ol>
+<h2>Add the read-only subagent</h2>
+<p>A subagent is its own session with its own system prompt and only the tools you list. It does not see your conversation. It can read as many files as it needs, and only its short summary comes back to the main conversation.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/.claude/agents/contract-reviewer.md</strong>.</p>
+</li>
+<li>
+<p>Search for the comment <strong>TODO 4a of 4</strong>. It sits in the front matter, under the <code>name</code> line.</p>
+</li>
+<li>
+<p>Replace that comment line with the following lines:</p>
+<div class="cb"><pre><code class="language-yaml">description: Read-only specialist that answers one question about whether a shipcalc change keeps the public API contract and returns a short evidence-backed summary. Use proactively when a review touches quote.py, models.py or a carrier adapter.
+tools: Read, Grep, Glob
+maxTurns: 12
+</code></pre></div>
+</li>
+<li>
+<p>Open <strong>STARTER/.claude/skills/api-contract-review/SKILL.md</strong> again. Search for the step that starts with <code>3. Read</code>, and replace the whole line with the following line:</p>
+<div class="cb"><pre><code class="language-markdown">3. Read [references/semantics.md](references/semantics.md) and delegate the behaviour question to the `contract-reviewer` subagent (read-only). Use its summary, not its transcript.
+</code></pre></div>
+</li>
+<li>
+<p>Save both files, and then run <code>python check.py --stage 4</code> in the first terminal.</p>
+</li>
+<li>
+<p>Verify that the five lines under <strong>Stage 4</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>Review the agent, noting the following details:</p>
+<ul>
+<li><code>tools: Read, Grep, Glob</code> is the boundary. The reviewer cannot edit files or run commands, because a reviewer that can write is not a reviewer. If the line were missing, the subagent would inherit every tool.</li>
+<li><code>maxTurns</code> limits how long the subagent can work.</li>
+<li>The prompt asks for at most 15 lines with a file and line for every claim, so the answer stays small.</li>
+</ul>
+</li>
+<li>
+<p>In Claude Code, enter <code>/exit</code>, start <code>claude</code> again, run <code>/agents</code> to see the new subagent, and then enter this prompt:</p>
+<div class="cb"><pre><code>Use the contract-reviewer subagent: does get_quote in quote.py still match docs/API_CONTRACT.json, and is the new rush parameter tested?
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the answer is about 15 lines or fewer, cites <code>quote.py</code> with a line number, and says that <code>rush</code> is missing from the contract and from <strong>tests/test_quote.py</strong>.</p>
+<blockquote class="">
+<p><strong>Note</strong>: The files the subagent opened do not appear in your main conversation. Only its summary does.</p>
+</blockquote>
+</li>
+<li>
+<p>Run the whole capability once more:</p>
+<div class="cb"><pre><code>/api-contract-review src/shipcalc/quote.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the review runs the script, delegates to the subagent, and reports the <code>rush</code> finding in the format from <strong>output-format.md</strong>.</p>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker one last time, from the first terminal:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads:</p>
+<div class="cb"><pre><code>RESULT: 21/21 checks passed
+</code></pre></div>
+</li>
+<li>
+<p>Submit your <strong>STARTER/.claude</strong> folder as your evidence. There is nothing else to write up.</p>
+</li>
+</ol>
+<h2>Clean up</h2>
+<p>Delete the <strong>STARTER/.claude/logs</strong> and <strong>STARTER/reports</strong> folders to reset the lab.</p>
+<h2>More information</h2>
+<p>The <strong>SOLUTION</strong> folder is the finished repository. This guide already contains every line you need, so use it only to find a typo.</p>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

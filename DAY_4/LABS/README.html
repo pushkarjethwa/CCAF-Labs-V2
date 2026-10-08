@@ -1,0 +1,67 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Day 4 Labs: Claude Code Configuration and Workflows</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code Configuration and Workflows</header><main><h1>Day 4 Labs</h1>
+<p>These labs use Claude Code itself. Each one repeats the method of the trainer's demo on a new repository, <code>shipcalc</code>, a small shipping-price calculator. If you watched the demo, you will recognize the steps.</p>
+<p>To complete these exercises you need Python 3.10 or later, the Claude Code command-line tool (<code>claude --version</code>) and a login or API key. Setup is in <strong>DAY_0_SETUP_GUIDE.md</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>Lab</th>
+<th>Follows</th>
+<th>Folder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Explore, Plan and Refactor a Repository with Claude Code</td>
+<td>Demo 4A</td>
+<td><a href="LAB_4_1_shipping_repo_plan_mode/README.html">LAB_4_1_shipping_repo_plan_mode</a></td>
+</tr>
+<tr>
+<td>Layer the CLAUDE.md, Rules and Hooks of a Shipping Repo</td>
+<td>Demo 4B</td>
+<td><a href="LAB_4_2_shipping_config_layers/README.html">LAB_4_2_shipping_config_layers</a></td>
+</tr>
+<tr>
+<td>Build an API-Contract Review Skill, Hook and Subagent</td>
+<td>Demo 4C</td>
+<td><a href="LAB_4_3_shipping_skill_hook_subagent/README.html">LAB_4_3_shipping_skill_hook_subagent</a></td>
+</tr>
+<tr>
+<td>Put Claude Code in CI as a Review Gate</td>
+<td>Demo 4D</td>
+<td><a href="LAB_4_4_shipping_ci_review_gate/README.html">LAB_4_4_shipping_ci_review_gate</a></td>
+</tr>
+</tbody>
+</table>
+<p>In every lab, work inside the <code>STARTER</code> folder, then run <code>python check.py</code> (no key needed) to see your progress.</p>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

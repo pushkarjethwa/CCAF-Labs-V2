@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "TODO_1a": "replace this line: close the top-level object",
+  "required": ["summary", "findings"],
+  "properties": {
+    "summary": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "TODO_1b": "replace this line: close each finding",
+        "TODO_1c": "replace this line: list the required fields",
+        "properties": {
+          "id": {"type": "string"},
+          "severity": {"type": "string", "TODO_1d": "replace this line: add the enum"},
+          "category": {"type": "string", "enum": ["units", "secrets", "tests", "correctness", "style"]},
+          "file": {"type": "string"},
+          "line": {"type": "integer"},
+          "title": {"type": "string"},
+          "evidence": {"type": "string"},
+          "fix": {"type": "string"}
+        }
+      }
+    }
+  }
+}

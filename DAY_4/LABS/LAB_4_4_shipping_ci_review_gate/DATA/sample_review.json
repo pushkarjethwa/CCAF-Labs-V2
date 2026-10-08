@@ -1,0 +1,42 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "",
+  "structured_output": {
+    "summary": "The SwiftPost adapter skips unit conversion and commits an API key; the tests cover only metric input.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "BLOCKER",
+        "category": "units",
+        "file": "src/shipcalc/carriers/swiftpost.py",
+        "line": 11,
+        "title": "Adapter skips unit conversion",
+        "evidence": "parcel.weight and parcel.dims are passed raw, so pounds/inches are used as kg/cm",
+        "fix": "Use units.parcel_kg(parcel) and units.parcel_dims_cm(parcel)."
+      },
+      {
+        "id": "F2",
+        "severity": "BLOCKER",
+        "category": "secrets",
+        "file": "src/shipcalc/carriers/swiftpost.py",
+        "line": 7,
+        "title": "Credential committed to source",
+        "evidence": "an API key literal is assigned in code",
+        "fix": "Read it from the environment and rotate the exposed key."
+      },
+      {
+        "id": "F3",
+        "severity": "SHOULD_FIX",
+        "category": "tests",
+        "file": "tests/test_swiftpost.py",
+        "line": 5,
+        "title": "Only one test",
+        "evidence": "a single metric-only test",
+        "fix": "Add an imperial-unit case."
+      }
+    ]
+  },
+  "_note": "RECORDED SAMPLE: shaped like a claude -p envelope; written by hand for the offline check, not a model run"
+}

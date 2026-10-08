@@ -1,0 +1,55 @@
+diff --git a/config/carriers.yaml b/config/carriers.yaml
+index b40acf0..854942f 100644
+--- a/config/carriers.yaml
++++ b/config/carriers.yaml
+@@ -2,3 +2,5 @@ acme:
+   dim_divisor: 5000
+ zipfast:
+   dim_divisor: 6000
++swiftpost:
++  dim_divisor: 5000
+diff --git a/src/shipcalc/carriers/swiftpost.py b/src/shipcalc/carriers/swiftpost.py
+new file mode 100644
+index 0000000..ecca5e4
+--- /dev/null
++++ b/src/shipcalc/carriers/swiftpost.py
+@@ -0,0 +1,12 @@
++"""SwiftPost adapter."""
++import os
++
++from .. import packaging, rates
++from ..models import Parcel
++
++SWIFTPOST_API_KEY = "sp_live_51Hx9aQ2eZvKpL0Wq8TnR4uYb"
++
++
++def quote(parcel: Parcel, zone: int) -> int:
++    billable = packaging.billable_weight_kg(parcel.weight, parcel.dims, rates.divisor("swiftpost"))
++    return rates.price_cents(billable, zone)
+diff --git a/src/shipcalc/quote.py b/src/shipcalc/quote.py
+index 0735c4b..9a32aa4 100644
+--- a/src/shipcalc/quote.py
++++ b/src/shipcalc/quote.py
+@@ -1,8 +1,8 @@
+ """Public entry point: price a parcel with one carrier."""
+-from .carriers import acme, zipfast
++from .carriers import acme, swiftpost, zipfast
+ from .models import Parcel
+ 
+-CARRIERS = {"acme": acme.quote, "zipfast": zipfast.quote}
++CARRIERS = {"acme": acme.quote, "zipfast": zipfast.quote, "swiftpost": swiftpost.quote}
+ 
+ 
+ def get_quote(parcel: Parcel, carrier: str, zone: int = 1) -> int:
+diff --git a/tests/test_swiftpost.py b/tests/test_swiftpost.py
+new file mode 100644
+index 0000000..3885deb
+--- /dev/null
++++ b/tests/test_swiftpost.py
+@@ -0,0 +1,6 @@
++from shipcalc.models import Parcel
++from shipcalc.quote import get_quote
++
++
++def test_swiftpost_metric():
++    assert get_quote(Parcel(3.0, "kg", (20, 20, 20), "cm"), "swiftpost") == 900

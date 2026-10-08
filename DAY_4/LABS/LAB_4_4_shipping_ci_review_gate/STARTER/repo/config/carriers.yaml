@@ -1,0 +1,4 @@
+acme:
+  dim_divisor: 5000
+zipfast:
+  dim_divisor: 6000

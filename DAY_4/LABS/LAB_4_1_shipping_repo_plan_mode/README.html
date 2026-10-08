@@ -1,0 +1,274 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Explore, Plan and Refactor a Repository with Claude Code</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code in the Development Workflow</header><main><h1>Explore, plan and refactor a repository with Claude Code</h1>
+<p>In Demo 4A, you saw one broad sentence, &quot;consolidate all rounding into one module and update every caller&quot;, turn into a safe change. You explored the repository first, decided with a rubric whether to plan, planned in Plan Mode, and implemented the plan one step at a time while the tests ran after every edit. In this lab, you repeat that method on a different repository: <strong>shipcalc</strong>, a small shipping-quote library at a parcel company. Customers enter pounds and inches, or kilograms and centimetres, and two carrier adapters, <code>acme</code> and <code>zipfast</code>, price the parcel.</p>
+<p>The tests are green, yet imperial parcels are mis-priced, and the cause is spread over several modules. You work in Claude Code on the sample repository, and you paste in about 25 lines: two small configuration files, a few lines of CLAUDE.md, and eleven prompts. The lab takes about 35 minutes, and at the end a key-free checker confirms your work.</p>
+<p>This lab continues Demo 4A, so you will recognize the following:</p>
+<ul>
+<li>The four stages: explore, decide direct or plan, plan in Plan Mode, and implement and verify.</li>
+<li>The <strong>CLAUDE.md</strong> file, the <strong>/triage</strong> slash command, the <strong>/plan-check</strong> slash command and its plan gate, and the <code>PostToolUse</code> hook that runs the tests after every edit.</li>
+<li>The acceptance script that lives outside <strong>tests/</strong>, and the unrelated finding that gets its own change.</li>
+</ul>
+<h2>Set up the lab folder</h2>
+<p>You need Python 3.10 or later and the Claude Code command-line tool, signed in. The lab uses only the Python standard library.</p>
+<ol>
+<li>
+<p>Open a terminal in the <strong>STUDENT_V2/DAY_4/LABS/LAB_4_1_shipping_repo_plan_mode</strong> folder.</p>
+</li>
+<li>
+<p>Verify that Claude Code is installed by running the following command:</p>
+<div class="cb"><pre><code>claude --version
+</code></pre></div>
+</li>
+<li>
+<p>Move into the repository, and run its tests by running the following commands:</p>
+<div class="cb"><pre><code>cd STARTER
+python -m unittest discover -s tests
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the output ends with <code>Ran 10 tests</code> and <code>OK</code>.</p>
+</li>
+<li>
+<p>Run the acceptance script by running the following command:</p>
+<div class="cb"><pre><code>python scripts/hidden_regression_units.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The script reports <code>FAILED (failures=4)</code>. It is not part of the test suite, and it is your target: when you finish, its four checks pass.</p>
+</blockquote>
+</li>
+<li>
+<p>Open a second terminal in the <strong>STARTER</strong> folder. Use the first one for Claude Code, and the second one to run commands yourself.</p>
+</li>
+</ol>
+<h2>Explore the repository</h2>
+<p>Nothing in this stage edits a file. Claude reads and searches, so you pay for knowledge, not for edits.</p>
+<ol>
+<li>
+<p>Open <strong>CLAUDE.md</strong> in your code editor, and find the line that starts with <code>TODO(student)</code>.</p>
+</li>
+<li>
+<p>Replace that line with the following two lines:</p>
+<div class="cb"><pre><code>- Read before you edit: search for every definition and every caller first.
+- Keep unrelated findings out of the change; report them separately.
+</code></pre></div>
+</li>
+<li>
+<p>Save the file, and then start Claude Code in the first terminal:</p>
+<div class="cb"><pre><code>claude
+</code></pre></div>
+</li>
+<li>
+<p>Type the following prompt:</p>
+<div class="cb"><pre><code>Before changing anything: find every place that reads a parcel's weight or dimensions, every caller, and every test that exercises them. Do not edit files.
+</code></pre></div>
+</li>
+<li>
+<p>When Claude finishes, type the following prompt:</p>
+<div class="cb"><pre><code>Which tests would notice if the zipfast adapter used pounds as kilograms? Check the tests and scripts folders. Also name any unrelated defect you notice in rates.py.
+</code></pre></div>
+</li>
+<li>
+<p>In the second terminal, cross-check Claude's answer by running the following command:</p>
+<div class="cb"><pre><code>python tools/blast_radius.py
+</code></pre></div>
+</li>
+<li>
+<p>Review the results, noting the following details:</p>
+<ul>
+<li>Claude lists <code>acme.py</code> and <code>zipfast.py</code> as the modules that read the parcel, and <code>packaging.py</code> as the module they call. Nobody asked about <code>packaging.py</code>.</li>
+<li>Claude says that no test in <strong>tests/</strong> would notice the pound mistake, because the only imperial test uses a 2x2x2 inch parcel with almost no volume. The script in <strong>scripts/</strong> would notice.</li>
+<li>Claude's wording differs on every run. The <code>blast_radius.py</code> output is the fixed reference.</li>
+<li>Claude may report that an unknown zone number raises a bare <code>KeyError</code>. Keep that finding for stage 4.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: <strong>CLAUDE.md</strong> is read automatically at the start of each session. The <strong>.claude/settings.json</strong> file lets Claude run the tests, the acceptance script and the two tools without asking.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Decide: direct or plan?</h2>
+<p>A rubric turns &quot;should I plan?&quot; into a repeatable answer. You write it once, as a slash command, and use it on every request.</p>
+<ol>
+<li>
+<p>Type <code>/exit</code> to leave Claude Code.</p>
+</li>
+<li>
+<p>Create a new file named <strong>triage.md</strong> in the <strong>.claude/commands</strong> folder, and add the following content:</p>
+<div class="cb"><pre><code>---
+description: Decide DIRECT or PLAN for a change request
+---
+
+Triage this change request: $ARGUMENTS
+
+Do not edit any file. Look at the repo with read-only tools, then answer `DIRECT` or `PLAN`, followed by the signals that fired.
+Plan first if ANY of these is true: the change touches 4 or more files, a shared symbol has 3 or more callers, it involves money, it is hard to reverse, test coverage is weak, or the scope is unknown. Otherwise it is DIRECT.
+</code></pre></div>
+</li>
+<li>
+<p>Start Claude Code again by running <code>claude</code>, and then type the following prompt:</p>
+<div class="cb"><pre><code>/triage Change the unknown-carrier error message to start with a capital letter
+</code></pre></div>
+</li>
+<li>
+<p>Type the following prompt:</p>
+<div class="cb"><pre><code>/triage Imperial parcels are mis-priced. Make every carrier convert weight and dimensions correctly, in one place
+</code></pre></div>
+</li>
+<li>
+<p>Type the following prompt, and approve the edits and the test run when Claude asks:</p>
+<div class="cb"><pre><code>Change the unknown-carrier error to &quot;Unknown carrier: &lt;name&gt;&quot; and add a test for the message in tests/test_errors.py. Run the tests and show me the diff.
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the test run ends with <code>Ran 11 tests</code> and <code>OK</code>.</p>
+</li>
+<li>
+<p>Review the results, noting the following details:</p>
+<ul>
+<li>The wording change is <code>DIRECT</code>: it touches two files, and no signal fires.</li>
+<li>The unit-handling request is <code>PLAN</code>. Claude names the signals: a shared conversion with several callers, money, and weak coverage.</li>
+<li>The direct change edits <strong>quote.py</strong> and adds <strong>tests/test_errors.py</strong>. Read the approval prompt before you approve the first edit.</li>
+</ul>
+</li>
+</ol>
+<h2>Plan the change in Plan Mode</h2>
+<p>Plan Mode is a permission mode, not a smarter model. Claude reads, searches and writes a plan, and it cannot edit your source until you approve.</p>
+<ol>
+<li>
+<p>Type <code>/exit</code>, and then restart Claude Code in Plan Mode:</p>
+<div class="cb"><pre><code>claude --permission-mode plan
+</code></pre></div>
+</li>
+<li>
+<p>Type the following prompt:</p>
+<div class="cb"><pre><code>Imperial parcels are mis-priced. Make every carrier convert weight and dimensions correctly, in one place, and update every caller. Use what you found. Include files, callers, risks, order, verification and rollback. Put any unrelated defect in its own separate final step.
+</code></pre></div>
+</li>
+<li>
+<p>Read the plan like a pull request. Choose to keep planning, and then type the following prompt:</p>
+<div class="cb"><pre><code>Check that your plan puts a characterization test first, covers dimensional weight in both adapters, and runs scripts/hidden_regression_units.py. Revise it if not.
+</code></pre></div>
+</li>
+<li>
+<p>Approve the revised plan, and then type the following prompt:</p>
+<div class="cb"><pre><code>Save the approved plan to docs/PLAN.md. Do not change any other file.
+</code></pre></div>
+</li>
+<li>
+<p>Type the following prompt:</p>
+<div class="cb"><pre><code>/plan-check docs/PLAN.md
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line of the output reads <code>PLAN ACCEPTED (15/15 checks)</code>.</p>
+</li>
+<li>
+<p>Review the plan, noting the following details:</p>
+<ul>
+<li>A good plan names <code>acme.py</code>, <code>zipfast.py</code>, <code>packaging.py</code> and <code>units.py</code>, and says how each step is verified.</li>
+<li>The zipfast adapter has a pound mistake, and the acme adapter has a different one: it passes inches into the centimetre formula for dimensional weight. A one-line fix to zipfast leaves acme wrong.</li>
+<li>The unknown-zone defect sits in its own final step, not mixed into the refactor.</li>
+<li>Your wording differs from the reference plan in <strong>SOLUTION/docs/PLAN.md</strong>.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The status line shows that Plan Mode is on. In a normal session, press Shift+Tab to cycle to it.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Implement and verify</h2>
+<p>The plan is a contract. Claude runs the tests after every step, and a hook runs them again after every edit it makes, so you never rely on &quot;it says it is done&quot;.</p>
+<ol>
+<li>
+<p>Type <code>/exit</code>.</p>
+</li>
+<li>
+<p>Replace the contents of <strong>.claude/settings.json</strong> with the following code:</p>
+<div class="cb"><pre><code>{
+  &quot;permissions&quot;: {&quot;allow&quot;: [&quot;Bash(python -m unittest:*)&quot;, &quot;Bash(python scripts/hidden_regression_units.py)&quot;, &quot;Bash(python tools/blast_radius.py:*)&quot;, &quot;Bash(python tools/plan_check.py:*)&quot;]},
+  &quot;hooks&quot;: {&quot;PostToolUse&quot;: [{&quot;matcher&quot;: &quot;Edit|Write&quot;, &quot;hooks&quot;: [{&quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;python -m unittest discover -s tests&quot;}]}]}
+}
+</code></pre></div>
+</li>
+<li>
+<p>Start Claude Code in the normal mode by running <code>claude</code>, and then type the following prompt:</p>
+<div class="cb"><pre><code>Implement docs/PLAN.md one step at a time, except the separate final step. Put the characterization test in tests/test_characterization.py and the regression tests in tests/test_imperial_regression.py. After each step run python -m unittest discover -s tests and python scripts/hidden_regression_units.py, and tell me both results.
+</code></pre></div>
+</li>
+<li>
+<p>Watch the results after each step. When Claude finishes, run <code>python scripts/hidden_regression_units.py</code> in the second terminal.</p>
+</li>
+<li>
+<p>Verify that the script ends with <code>Ran 4 tests</code> and <code>OK</code>.</p>
+</li>
+<li>
+<p>In Claude Code, type the following prompt:</p>
+<div class="cb"><pre><code>Now the separate final step only: an unknown zone should raise ValueError instead of KeyError. Add a test for it in tests/test_errors.py. Run the tests.
+</code></pre></div>
+</li>
+<li>
+<p>Review the results, noting the following details:</p>
+<ul>
+<li>The characterization test passes on the untouched code, so it is a safety net for the refactor.</li>
+<li>The conversion constants now live only in <strong>units.py</strong>, and both adapters call it.</li>
+<li>The acceptance script turned from four failures to four passes, and you ran it yourself.</li>
+<li>The zone fix is its own change. A reviewer can tell a unit-handling diff from a zone diff, and a revert of one does not revert the other.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The hook is configured under <code>PostToolUse</code> in <strong>.claude/settings.json</strong>. Whether its output shows on screen depends on your Claude Code version, so verify on your Claude Code version, and rely on Claude's own test runs for what you read.</p>
+</blockquote>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>In the second terminal, move up to the lab folder, and run the checker:</p>
+<div class="cb"><pre><code>cd ..
+python check.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The checker needs no API key and no Claude Code. It re-measures the repository, so it does not read anything Claude said.</p>
+</blockquote>
+</li>
+<li>
+<p>Verify that the last line reads:</p>
+<div class="cb"><pre><code>RESULT: 17/17 checks passed
+</code></pre></div>
+</li>
+<li>
+<p>Type <code>/exit</code> to leave Claude Code.</p>
+</li>
+</ol>
+<h2>Clean up</h2>
+<p>To repeat the lab, copy the <strong>STARTER</strong> folder from the original download over your working copy. Your own work is not needed by any later lab.</p>
+<h2>More information</h2>
+<p>The <strong>SOLUTION</strong> folder holds the finished files. Copy them over a copy of <strong>STARTER</strong> to see the end state, or use them to find a typo. Run <code>python check.py --workdir &lt;that copy&gt;</code> to see all 17 checks pass.</p>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

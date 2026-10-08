@@ -1,0 +1,352 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Layer the CLAUDE.md, Rules and Hooks of a Shipping Repo</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code Configuration and Workflows</header><main><h1>Layer the CLAUDE.md, rules and hooks of a shipping repo</h1>
+<p>In Demo 4B, you built the instruction layers of the notification-service repo one stage at a time, and you saw that instruction files are concatenated, not ranked. A tenant's report said 3.12 while its invoice said 3.13, because the report used <code>float</code>. You fixed it by writing the layers so that nothing contradicts, and then you enforced the money rule with a hook. In this lab, you apply the same method to a different repo: <code>shipcalc</code>, the library that prices parcels for two carriers. Its quote is an integer number of cents, yet one function still computes the price with <code>float</code>, so a half-cent tie rounds the wrong way.</p>
+<p>You will fill in five small pieces across five stages, which add up to 25 lines, and this guide gives you every line. At each stage you ask Claude Code which files it loaded, and you run a key-free checker that measures the result. The lab takes about 30 minutes.</p>
+<p>This lab continues Demo 4B, so you will recognize the following:</p>
+<ul>
+<li>The layers, added in the same order: the user file, the project <code>CLAUDE.md</code>, a subdirectory <code>CLAUDE.md</code>, and path-scoped rules in <strong>.claude/rules/</strong> with an <code>@</code> import.</li>
+<li>The questions you ask at each stage: which instruction files are in your context, and which file did each rule come from.</li>
+<li>The one rule that must never break, moved out of prose and into a PostToolUse hook and a scanner.</li>
+<li>The idea behind all of it: files are concatenated, so you write each fact once, and you enforce what matters in code.</li>
+</ul>
+<p>The repo is new, and so is one extra layer: a project <strong>.mcp.json</strong> file at the end.</p>
+<h2>Set up the lab folder</h2>
+<blockquote class="">
+<p><strong>Note</strong>: This lab needs Claude Code to be installed and signed in, as set up in <strong>DAY_0_SETUP_GUIDE.md</strong> (section 8). You can run the checker without Claude Code or an API key.</p>
+</blockquote>
+<p>You need Python 3.10 or later and the Claude Code command-line tool.</p>
+<ol>
+<li>
+<p>Open two terminals. Both start in the <strong>STUDENT_V2/DAY_4/LABS/LAB_4_2_shipping_config_layers</strong> folder. The first terminal stays there, and you use it for the checker and <strong>reset.py</strong>. In the second terminal, go to the <strong>STARTER/repo</strong> folder, and later run Claude Code there.</p>
+</li>
+<li>
+<p>Install pytest by running the following command:</p>
+<div class="cb"><pre><code>pip install -r requirements.txt
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the Claude Code command-line tool is installed by running the following command:</p>
+<div class="cb"><pre><code>claude --version
+</code></pre></div>
+</li>
+</ol>
+<h2>Review the starting point</h2>
+<ol>
+<li>
+<p>Run the checker by running the following command:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: The checker tests your work with no API key and no model. Each line shows <code>[PASS]</code> when a piece is done, and <code>[todo]</code> while it is not. At the start, almost every line shows <code>[todo]</code>.</p>
+</blockquote>
+</li>
+<li>
+<p>Notice that you work in the <strong>STARTER</strong> folder. The <strong>STARTER/repo</strong> folder is the shipcalc repo. It has working code and passing tests, but its five instruction files hold only a placeholder line. The <strong>STARTER/home_claude/CLAUDE.md</strong> file is the user-level file, and you install it later with <strong>reset.py</strong>.</p>
+</li>
+<li>
+<p>In the second terminal, start Claude Code:</p>
+<div class="cb"><pre><code>claude
+</code></pre></div>
+</li>
+<li>
+<p>Type this prompt:</p>
+<div class="cb"><pre><code>List every instruction file you have loaded for this project, and every rule you are following about money and about tests. If there are none, say so.
+</code></pre></div>
+<blockquote class="">
+<p><strong>Note</strong>: Claude says that it has no project instructions. Nothing in this repo tells it whether a price is an integer or a float.</p>
+</blockquote>
+</li>
+<li>
+<p>Type <code>/exit</code>. You will repeat the same pattern at every stage: fill in the files, run <code>python check.py</code>, and then start a new <code>claude</code> session, because instruction files are read when a session starts.</p>
+</li>
+</ol>
+<h2>Add the user and project layers</h2>
+<p>The user file lives in your home folder and follows you into every project. The project file lives in the repo and is shared through git. Claude loads both when the session starts.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/home_claude/CLAUDE.md</strong> in your code editor, and replace its content with the following line:</p>
+<div class="cb"><pre><code class="language-markdown">- Keep answers concise; show the command you ran.
+</code></pre></div>
+</li>
+<li>
+<p>Open <strong>STARTER/repo/CLAUDE.md</strong>, and replace its content with the following lines:</p>
+<div class="cb"><pre><code class="language-markdown"># shipcalc
+Tests: `python -m pytest`. Money rule check: `python .claude/hooks/invariants.py src`.
+- Internal units are kilograms and centimetres.
+- Money is integer cents everywhere.
+- Diagnostics go through `logging`, never `print()`.
+</code></pre></div>
+</li>
+<li>
+<p>In the first terminal, install the user file by running the following command:</p>
+<div class="cb"><pre><code>python reset.py --user install
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>python check.py</code>, and verify that the two lines under <strong>Stage 1</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>In the second terminal, start <code>claude</code>, type <code>/memory</code>, and then type this prompt:</p>
+<div class="cb"><pre><code>Which instruction files are loaded? For each file, quote what it says about money, print and tests. Then run the tests and show me the command you ran.
+</code></pre></div>
+</li>
+<li>
+<p>Verify that <code>/memory</code> lists <strong>~/.claude/CLAUDE.md</strong> and the project <strong>CLAUDE.md</strong>, that Claude quotes &quot;integer cents&quot; and &quot;never <code>print()</code>&quot;, and that the tests pass.</p>
+<blockquote class="important">
+<p><strong>Important</strong>: Keep the user file to personal style only. A number-type preference there would contradict the project file, and nobody would see the conflict in a code review.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the two files, noting the following details:</p>
+<ul>
+<li>The user file holds one personal preference, and it shows in the style of Claude's answer: concise, with the command shown.</li>
+<li>The project file is five lines, and each fact appears once.</li>
+<li>Units and money are stated in the project file because they apply everywhere. Later layers add detail, and they never restate or reverse a fact.</li>
+</ul>
+</li>
+<li>
+<p>Type <code>/exit</code>.</p>
+</li>
+</ol>
+<h2>Add the subdirectory layer</h2>
+<p>A <strong>CLAUDE.md</strong> file inside a subdirectory is lazy. It is not loaded at launch. It arrives when Claude reads a file in that folder.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/repo/src/shipcalc/carriers/CLAUDE.md</strong>, and replace its content with the following lines:</p>
+<div class="cb"><pre><code class="language-markdown"># carriers/
+- Every adapter starts with `units.to_metric(parcel)`; after that, everything is kg and cm.
+- A new carrier is one module here plus a divisor in `rates.DIVISORS`.
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>python check.py</code>, and verify that the two lines under <strong>Stage 2</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>In the second terminal, start <code>claude</code> again, and type this prompt:</p>
+<div class="cb"><pre><code>Read src/shipcalc/rates.py. Then list the instruction files that are in your context right now.
+</code></pre></div>
+</li>
+<li>
+<p>Type this second prompt:</p>
+<div class="cb"><pre><code>Now read src/shipcalc/carriers/acme.py and list the instruction files in your context again. What is new?
+</code></pre></div>
+</li>
+<li>
+<p>Verify that after the first prompt Claude lists the user file and the project file, and that after the second prompt <strong>src/shipcalc/carriers/CLAUDE.md</strong> is new.</p>
+<blockquote class="">
+<p><strong>Note</strong>: Whether <code>/memory</code> also lists the nested file at this point depends on your version of Claude Code, so verify on your Claude Code version.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the file, noting the following details:</p>
+<ul>
+<li>It describes only the carriers folder, and it says nothing about money or style, so it cannot contradict another layer.</li>
+<li>The same repo gives Claude a different context depending on which file it is reading. This is why &quot;it worked when I tried it&quot; is a poor test of instruction design.</li>
+</ul>
+</li>
+<li>
+<p>Type <code>/exit</code>.</p>
+</li>
+</ol>
+<h2>Add the path-scoped rules and the import</h2>
+<p>Rules live in <strong>.claude/rules/</strong>, one topic per file. The only front matter key a rule reads is <code>paths:</code>. A rule loads when Claude reads a file that matches one of its globs.</p>
+<ol>
+<li>
+<p>Open <strong>STARTER/repo/.claude/rules/money.md</strong>, and replace its content with the following lines:</p>
+<div class="cb"><pre><code class="language-markdown">---
+paths:
+  - &quot;src/shipcalc/**/*.py&quot;
+---
+- Never use float, round() or a float literal for a price; apply zone multipliers as integer permille.
+- Round half-up once, at the end: (cents * permille + 500) // 1000.
+</code></pre></div>
+</li>
+<li>
+<p>Open <strong>STARTER/repo/.claude/rules/tests.md</strong>, and replace its content with the following lines:</p>
+<div class="cb"><pre><code class="language-markdown">---
+paths:
+  - &quot;tests/**/*.py&quot;
+---
+- Add a regression test for every money bug; half-cent tie cases are mandatory.
+</code></pre></div>
+</li>
+<li>
+<p>Add the architecture document to the project file. Open <strong>STARTER/repo/CLAUDE.md</strong>, and add the following line at the end:</p>
+<div class="cb"><pre><code class="language-markdown">Architecture: @docs/ARCHITECTURE.md
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>python check.py</code>, and verify that the first four lines under <strong>Stage 3</strong> show <code>[PASS]</code>. The last three lines pass after Claude updates the code in the next steps.</p>
+</li>
+<li>
+<p>In the second terminal, start <code>claude</code> again, and type this prompt:</p>
+<div class="cb"><pre><code>Read src/shipcalc/rates.py. List the instruction files in your context, and say which file each money rule came from.
+</code></pre></div>
+</li>
+<li>
+<p>Type this second prompt:</p>
+<div class="cb"><pre><code>Update rates.py so that it follows the rules that apply to it. Add a regression test named test_half_cent_tie_rounds_up for a 3 kg parcel in zone 2, which must cost 863 cents. Then run the tests.
+</code></pre></div>
+</li>
+<li>
+<p>Type this third prompt:</p>
+<div class="cb"><pre><code>Read tests/test_quote.py. Which rule file is in your context for it, and what does it ask for?
+</code></pre></div>
+</li>
+<li>
+<p>Verify the following results:</p>
+<ul>
+<li>After the first prompt, Claude names <strong>money.md</strong> as the source of the money rules, and <strong>CLAUDE.md</strong> as the source of &quot;integer cents&quot;.</li>
+<li>After the second prompt, Claude replaces the float arithmetic in <code>price_cents</code> with integer arithmetic, adds the tie test, and the tests pass.</li>
+<li>After the third prompt, Claude names <strong>tests.md</strong> and says that it asks for a regression test with half-cent ties.</li>
+<li>In the first terminal, <code>python check.py</code> shows all of <strong>Stage 3</strong> as <code>[PASS]</code>.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: Claude's exact code differs from run to run. What matters is that the price is an integer and that the tie case costs 863 cents. A 3 kg parcel in zone 2 is 750 cents times 1.15, which is 862.5, and float arithmetic rounds it down to 862.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the layers, noting the following details:</p>
+<ul>
+<li>Each rule file has one topic and one <code>paths:</code> list. The money rule applies to all source files, and the tests rule applies to the tests.</li>
+<li>No file says &quot;float&quot; in a way that conflicts with another. Every fact lives in one place, and the layers add detail without reversing each other.</li>
+<li>The <code>@docs/ARCHITECTURE.md</code> import organizes the file, but it expands at launch, so it does not save tokens.</li>
+<li>After a <code>/compact</code>, nested files and path rules can disappear until Claude reads a matching file again. A rule that must survive a long session belongs in the root file, or better, in a hook.</li>
+</ul>
+</li>
+<li>
+<p>Type <code>/exit</code>.</p>
+</li>
+</ol>
+<h2>Enforce the rule with a hook</h2>
+<p>A consistent instruction is still only text. The scanner <strong>.claude/hooks/invariants.py</strong> and the hook script <strong>.claude/hooks/enforce_money.py</strong> are already in the repo. You wire the hook script into Claude Code.</p>
+<ol>
+<li>
+<p>Create a new file named <strong>STARTER/repo/.claude/settings.json</strong>, and add the following lines:</p>
+<div class="cb"><pre><code class="language-json">{&quot;hooks&quot;: {&quot;PostToolUse&quot;: [{&quot;matcher&quot;: &quot;Edit|Write|MultiEdit&quot;,
+  &quot;hooks&quot;: [{&quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;python \&quot;$CLAUDE_PROJECT_DIR/.claude/hooks/enforce_money.py\&quot;&quot;, &quot;timeout&quot;: 20}]}]}}
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>python check.py</code>, and verify that the three lines under <strong>Stage 4</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>In the second terminal, start <code>claude</code> again, and type <code>/hooks</code>.</p>
+</li>
+<li>
+<p>Verify that <code>/hooks</code> lists a PostToolUse hook for <code>Edit|Write|MultiEdit</code>.</p>
+</li>
+<li>
+<p>Type this prompt:</p>
+<div class="cb"><pre><code>Add a function quote_all(parcel, zone) to src/shipcalc/quote.py that returns a dict of carrier name to price in cents for every carrier. Add a test for it, and run the tests.
+</code></pre></div>
+</li>
+<li>
+<p>Verify that Claude adds the function with integer cents, that the hook does not complain, and that the tests pass.</p>
+</li>
+<li>
+<p>Type <code>/exit</code>. In the second terminal, which is still in <strong>STARTER/repo</strong>, run the scanner and the tests:</p>
+<div class="cb"><pre><code>python .claude\hooks\invariants.py src
+python -m pytest -q
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the scanner prints <code>MONEY INVARIANT: ok</code> and that the tests pass.</p>
+</li>
+<li>
+<p>Review the hook, noting the following details:</p>
+<ul>
+<li>The hook runs after every Edit, Write or MultiEdit. It re-scans Python files under <strong>src/shipcalc</strong>, whatever Claude read earlier.</li>
+<li>The hook exits with code 0 when the code is clean. With exit code 2, it would send its message back to Claude to fix. Exit code 1 would not.</li>
+<li>On Windows, the file path arrives with backslashes, and the script normalizes them.</li>
+<li>The rule now exists twice, on purpose: the sentence guides Claude, and the hook enforces it.</li>
+</ul>
+</li>
+</ol>
+<h2>Declare the project MCP server</h2>
+<p>The last layer is the project <strong>.mcp.json</strong> file. Like the project <code>CLAUDE.md</code>, it lives in the repo and is shared through git, so it must never hold a credential.</p>
+<ol>
+<li>
+<p>Create a new file named <strong>STARTER/repo/.mcp.json</strong>, and add the following lines:</p>
+<div class="cb"><pre><code class="language-json">{&quot;mcpServers&quot;: {&quot;carrier-docs&quot;: {&quot;type&quot;: &quot;http&quot;, &quot;url&quot;: &quot;https://docs.example.com/mcp&quot;,
+  &quot;headers&quot;: {&quot;Authorization&quot;: &quot;Bearer ${CARRIER_DOCS_TOKEN}&quot;}}}}
+</code></pre></div>
+</li>
+<li>
+<p>Run <code>python check.py</code>, and verify that the two lines under <strong>Stage 5</strong> show <code>[PASS]</code>.</p>
+</li>
+<li>
+<p>In the second terminal, start <code>claude</code> again, approve the project MCP server when Claude Code asks, and type <code>/mcp</code>.</p>
+</li>
+<li>
+<p>Verify that <code>/mcp</code> lists <strong>carrier-docs</strong>.</p>
+<blockquote class="">
+<p><strong>Note</strong>: The URL is a placeholder for your team's carrier-documentation server, and this lab checks only the declaration. Set the <code>CARRIER_DOCS_TOKEN</code> environment variable when you have a real server.</p>
+</blockquote>
+</li>
+<li>
+<p>Review the file, noting the following details:</p>
+<ul>
+<li>The <code>${CARRIER_DOCS_TOKEN}</code> value is read from your environment, so the secret stays out of git.</li>
+<li>Claude Code asks for approval before it uses a server that a project file declares.</li>
+</ul>
+</li>
+</ol>
+<h2>Check your work</h2>
+<ol>
+<li>
+<p>Run the checker one last time:</p>
+<div class="cb"><pre><code>python check.py
+</code></pre></div>
+</li>
+<li>
+<p>Verify that the last line reads:</p>
+<div class="cb"><pre><code>RESULT: 16/16 checks passed
+</code></pre></div>
+</li>
+<li>
+<p>Submit the output of <code>python check.py</code> as your evidence. There is nothing else to write up.</p>
+</li>
+</ol>
+<h2>Clean up</h2>
+<ol>
+<li>
+<p>Remove the user-level file by running the following command. Your own file is restored if you had one:</p>
+<div class="cb"><pre><code>python reset.py --user remove
+</code></pre></div>
+</li>
+</ol>
+<h2>More information</h2>
+<p>The <strong>SOLUTION</strong> folder is the finished lab, laid out like <strong>STARTER</strong>. This guide already contains every line you need, so use the folder only to find a typo. To check it, run <code>python check.py --root SOLUTION</code>.</p>
+<p>The layers you built follow one design: files are concatenated and not ranked, a nested file and a path rule load only when Claude reads a matching file, and a critical rule is enforced by a hook or a test. Deterministic precedence exists only in settings and permissions.</p>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

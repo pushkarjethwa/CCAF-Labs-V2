@@ -1,0 +1,73 @@
+diff --git a/config/carriers.yaml b/config/carriers.yaml
+index b40acf0..854942f 100644
+--- a/config/carriers.yaml
++++ b/config/carriers.yaml
+@@ -2,3 +2,5 @@ acme:
+   dim_divisor: 5000
+ zipfast:
+   dim_divisor: 6000
++swiftpost:
++  dim_divisor: 5000
+diff --git a/src/shipcalc/carriers/swiftpost.py b/src/shipcalc/carriers/swiftpost.py
+new file mode 100644
+index 0000000..352cec9
+--- /dev/null
++++ b/src/shipcalc/carriers/swiftpost.py
+@@ -0,0 +1,14 @@
++"""SwiftPost adapter.  The API key comes from the environment and is only needed for live calls."""
++import os
++
++from .. import packaging, rates, units
++from ..models import Parcel
++
++
++def auth_header() -> dict:
++    return {"Authorization": "Bearer " + os.environ["SWIFTPOST_API_KEY"]}
++
++
++def quote(parcel: Parcel, zone: int) -> int:
++    billable = packaging.billable_weight_kg(units.parcel_kg(parcel), units.parcel_dims_cm(parcel), rates.divisor("swiftpost"))
++    return rates.price_cents(billable, zone)
+diff --git a/src/shipcalc/quote.py b/src/shipcalc/quote.py
+index 0735c4b..9a32aa4 100644
+--- a/src/shipcalc/quote.py
++++ b/src/shipcalc/quote.py
+@@ -1,8 +1,8 @@
+ """Public entry point: price a parcel with one carrier."""
+-from .carriers import acme, zipfast
++from .carriers import acme, swiftpost, zipfast
+ from .models import Parcel
+ 
+-CARRIERS = {"acme": acme.quote, "zipfast": zipfast.quote}
++CARRIERS = {"acme": acme.quote, "zipfast": zipfast.quote, "swiftpost": swiftpost.quote}
+ 
+ 
+ def get_quote(parcel: Parcel, carrier: str, zone: int = 1) -> int:
+diff --git a/tests/test_swiftpost.py b/tests/test_swiftpost.py
+new file mode 100644
+index 0000000..48f7f46
+--- /dev/null
++++ b/tests/test_swiftpost.py
+@@ -0,0 +1,22 @@
++import pytest
++
++from shipcalc.carriers import swiftpost
++from shipcalc.models import Parcel
++from shipcalc.quote import get_quote
++
++
++def test_swiftpost_metric():
++    assert get_quote(Parcel(3.0, "kg", (20, 20, 20), "cm"), "swiftpost") == 900
++
++
++def test_swiftpost_imperial_light_parcel_uses_kilograms():
++    assert get_quote(Parcel(6.0, "lb", (2, 2, 2), "in"), "swiftpost") == 900
++
++
++def test_swiftpost_imperial_bulky_parcel_is_billed_by_volume():
++    assert get_quote(Parcel(1.0, "lb", (20, 15, 10), "in"), "swiftpost") == 2200
++
++
++def test_auth_header_reads_the_environment(monkeypatch):
++    monkeypatch.setenv("SWIFTPOST_API_KEY", "from-env")
++    assert swiftpost.auth_header() == {"Authorization": "Bearer from-env"}

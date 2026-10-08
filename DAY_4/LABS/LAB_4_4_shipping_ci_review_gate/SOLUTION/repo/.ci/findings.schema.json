@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["summary", "findings"],
+  "properties": {
+    "summary": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "severity", "category", "file", "line", "title", "evidence", "fix"],
+        "properties": {
+          "id": {"type": "string"},
+          "severity": {"type": "string", "enum": ["BLOCKER", "SHOULD_FIX", "NITPICK"]},
+          "category": {"type": "string", "enum": ["units", "secrets", "tests", "correctness", "style"]},
+          "file": {"type": "string"},
+          "line": {"type": "integer"},
+          "title": {"type": "string"},
+          "evidence": {"type": "string"},
+          "fix": {"type": "string"}
+        }
+      }
+    }
+  }
+}

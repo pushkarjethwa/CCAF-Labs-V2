@@ -1,0 +1,27 @@
+{
+  "module": "shipcalc.quote",
+  "public": [
+    {
+      "function": "get_quote",
+      "file": "src/shipcalc/quote.py",
+      "params": [
+        "parcel",
+        "carrier",
+        "zone"
+      ],
+      "returns": "int cents"
+    }
+  ],
+  "models": [
+    {
+      "class": "Parcel",
+      "file": "src/shipcalc/models.py",
+      "fields": [
+        "weight",
+        "weight_unit",
+        "dims",
+        "dim_unit"
+      ]
+    }
+  ]
+}

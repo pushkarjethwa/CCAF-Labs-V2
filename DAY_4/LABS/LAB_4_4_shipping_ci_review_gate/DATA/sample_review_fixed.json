@@ -1,0 +1,11 @@
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "",
+  "structured_output": {
+    "summary": "The adapter converts units through the units module, reads the key from the environment and tests the imperial case.",
+    "findings": []
+  },
+  "_note": "RECORDED SAMPLE: shaped like a claude -p envelope; written by hand for the offline check, not a model run"
+}

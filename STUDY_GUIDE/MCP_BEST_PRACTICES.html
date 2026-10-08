@@ -1,0 +1,450 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>STUDY_GUIDE</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; </header><main><h1>MCP Best Practices: Designing Servers, Clients and Claude Together</h1>
+<p>Study guide for the CCA-F course. Read it after the Day 2 MCP demos (<code>DEMO_2_0_intro_to_mcp</code>, <code>DEMO_2_0_mcp_separate_server_and_client</code>, Demo 2D) and before Labs 2.4 and 2.6.</p>
+<p>This guide has one idea running through it: <strong>an MCP server is a product that Claude uses.</strong> Claude is the user. It reads your tool names and descriptions, picks a tool, fills in the arguments, and reads what comes back. Good MCP design is mostly good design for that reader.</p>
+<blockquote class="">
+<p><strong>Note</strong>: Parts of this guide come from public sources and the MCP specification, which changes between revisions. Check the revision date at modelcontextprotocol.io before you rely on a detail. Model names and prices change often, so this guide talks about model tiers and leaves prices to Anthropic's pricing page.</p>
+</blockquote>
+<h2>In one minute</h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Short answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What does MCP give you?</td>
+<td>One standard way for any client (an app, an agent, an IDE) to use tools, data and prompts from any server.</td>
+</tr>
+<tr>
+<td>What are the three things a server offers?</td>
+<td>Tools (actions), resources (read-only data) and prompts (reusable templates).</td>
+</tr>
+<tr>
+<td>Which transport do I choose?</td>
+<td>stdio for a local server started by the client. Streamable HTTP for a remote or shared server.</td>
+</tr>
+<tr>
+<td>What is the most common design mistake?</td>
+<td>Wrapping every API endpoint as a tool. Design tools around tasks, not endpoints.</td>
+</tr>
+<tr>
+<td>Where does Claude fit?</td>
+<td>Claude is the model that chooses tools. The quality of names, descriptions and results decides how well it chooses.</td>
+</tr>
+</tbody>
+</table>
+<h2>Where the pieces sit</h2>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Job</th>
+<th>Example from the course</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Host</td>
+<td>The app the user works in. It owns the model call and the user's approval.</td>
+<td>Your Python script, Claude Desktop, an IDE</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>Lives inside the host. Keeps one connection to one server.</td>
+<td><code>ClientSession</code> in the Day 2 demos</td>
+</tr>
+<tr>
+<td>Server</td>
+<td>Exposes tools, resources and prompts.</td>
+<td><code>kitchen_server.py</code>, <code>crm_server.py</code></td>
+</tr>
+<tr>
+<td>Model</td>
+<td>Reads the tool list and decides which tool to call.</td>
+<td>Claude</td>
+</tr>
+</tbody>
+</table>
+<p>The host and the model never talk to your database or API directly. They go through the server. That single doorway is what makes MCP easy to secure and easy to audit.</p>
+<h2>1. Design tools for Claude</h2>
+<p>Claude chooses a tool from its name, description and input schema only. It cannot read your code. If those three are vague, Claude guesses.</p>
+<table>
+<thead>
+<tr>
+<th>Practice</th>
+<th>Do this</th>
+<th>Avoid this</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name by task</td>
+<td><code>place_order</code>, <code>check_stock</code></td>
+<td><code>post_v2_orders</code>, <code>do_action</code></td>
+</tr>
+<tr>
+<td>Describe the when</td>
+<td>&quot;Use this to find out whether an item is in stock before placing an order.&quot;</td>
+<td>&quot;Stock tool.&quot;</td>
+</tr>
+<tr>
+<td>Keep the set small</td>
+<td>5 to 15 focused tools per server</td>
+<td>One tool per API endpoint (50 or more)</td>
+</tr>
+<tr>
+<td>Use clear, typed inputs</td>
+<td><code>item: str</code>, <code>quantity: int</code>, with a one-line description each</td>
+<td>A single free-text <code>params</code> field</td>
+</tr>
+<tr>
+<td>Use enums for fixed choices</td>
+<td><code>status: &quot;open&quot; or &quot;closed&quot;</code></td>
+<td>Free text that has to be parsed</td>
+</tr>
+<tr>
+<td>Make each tool do one job</td>
+<td><code>check_stock</code> and <code>place_order</code></td>
+<td>One <code>kitchen</code> tool with a <code>mode</code> argument</td>
+</tr>
+<tr>
+<td>Return what the next step needs</td>
+<td>A short, readable result with the ids Claude must use next</td>
+<td>The raw API response with 200 fields</td>
+</tr>
+<tr>
+<td>Return text Claude can act on</td>
+<td>&quot;Pepperoni: 0 left. Alternatives: margherita (12), veggie (8).&quot;</td>
+<td>A bare <code>false</code></td>
+</tr>
+</tbody>
+</table>
+<h3>Tool description checklist</h3>
+<p>A good description answers four questions in two or three sentences.</p>
+<ol>
+<li>What does the tool do?</li>
+<li>When should Claude use it, and when should it not?</li>
+<li>What does each argument mean, with an example?</li>
+<li>What does the result look like?</li>
+</ol>
+<p>Example:</p>
+<div class="cb"><pre><code class="language-python">@mcp.tool()
+def check_stock(item: str) -&gt; str:
+    &quot;&quot;&quot;Check how many portions of one menu item are left.
+    Use this before place_order. Example item: &quot;margherita&quot;.
+    Returns a short sentence such as &quot;margherita: 12 left&quot;.&quot;&quot;&quot;
+</code></pre></div>
+<blockquote class="important">
+<p><strong>Important</strong>: Tool descriptions go into Claude's context on every request. Long descriptions cost tokens and money. Write what Claude needs and stop.</p>
+</blockquote>
+<h2>2. Tools, resources and prompts: choose the right one</h2>
+<table>
+<thead>
+<tr>
+<th>Use a...</th>
+<th>When</th>
+<th>Who decides to use it</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tool</td>
+<td>Claude should do something or look something up on demand</td>
+<td>The model</td>
+<td><code>place_order</code>, <code>search_tickets</code></td>
+</tr>
+<tr>
+<td>Resource</td>
+<td>You are offering data to read, by address</td>
+<td>The application or user</td>
+<td><code>menu://today</code>, a file, a database row</td>
+</tr>
+<tr>
+<td>Prompt</td>
+<td>You want a reusable, parameterized starting point</td>
+<td>The user</td>
+<td>&quot;Review this order&quot; template</td>
+</tr>
+</tbody>
+</table>
+<p>A simple rule: if it changes something or needs arguments to compute, make it a tool. If it is stable content to read, make it a resource. If a person picks it from a menu, make it a prompt.</p>
+<h2>3. Choose the transport</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>stdio</th>
+<th>Streamable HTTP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Where the server runs</td>
+<td>On the same machine, started by the client as a child process</td>
+<td>Anywhere reachable by URL</td>
+</tr>
+<tr>
+<td>Who can connect</td>
+<td>Only the client that started it</td>
+<td>Any client allowed by your network and auth</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>The operating system user is the boundary</td>
+<td>Required. Use OAuth based authorization.</td>
+</tr>
+<tr>
+<td>Good for</td>
+<td>Local tools, developer machines, desktop apps</td>
+<td>Shared, hosted or enterprise servers</td>
+</tr>
+<tr>
+<td>Rule you must follow</td>
+<td>Write logs to stderr. <strong>stdout is the wire.</strong> Anything else printed there corrupts the protocol.</td>
+<td>Serve over HTTPS and keep the server stateless where you can</td>
+</tr>
+<tr>
+<td>Course example</td>
+<td><code>kitchen_server.py</code> (intro demo)</td>
+<td><code>server_app/kitchen_server.py</code>, Demo 2D</td>
+</tr>
+</tbody>
+</table>
+<h2>4. Make results friendly to a model</h2>
+<table>
+<thead>
+<tr>
+<th>Practice</th>
+<th>Why it helps Claude</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Return the useful part, not the whole record</td>
+<td>Smaller results leave room in the context window and reduce noise.</td>
+</tr>
+<tr>
+<td>Paginate or cap long lists and say so (&quot;showing 10 of 240&quot;)</td>
+<td>Claude can ask for more instead of drowning.</td>
+</tr>
+<tr>
+<td>Use stable, human-readable ids</td>
+<td>Claude copies ids into the next call.</td>
+</tr>
+<tr>
+<td>Put the answer first and details after</td>
+<td>Models weigh the start of a result most.</td>
+</tr>
+<tr>
+<td>Mark results that are errors with <code>is_error</code> and a plain reason</td>
+<td>Claude reads the reason and chooses the next step. In the course demos, tools return <code>CallToolResult</code> for this.</td>
+</tr>
+<tr>
+<td>Keep output formats consistent across tools</td>
+<td>Claude learns the shape once.</td>
+</tr>
+</tbody>
+</table>
+<h2>5. Keep context cost under control</h2>
+<p>Every connected tool definition is sent to the model with every request, and input tokens are billed. A large set of servers can use tens of thousands of tokens before the user has typed a word.</p>
+<table>
+<thead>
+<tr>
+<th>Technique</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connect only the servers a task needs</td>
+<td>Fewer definitions, lower cost, better tool choice.</td>
+</tr>
+<tr>
+<td>Enable only the tools a task needs</td>
+<td>MCP clients and the Claude API's MCP connector let you allow or deny tools per server.</td>
+</tr>
+<tr>
+<td>Defer rarely used tools</td>
+<td>The Claude API tool search tool lets you mark tools with <code>defer_loading</code> so definitions load only when needed. Anthropic reported large token savings and better tool-selection accuracy on MCP evaluations.</td>
+</tr>
+<tr>
+<td>Use prompt caching for the stable part</td>
+<td>Tool definitions and the system prompt rarely change, so cache them.</td>
+</tr>
+<tr>
+<td>Trim descriptions and results</td>
+<td>Short and exact beats long and vague.</td>
+</tr>
+</tbody>
+</table>
+<h2>6. Put Claude into the design</h2>
+<p>An MCP system has two parts that need design: the servers, and the model that drives them. Treat the model as a design decision.</p>
+<h3>Choose the model tier for the job</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Fits</th>
+<th>Typical MCP role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Smaller, faster tier (Haiku class)</td>
+<td>High volume, simple routing, classification, quick lookups</td>
+<td>Triage, picking among a few tools, summarizing results</td>
+</tr>
+<tr>
+<td>Balanced tier (Sonnet class)</td>
+<td>Most production agents</td>
+<td>The main tool-using agent over a normal-size toolset</td>
+</tr>
+<tr>
+<td>Most capable tier (Opus class)</td>
+<td>Long, multi-step work and hard reasoning</td>
+<td>A coordinator, planning, many tools, ambiguous tasks</td>
+</tr>
+</tbody>
+</table>
+<p>Start with the balanced tier. Move down if a task is simple and cost or speed matters. Move up if tool choice or planning is poor. Measure on your own cases, as in Demo 3A.</p>
+<h3>Choose how the model uses the tools</h3>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Options</th>
+<th>Guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Who runs the loop</td>
+<td>Your own loop (Anthropic SDK), the Tool Runner, the Claude Agent SDK, Managed Agents</td>
+<td>Use the least powerful option that works. See <code>DAY_3/ANTHROPIC_SDK_VS_CLAUDE_AGENT_SDK.md</code>.</td>
+</tr>
+<tr>
+<td>How MCP is attached</td>
+<td>Your own MCP client, or the Claude API MCP connector for remote servers</td>
+<td>The connector removes the client code for remote servers. Your own client gives you full control.</td>
+</tr>
+<tr>
+<td>Forcing a tool</td>
+<td><code>tool_choice</code> set to auto, any, or one named tool</td>
+<td>Use auto by default. Force a tool only when the step is fixed.</td>
+</tr>
+<tr>
+<td>Limits</td>
+<td>Maximum turns, maximum tokens, budget</td>
+<td>Always set them.</td>
+</tr>
+<tr>
+<td>System prompt</td>
+<td>Role, tool-use rules, answer format</td>
+<td>Say which tool to prefer for which job. Keep it short.</td>
+</tr>
+</tbody>
+</table>
+<h3>Split work across models</h3>
+<p>A common pattern is a capable model as coordinator and smaller models as specialists, each connected to only the servers it needs. This keeps costs down and gives each agent fewer tools, which improves tool choice. Demos 3B and 3G build this shape.</p>
+<h2>7. Operate it well</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Practice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Versioning</td>
+<td>Version your server and your tool names. Do not change a tool's meaning silently.</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>Test each tool alone first, then with Claude on realistic requests. Keep a small set of test prompts and the tools they should trigger.</td>
+</tr>
+<tr>
+<td>Observability</td>
+<td>Log each call with a request id, tool name, caller and duration. Never log secrets.</td>
+</tr>
+<tr>
+<td>Idempotence</td>
+<td>Make tools that change things safe to repeat, or accept an idempotency key. Models and networks repeat calls.</td>
+</tr>
+<tr>
+<td>Timeouts</td>
+<td>Set a timeout on every outside call a tool makes.</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>Write a short README per server: what it offers, who may use it, how to run it.</td>
+</tr>
+<tr>
+<td>Ownership</td>
+<td>Give every server an owner, a version and a review date.</td>
+</tr>
+</tbody>
+</table>
+<h2>8. Quick design checklist</h2>
+<p>Use this before you publish a server.</p>
+<ol>
+<li>Each tool does one job and has a task-based name.</li>
+<li>Each description says what, when, arguments and result.</li>
+<li>The tool set is small, and rarely used tools can be deferred.</li>
+<li>Inputs are typed, and fixed choices use enums.</li>
+<li>Results are short, readable and put the answer first.</li>
+<li>Tools that change data are safe to repeat.</li>
+<li>Logs go to stderr on stdio and never contain secrets.</li>
+<li>Remote servers require authentication (see the security guide).</li>
+<li>The model tier, loop type and limits are chosen on purpose and written down.</li>
+<li>You tested with Claude on real requests, not only with unit tests.</li>
+</ol>
+<h2>More information</h2>
+<ul>
+<li>Security design for MCP: <code>MCP_SECURITY_ARCHITECTURE.md</code> in this folder.</li>
+<li>Course demos: <code>DAY_2/LABS/DEMO_2_0_intro_to_mcp</code>, <code>DAY_2/LABS/DEMO_2_0_mcp_separate_server_and_client</code>, Labs 2.4 and 2.6.</li>
+<li>Official specification and guides: modelcontextprotocol.io.</li>
+<li>Claude API tool use and MCP connector: Anthropic's documentation at platform.claude.com.</li>
+</ul>
+<p>Sources used for this guide:</p>
+<ul>
+<li><a href="https://www.anthropic.com/engineering/advanced-tool-use">Introducing advanced tool use on the Claude Developer Platform (Anthropic)</a></li>
+<li><a href="https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview">Tool use with Claude, Claude Platform Docs</a></li>
+<li><a href="https://docs.anthropic.com/en/docs/claude-code/mcp">Connect Claude Code to tools via MCP (Claude Code Docs)</a></li>
+<li><a href="https://tessl.io/blog/anthropic-brings-mcp-tool-search-to-claude-code">Anthropic brings MCP tool search to Claude Code (Tessl)</a></li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

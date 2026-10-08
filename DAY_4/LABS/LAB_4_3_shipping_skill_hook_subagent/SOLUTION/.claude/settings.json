@@ -1,0 +1,13 @@
+{
+  "permissions": {"deny": ["Read(./config/credentials/**)"]},
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|Bash",
+        "hooks": [
+          {"type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/audit_log.py\"", "timeout": 10}
+        ]
+      }
+    ]
+  }
+}

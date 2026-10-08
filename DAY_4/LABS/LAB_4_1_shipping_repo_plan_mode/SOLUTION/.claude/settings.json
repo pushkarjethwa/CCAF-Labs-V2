@@ -1,0 +1,4 @@
+{
+  "permissions": {"allow": ["Bash(python -m unittest:*)", "Bash(python scripts/hidden_regression_units.py)", "Bash(python tools/blast_radius.py:*)", "Bash(python tools/plan_check.py:*)"]},
+  "hooks": {"PostToolUse": [{"matcher": "Edit|Write", "hooks": [{"type": "command", "command": "python -m unittest discover -s tests"}]}]}
+}
