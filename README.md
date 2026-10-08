@@ -139,7 +139,7 @@ The Day 4 intro demo (4.0) and the four Day 4 trainer demos (4A to 4D) are rebui
 
 | Demo | The idea in one line | Pairs with |
 |---|---|---|
-| 4.0 Intro to Claude Code | A 38-minute tour of Claude Code's building blocks on a tiny bookshop app. Run it first | none, run before Lab 4.1 |
+| 4.0 Intro to Claude Code | A 43-minute tour of Claude Code's building blocks on a tiny bookshop app. Run it first | none, run before Lab 4.1 |
 | 4A Repository exploration and Plan Mode | Explore a repo, then plan a cross-file change before editing | Lab 4.1 |
 | 4B CLAUDE.md and rules | Layer CLAUDE.md files and path-scoped rules so Claude follows the right guidance | Lab 4.2 |
 | 4C Skill, hook and subagent | One reusable review capability built from a skill, a hook and a subagent | Lab 4.3 |

@@ -10,7 +10,7 @@ These labs use Claude Code itself. Each one repeats the method of the trainer's 
 
 To complete these exercises you need Python 3.10 or later, the Claude Code command-line tool (`claude --version`) and a login or API key. Setup is in **DAY_0_SETUP_GUIDE.md**.
 
-Before Lab 4.1, run the intro demo, **DEMO_4_0_intro_to_claude**. It is a 38-minute tour of Claude Code on a tiny bookshop app: `@` and `!`, permission modes, CLAUDE.md, `/context`, a slash command, a skill, a subagent, a hook, an MCP server and headless `claude -p`. It needs no matching lab. Open its [README](DEMO_4_0_intro_to_claude/README.md), run `python check_offline.py`, then follow the **RUN_SHEET**. Part 8 needs `pip install mcp`.
+Before Lab 4.1, run the intro demo, **DEMO_4_0_intro_to_claude**. It is a 43-minute tour of Claude Code on a tiny bookshop app: `@` and `!`, permission modes, CLAUDE.md, `/context`, a slash command, a skill, a subagent, a hook, an MCP server and headless `claude -p`. It needs no matching lab. Open its [README](DEMO_4_0_intro_to_claude/README.md), run `python check_offline.py`, then follow the **RUN_SHEET**. Part 8 needs `pip install mcp`.
 
 | Lab | Follows | Folder |
 |---|---|---|

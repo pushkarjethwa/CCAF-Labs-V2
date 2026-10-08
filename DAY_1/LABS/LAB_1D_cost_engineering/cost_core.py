@@ -28,7 +28,7 @@ HOOKS = {}  # filled by demo.py / lab.py
 CALLS = []
 MONTHLY = 100_000
 MAX_TOKENS = 600
-CACHE_FLOOR = {"haiku": 4096}  # tokens: below this a prefix is silently NOT cached (Sonnet class: 512)
+CACHE_FLOOR = {}  # tokens: below the floor a prefix is silently NOT cached. 512 for Sonnet 5.5 and Haiku 5.5 (the default below); Haiku 4.5 needed 4096
 WRITE_MULT = {"5m": 1.25, "1h": 2.0}
 READ_MULT = 0.10
 BATCH_MULT = 0.50
@@ -448,11 +448,11 @@ def stage3(invoices, truth, include_floor=False):
     if include_floor:
         hr("E. the OTHER silent no-cache: a prefix below the model's floor (the short 'lite' policy)")
         lite = load_policy("lite")
-        print(f"lite policy ~{tokens_estimate(lite):,} tokens: above the balanced floor ({CACHE_FLOOR.get('sonnet', 512)}), below the fast floor ({CACHE_FLOOR['haiku']})")
+        print(f"lite policy ~{tokens_estimate(lite):,} tokens: the floor is {CACHE_FLOOR.get('sonnet', 512)} tokens for both models")
         for alias, model in (("fast", MODEL_FAST), ("balanced", MODEL_BALANCED)):
             rows = run_sequence(model, lite, invoices[:3], new_salt(), f"floor-{alias}", cache=True)
             print(f"{alias:<10}cache write/read per request: " + ", ".join(f"{r.cache_write}/{r.cache_read}" for r in rows))
-        print("fast: 0/0 on every request means the marker was silently ignored.")
+        print("0/0 on every request would mean the marker was silently ignored (prefix below the floor).")
     save("stage3.json", out)
 
 

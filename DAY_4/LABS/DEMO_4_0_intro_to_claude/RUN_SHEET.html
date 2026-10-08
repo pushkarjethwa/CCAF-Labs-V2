@@ -29,7 +29,78 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
 </style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code in the Development Workflow</header><main><h1>Instructor Run Sheet: Demo 4.0, Intro to Claude Code</h1>
-<p>This run sheet covers Demo 4.0, which takes about 38 minutes and runs live in Claude Code on a tiny sample project, <code>bookshop</code>. It uses one story from the first command to the last: a bookshop owner hires a new assistant, and the assistant is shown how the shop works, one tool at a time. The use case is &quot;add a low-stock report&quot;. It comes before Demo 4A. This demo has no matching Python script to run: you work in Claude Code, and the <strong>PART</strong> folders hold the files you add at each part.</p>
+<p>This run sheet covers Demo 4.0, which takes about 43 minutes in full, or about 30 minutes on the core path, and runs live in Claude Code on a tiny sample project, <code>bookshop</code>. It uses one story from the first command to the last: a bookshop owner hires a new assistant, and the assistant is shown how the shop works, one tool at a time. The use case is &quot;add a low-stock report&quot;. The demo stands alone: it needs no other Day 4 demo, and every term is explained when it first appears. This demo has no matching Python script to run: you work in Claude Code. In parts 4 to 7 you write one short file live, and the <strong>LIVE_TYPED</strong> folder holds the same files as a safety net. The <strong>PART</strong> folders hold catch-up copies.</p>
+<h2>Core path card</h2>
+<ul>
+<li><strong>The pitch</strong>: A new assistant gets the tour: handbook, sticky note, style binder, back-room colleague and door chime.</li>
+<li><strong>The one thing students must remember</strong>: Each building block answers one question. Always loaded: CLAUDE.md. A prompt you type: slash command. Loads only when needed: skill. Own desk: subagent. Must happen every time: hook. Outside the project: MCP.</li>
+<li><strong>Full run</strong>: About 43 minutes, with all ten parts and the timings in the steps below.</li>
+<li><strong>Core path</strong>: About 30 minutes, as in the table.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Minutes</th>
+<th>What students see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Start and look around</td>
+<td>5</td>
+<td><code>claude</code>, a project question, <code>@file</code>, <code>!tests</code>, <code>/permissions</code>, Shift+Tab modes and a quick plan-mode question</td>
+</tr>
+<tr>
+<td>2. Memory</td>
+<td>3</td>
+<td><code>/init</code> writes CLAUDE.md, and you add one rule by hand</td>
+</tr>
+<tr>
+<td>4. Custom slash command</td>
+<td>5</td>
+<td>You write <code>/add-feature</code> as one markdown file, then use it to build the low-stock report</td>
+</tr>
+<tr>
+<td>5. Skill</td>
+<td>4</td>
+<td>You write the <code>report-style</code> skill, and the report follows the shop's format</td>
+</tr>
+<tr>
+<td>6. Subagent</td>
+<td>4</td>
+<td>You write a read-only <code>reviewer</code>, and it sends back six lines</td>
+</tr>
+<tr>
+<td>7. Hook</td>
+<td>4</td>
+<td>You write a hook in <code>settings.json</code>, and the tests run by themselves after every edit</td>
+</tr>
+<tr>
+<td>8. MCP (mention only)</td>
+<td>1</td>
+<td>One sentence and a look at <code>.mcp.json</code>, with no live run</td>
+</tr>
+<tr>
+<td>9. Headless</td>
+<td>3</td>
+<td><code>claude -p</code>, a pipe and JSON output: Claude as a plain command for scripts and CI</td>
+</tr>
+<tr>
+<td>10. Wrap-up</td>
+<td>1</td>
+<td>The cheat table</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Optional</strong>:</p>
+<ul>
+<li><strong>Part 3, context</strong> (4 minutes in the full run): <code>/context</code>, <code>/compact</code>, <code>/model</code>, <code>/cost</code> and <code>claude -c</code>. Skip it, or give it one sentence.</li>
+<li><strong>Part 8, MCP, full run</strong> (4 minutes in the full run): In the core path, spend one minute: open <code>.mcp.json</code>, and say &quot;MCP is the phone line to outside data and tools.&quot; Run the steps below only if time allows.</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The step headings below show the full-run minutes. On the core path, follow the table above, and skip the optional parts. In parts 4 to 7 you write each part's small file live. The ready-made copies in <strong>LIVE_TYPED</strong> and the <strong>PART</strong> folders are the catch-up if typing goes wrong. Use <code>claude -c</code> to continue the conversation.</p>
+</blockquote>
 <h2>Before class</h2>
 <ol>
 <li>
@@ -57,7 +128,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>claude
 </code></pre></div>
 <p><strong>What it does:</strong> Starts an interactive Claude Code session in the current folder.
-<strong>Why we run it here:</strong> Everything in this demo happens inside a session. Starting it inside the project folder lets Claude see the project.</p>
+<strong>Why we run it here:</strong> Everything in this demo happens inside a session. Starting it inside the project folder lets Claude see the project. (Before you start, <code>claude --version</code> shows that Claude Code is installed, and the first <code>claude</code> asks you to sign in.)</p>
 <div class="cb"><pre><code>What does this project do? Answer in four lines.
 </code></pre></div>
 <p><strong>What it does:</strong> Asks Claude to read the project and explain it.
@@ -70,6 +141,10 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </code></pre></div>
 <p><strong>What it does:</strong> Runs a shell command from inside the session and puts the output in the conversation.
 <strong>Why we run it here:</strong> It proves the project's tests pass before we change anything, without leaving Claude.</p>
+<div class="cb"><pre><code>Plan how you would add a low-stock report to this app. Do not change any file.
+</code></pre></div>
+<p><strong>What it does:</strong> Asks for a plan while Claude Code is in plan mode, so it can read and think but not edit.
+<strong>Why we run it here:</strong> It shows the safest way to start any change: look first, plan, and only then allow edits.</p>
 <div class="cb"><pre><code>/permissions
 </code></pre></div>
 <p><strong>What it does:</strong> Shows the rules for what Claude may always do, must ask about, or may never do.
@@ -100,12 +175,12 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </code></pre></div>
 <p><strong>What it does:</strong> Shows what the session has used so far.
 <strong>Why we run it here:</strong> Cost is part of the design. Students should know where to look.</p>
-<p><strong>Part 4, custom slash command</strong></p>
+<p><strong>Part 4, custom slash command</strong> (you first create <code>.claude\commands\add-feature.md</code>, as in the steps below)</p>
 <div class="cb"><pre><code>/add-feature a low-stock report: list the books with fewer than 5 copies left, fewest first
 </code></pre></div>
 <p><strong>What it does:</strong> Runs your own slash command, with the text after it filled into <code>$ARGUMENTS</code>.
 <strong>Why we run it here:</strong> A command is a prompt you wrote once and reuse. It builds the low-stock report with the same steps every time: build, test, report.</p>
-<p><strong>Part 5, skill</strong></p>
+<p><strong>Part 5, skill</strong> (you first create <code>.claude\skills\report-style\SKILL.md</code>)</p>
 <div class="cb"><pre><code>Make the low-stock report follow our shop's report style.
 </code></pre></div>
 <p><strong>What it does:</strong> Asks for a change that matches the skill's description.
@@ -114,16 +189,16 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </code></pre></div>
 <p><strong>What it does:</strong> Runs the same skill by name.
 <strong>Why we run it here:</strong> It shows that a skill can also be started by hand, which is the difference from CLAUDE.md, which is always loaded.</p>
-<p><strong>Part 6, subagent</strong></p>
-<div class="cb"><pre><code>/agents
+<p><strong>Part 6, subagent</strong> (you first create <code>.claude\agents\reviewer.md</code>)</p>
+<div class="cb"><pre><code>@rev
 </code></pre></div>
-<p><strong>What it does:</strong> Lists the subagents Claude can hand work to.
-<strong>Why we run it here:</strong> It shows the <code>reviewer</code> worker exists, and that its tools are limited.</p>
+<p><strong>What it does:</strong> Typing <code>@</code> and the start of a name opens a list of files and subagents. Do not press Enter: look for <code>reviewer</code> (marked as an agent) in the list, and press Esc.
+<strong>Why we run it here:</strong> It proves Claude Code found the new <code>reviewer</code> file. (Older versions have an <code>/agents</code> command for this. Newer versions do not.)</p>
 <div class="cb"><pre><code>Use the reviewer subagent to review low_stock_report and its tests.
 </code></pre></div>
-<p><strong>What it does:</strong> Hands a task to the subagent.
+<p><strong>What it does:</strong> Hands a task to the subagent. To make sure it is the subagent that runs, start the sentence with <code>@agent-reviewer</code> instead of &quot;Use the reviewer subagent&quot;.
 <strong>Why we run it here:</strong> The reviewer reads in its own context and sends back a short answer, so our main conversation stays small.</p>
-<p><strong>Part 7, hook</strong></p>
+<p><strong>Part 7, hook</strong> (you first create <code>.claude\settings.json</code>)</p>
 <div class="cb"><pre><code>/hooks
 </code></pre></div>
 <p><strong>What it does:</strong> Shows the hooks that are set up.
@@ -153,7 +228,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <div class="cb"><pre><code>python -m bookshop low-stock | claude -p &quot;Write a three-line reorder email from this report.&quot;
 </code></pre></div>
 <p><strong>What it does:</strong> Pipes the report into Claude as input.
-<strong>Why we run it here:</strong> Claude can work on the output of other programs, which is how it will review a pull request in Demo 4D.</p>
+<strong>Why we run it here:</strong> Claude can work on the output of other programs, which is how a build pipeline can use it, for example to review a code change.</p>
 <div class="cb"><pre><code>python -m bookshop low-stock | claude -p &quot;Count the titles in this report.&quot; --output-format json
 </code></pre></div>
 <p><strong>What it does:</strong> Asks for a JSON answer with the result and run details.
@@ -162,23 +237,23 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Run every shell command from <strong>workspace\bookshop</strong> unless the step says otherwise. In the commands below, <code>..\..</code> is this demo folder.</p>
 <ol>
 <li>
-<p><strong>Minutes 0-6, part 1, start and look around</strong>: Open the project in the second terminal, and show the layout, so students see how small it is: four Python files, one data file, six tests. Then, in the first terminal, run <code>claude</code>, and paste the prompts for part 1 in order.</p>
+<p><strong>Minutes 0-7, part 1, start and look around</strong>: Open the project in the second terminal, and show the layout, so students see how small it is: four Python files, one data file, six tests. Then, in the first terminal, run <code>claude</code>, and paste the prompts for part 1 in order.</p>
 <blockquote class="say">
 <p><strong>Say</strong>: &quot;Picture a bookshop. The owner has hired a new assistant. Today the assistant gets the tour, and so do you. This is the whole shop: four small files and a few tests. The assistant is Claude, and the front desk is this terminal.&quot;</p>
 </blockquote>
 <blockquote class="say">
 <p><strong>Say</strong>: &quot;Four things to type before anything else. Slash commands start with a slash. <code>/help</code> lists them. <code>@</code> points at a file, so Claude reads it instead of guessing. <code>!</code> runs a shell command right here and puts the output in the conversation, so I do not leave Claude.&quot;</p>
 </blockquote>
-<p>Press Shift+Tab once, and read the mode at the bottom of the screen. Press it again, and read it. Press it until you are back in the normal mode. Then run <code>/permissions</code>.</p>
+<p>Press Shift+Tab once, and read the mode at the bottom of the screen. Press it again, and read it. Stop in plan mode, and paste the plan-mode prompt from the prompts list. Then press Shift+Tab until you are back in the normal mode, and run <code>/permissions</code>.</p>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;Shift+Tab is the lever for how much freedom Claude has. Normal mode asks before it edits. Accept-edits mode lets file edits through. Plan mode lets Claude read and think, and not edit. You will see plan mode properly in the next demo. <code>/permissions</code> is the list of rules: what is always allowed, what asks, what is never allowed.&quot;</p>
+<p><strong>Say</strong>: &quot;Shift+Tab is the lever for how much freedom Claude has. Normal mode asks before it edits. Accept-edits mode lets file edits through. Plan mode lets Claude read and think, and not edit. Watch: I ask for a plan, and nothing in the project changes. <code>/permissions</code> is the list of rules: what is always allowed, what asks, what is never allowed.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect a four-line description of an inventory app, a two-sentence explanation of <code>inventory_summary</code>, and <code>Ran 6 tests ... OK</code> from the shell shortcut. The modes cycle default, accept edits, plan, and the exact labels differ a little by version (verify on your Claude Code version). Stay in the normal mode for the rest of the demo, unless a step says otherwise.</p>
+<p><strong>Note</strong>: Expect a short plan that lists the files it would change and no edits at all. Expect a four-line description of an inventory app, a two-sentence explanation of <code>inventory_summary</code>, and <code>Ran 6 tests ... OK</code> from the shell shortcut. The modes cycle default, accept edits, plan, and the exact labels differ a little by version (verify on your Claude Code version). Stay in the normal mode for the rest of the demo, unless a step says otherwise.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 6-10, part 2, memory</strong>: Run <code>/init</code>, and approve the file it writes. Then run <code>/memory</code>.</p>
+<p><strong>Minutes 7-11, part 2, memory</strong>: Run <code>/init</code>, and approve the file it writes. Then run <code>/memory</code>.</p>
 <blockquote class="say">
 <p><strong>Say</strong>: &quot;A good assistant has a handbook on the desk. For Claude, the handbook is a file called CLAUDE.md. <code>/init</code> looks at the project and writes a first draft for me. Every session starts by reading it, so I never have to say 'the tests run like this' again.&quot;</p>
 </blockquote>
@@ -189,11 +264,11 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p><strong>Say</strong>: &quot;I can edit the handbook like any file. Here is the difference from just telling Claude in the chat: a chat message lives for this conversation. A line in CLAUDE.md is there tomorrow, and for everyone who clones the repository. Advice that should always be true goes in the file.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: <code>/memory</code> lists the memory files that are loaded, with CLAUDE.md among them, and offers to open one. Your generated CLAUDE.md differs from <strong>PART_02_memory\add\CLAUDE.md</strong>. That file is the catch-up copy: if you need it, run <code>xcopy ..\..\PART_02_memory\add . /E /Y /I</code>. The next demo, 4B, goes much deeper on CLAUDE.md.</p>
+<p><strong>Note</strong>: <code>/memory</code> lists the memory files that are loaded, with CLAUDE.md among them, and offers to open one. Your generated CLAUDE.md differs from <strong>PART_02_memory\add\CLAUDE.md</strong>. That file is the catch-up copy: if you need it, run <code>xcopy ..\..\PART_02_memory\add . /E /Y /I</code>.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 10-14, part 3, context</strong>: Run <code>/context</code>. Then run <code>/compact</code> with the instruction from the prompts list. Run <code>/context</code> again. Then run <code>/model</code>, press Esc to leave it unchanged, and run <code>/cost</code>. Then exit with <code>/exit</code>, and run:</p>
+<p><strong>Minutes 11-15, part 3, context</strong>: Run <code>/context</code>. Then run <code>/compact</code> with the instruction from the prompts list. Run <code>/context</code> again. Then run <code>/model</code>, press Esc to leave it unchanged, and run <code>/cost</code>. Then exit with <code>/exit</code>, and run:</p>
 <div class="cb"><pre><code>claude -c
 </code></pre></div>
 <p>Then run <code>/clear</code>.</p>
@@ -211,32 +286,69 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 14-18, part 4, a custom slash command</strong>: Exit Claude Code with <code>/exit</code>. Copy the part 4 files in, and start Claude Code again so that it sees them:</p>
-<div class="cb"><pre><code>xcopy ..\..\PART_04_slash_command\add . /E /Y /I
-claude
+<p><strong>Minutes 15-20, part 4, write a custom slash command</strong>: Exit Claude Code with <code>/exit</code>. Make the folder that holds custom commands:</p>
+<div class="cb"><pre><code>mkdir .claude\commands
 </code></pre></div>
 <blockquote>
-<p><strong>What it does and why</strong>: <code>xcopy</code> copies this part's ready-made files into the working project, so nobody has to type them. <code>claude</code> (or <code>claude -c</code>) starts Claude Code again so that it picks up the new files, and <code>-c</code> keeps the earlier conversation.</p>
+<p><strong>What it does and why</strong>: <code>mkdir</code> creates the folder, and <code>.claude</code> with it if it is missing. Claude Code looks for custom commands in <code>.claude\commands</code>, so the file has to live there.</p>
 </blockquote>
-<p>Type <code>/help</code>, and point at <code>/add-feature</code> in the list. Open <strong>.claude\commands\add-feature.md</strong> in the editor. Then paste the <code>/add-feature</code> prompt. Press Shift+Tab to accept edits when the first edit appears, or approve the edits one by one.</p>
+<p>In the editor, create the file <strong>.claude\commands\add-feature.md</strong>, paste in the text below, and save it. (If typing goes wrong, <code>copy ..\..\LIVE_TYPED\add-feature.md .claude\commands\add-feature.md</code> puts the same file there.)</p>
+<div class="cb"><pre><code>---
+description: Add a small feature the shop way (look, build, test, summarise)
+argument-hint: &lt;feature in one sentence&gt;
+---
+
+Add this feature to the bookshop app: $ARGUMENTS
+
+Work in this order:
+
+1. Read the code that the feature touches. Say in one sentence where it will go.
+2. Write the code, keeping to the style of the files around it.
+3. Add tests for it in `tests/`.
+4. Run `python -m unittest discover -s tests` and show me the result.
+5. Finish with a three-line summary: what changed, which files, how to run it.
+</code></pre></div>
+<p>Start Claude Code again so that it sees the new file, then type <code>/help</code> and point at <code>/add-feature</code> in the list:</p>
+<div class="cb"><pre><code>claude
+</code></pre></div>
+<p>Then paste the <code>/add-feature</code> prompt. Press Shift+Tab to accept edits when the first edit appears, or approve the edits one by one.</p>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;The owner asks the assistant for the same kind of job every week: add a feature, test it, report back. I wrote it once on a sticky note. A slash command is just a markdown file in <code>.claude/commands</code>. The file name is the command name. <code>$ARGUMENTS</code> is the blank to fill in: whatever I type after the command lands there.&quot;</p>
+<p><strong>Say</strong>: &quot;The owner asks the assistant for the same kind of job every week: add a feature, test it, report back. So I write it once on a sticky note. A slash command is just a markdown file in <code>.claude/commands</code>. The file name is the command name. The top has a one-line description. <code>$ARGUMENTS</code> is the blank to fill in: whatever I type after the command lands there. Nothing runs until I type the command.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect Claude to read <code>reports.py</code>, add <code>low_stock_report</code> and a test file, run the tests, and finish with a three-line summary. The report lists four books: Small Gardens, The Quiet Engine, Night Ferry and Harbour Lights. The code will differ from <strong>PART_04_slash_command\reference</strong>. To catch up, run <code>xcopy ..\..\PART_04_slash_command\reference . /E /Y /I</code>. Point out that a slash command is a prompt that you start: nothing happens until you type it.</p>
+<p><strong>Note</strong>: Expect Claude to read <code>reports.py</code>, add <code>low_stock_report</code> and a test file, run the tests, and finish with a three-line summary. The report lists four books: Small Gardens, The Quiet Engine, Night Ferry and Harbour Lights. The code will differ from <strong>PART_04_slash_command\reference</strong>. To catch up, run <code>xcopy ..\..\PART_04_slash_command\reference . /E /Y /I</code>. To undo what Claude changed, press Esc twice (or type <code>/rewind</code>) and pick the point to go back to.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 18-22, part 5, a skill</strong>: Exit Claude Code with <code>/exit</code>. Copy the part 5 files in, and continue the conversation:</p>
-<div class="cb"><pre><code>xcopy ..\..\PART_05_skill\add . /E /Y /I
-claude -c
+<p><strong>Minutes 20-25, part 5, write a skill</strong>: Exit Claude Code with <code>/exit</code>. Make the skill's folder:</p>
+<div class="cb"><pre><code>mkdir .claude\skills\report-style
 </code></pre></div>
 <blockquote>
-<p><strong>What it does and why</strong>: <code>xcopy</code> copies this part's ready-made files into the working project, so nobody has to type them. <code>claude</code> (or <code>claude -c</code>) starts Claude Code again so that it picks up the new files, and <code>-c</code> keeps the earlier conversation.</p>
+<p><strong>What it does and why</strong>: A skill is a folder with one file named SKILL.md inside. The folder name is the skill's name, and Claude Code looks in <code>.claude\skills</code>.</p>
 </blockquote>
-<p>Paste the part 5 prompt. When Claude finishes, type <code>/report-style</code>.</p>
+<p>In the editor, create <strong>.claude\skills\report-style\SKILL.md</strong>, paste in the text below, and save it. (Safety net: <code>copy ..\..\LIVE_TYPED\report-style_SKILL.md .claude\skills\report-style\SKILL.md</code>.)</p>
+<div class="cb"><pre><code>---
+name: report-style
+description: The bookshop's house format for text reports. Use when writing or changing any report, summary or listing that the shop owner reads.
+---
+
+# Bookshop report style
+
+1. The first line is the title in capitals between `===` marks, like `=== LOW STOCK (BELOW 5) ===`.
+2. The second line is a column header.
+3. Rows are sorted by title, A to Z.
+4. The last line starts with `Total:` and counts the titles, like `Total: 4 titles`.
+
+When you change a report, update its tests so they check the first and last lines.
+</code></pre></div>
+<p>Continue the conversation, paste the part 5 prompt, and when Claude finishes type <code>/report-style</code>:</p>
+<div class="cb"><pre><code>claude -c
+</code></pre></div>
+<blockquote>
+<p><strong>What it does and why</strong>: <code>claude -c</code> starts Claude Code again so that it sees the new skill, and keeps the earlier conversation.</p>
+</blockquote>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;The shop has a house style for reports: a title line, a column header, sorted rows and a Total line. I could paste that into every request. Instead I put it in a skill, a folder with one file, SKILL.md. The top of the file has a name and a description. Claude reads only the description at first. When the work matches it, here a report is being written, Claude opens the whole binder.&quot;</p>
+<p><strong>Say</strong>: &quot;The shop has a house style for reports: a title line, a column header, sorted rows and a Total line. I could paste that into every request. Instead I put it in a skill. The top of the file has a name and a description. Claude reads only the description at first. When the work matches it, here a report is being written, Claude opens the whole binder. That keeps my context small.&quot;</p>
 </blockquote>
 <blockquote class="say">
 <p><strong>Say</strong>: &quot;Slash command or skill? A slash command starts when I type it. A skill can start by itself, because the description tells Claude when it is useful. And I can still call it by name, as I just did.&quot;</p>
@@ -246,68 +358,107 @@ claude -c
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 22-25, part 6, a subagent</strong>: Exit Claude Code with <code>/exit</code>. Copy the part 6 files in, and continue the conversation:</p>
-<div class="cb"><pre><code>xcopy ..\..\PART_06_subagent\add . /E /Y /I
-claude -c
+<p><strong>Minutes 25-29, part 6, write a subagent</strong>: Exit Claude Code with <code>/exit</code>. Make the folder for agents:</p>
+<div class="cb"><pre><code>mkdir .claude\agents
 </code></pre></div>
 <blockquote>
-<p><strong>What it does and why</strong>: <code>xcopy</code> copies this part's ready-made files into the working project, so nobody has to type them. <code>claude</code> (or <code>claude -c</code>) starts Claude Code again so that it picks up the new files, and <code>-c</code> keeps the earlier conversation.</p>
+<p><strong>What it does and why</strong>: Claude Code looks for subagent files in <code>.claude\agents</code>. Each file is one worker.</p>
 </blockquote>
-<p>Type <code>/agents</code>, and point at <code>reviewer</code>. Press Esc. Then paste the part 6 prompt.</p>
+<p>In the editor, create <strong>.claude\agents\reviewer.md</strong>, paste in the text below, and save it. (Safety net: <code>copy ..\..\LIVE_TYPED\reviewer.md .claude\agents\reviewer.md</code>.)</p>
+<div class="cb"><pre><code>---
+name: reviewer
+description: Read-only code reviewer for the bookshop app. Use after a feature is written, to check it and report problems without changing any file.
+tools: Read, Grep, Glob
+---
+
+You are a careful code reviewer for a small Python bookshop app.
+
+Check three things:
+
+1. Is there a test for each new function?
+2. Are the names clear and the functions short?
+3. If the code is a report, does it follow the report-style skill?
+
+You cannot edit files. Reply with at most six lines: one line per finding, starting with the file name, then a last line that starts with `Verdict:`.
+</code></pre></div>
+<p>Continue the conversation, type <code>@rev</code> and point at <code>reviewer</code> in the list (do not press Enter), press Esc, and paste the part 6 prompt:</p>
+<div class="cb"><pre><code>claude -c
+</code></pre></div>
+<blockquote>
+<p><strong>What it does and why</strong>: <code>claude -c</code> starts Claude Code again so that it sees the new agent file, and keeps the earlier conversation.</p>
+</blockquote>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;Sometimes the assistant needs a colleague. A subagent is a second worker with its own desk: its own instructions, its own tools and its own context. This reviewer can only read, search and list files, so it cannot change anything. It does the reading in the back room and sends me six lines. My own conversation stays small.&quot;</p>
+<p><strong>Say</strong>: &quot;Sometimes the assistant needs a colleague. A subagent is a second worker with its own desk: its own instructions, its own tools and its own context. Look at the <code>tools:</code> line. This reviewer can only read, search and list files, so it cannot change anything. It does the reading in the back room and sends me six lines. My own conversation stays small.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect a block in the transcript that shows the subagent working, and then a review of at most six lines that ends with <code>Verdict:</code>. Open <strong>.claude\agents\reviewer.md</strong> and point at the <code>tools:</code> line: that line is what makes it read-only. The whole file is a name, a description, a tool list and instructions. Demo 4C builds this kind of file in more depth.</p>
+<p><strong>Note</strong>: Expect a block in the transcript that shows the subagent working, and then a review of at most six lines that ends with <code>Verdict:</code>. The wording differs on every run. To catch up, copy the file as in the safety net above.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 25-29, part 7, a hook</strong>: Exit Claude Code with <code>/exit</code>. Copy the part 7 files in, and continue the conversation, so that Claude Code reads the settings:</p>
-<div class="cb"><pre><code>xcopy ..\..\PART_07_hook\add . /E /Y /I
-claude -c
+<p><strong>Minutes 29-34, part 7, write a hook</strong>: Exit Claude Code with <code>/exit</code>. In the editor, create <strong>.claude\settings.json</strong>, paste in the text below, and save it. (Safety net: <code>copy ..\..\LIVE_TYPED\settings.json .claude\settings.json</code>.)</p>
+<div class="cb"><pre><code>{
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [
+      &quot;Bash(python -m unittest:*)&quot;,
+      &quot;Bash(python -m bookshop:*)&quot;
+    ]
+  },
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Edit|Write&quot;,
+        &quot;hooks&quot;: [
+          {&quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;python -m unittest discover -s tests&quot;}
+        ]
+      }
+    ]
+  }
+}
 </code></pre></div>
 <blockquote>
-<p><strong>What it does and why</strong>: <code>xcopy</code> copies this part's ready-made files into the working project, so nobody has to type them. <code>claude</code> (or <code>claude -c</code>) starts Claude Code again so that it reads the new <code>settings.json</code>, and <code>-c</code> keeps the earlier conversation.</p>
+<p><strong>What it does and why</strong>: <code>settings.json</code> is where a project keeps its rules. The <code>allow</code> lines let Claude run the tests and the report without stopping to ask. The <code>hooks</code> part says: after the tool <code>Edit</code> or <code>Write</code> finishes, run the tests. Claude Code reads settings when it starts, so we restart it next.</p>
 </blockquote>
-<p>Type <code>/hooks</code>, and point at the <code>PostToolUse</code> entry. Press Esc. Then paste the part 7 prompt.</p>
+<div class="cb"><pre><code>claude -c
+</code></pre></div>
+<p>Type <code>/hooks</code> and point at the <code>PostToolUse</code> entry. Press Esc. Then paste the part 7 prompt.</p>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;The shop has a door chime. Every time someone walks in, it rings, and nobody has to remember. A hook is the same: a rule the program runs at a set moment. This one says: after Claude edits or writes a file, run the tests. It is not a request to the model. It is the harness running my script, so it happens every time.&quot;</p>
+<p><strong>Say</strong>: &quot;The shop has a door chime. Every time someone walks in, it rings, and nobody has to remember. A hook is the same: a rule the program runs at a set moment. This one says: after Claude edits or writes a file, run the tests. It is not a request to the model. It is Claude Code running my command, so it happens every time. That is the difference from a line in CLAUDE.md, which is advice.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect Claude to edit <code>cli.py</code> and the tests, and after each edit a short <code>[hook] tests passed after editing ...</code> line. Hook output may show only in the transcript view (press Ctrl+O to open it, and verify on your Claude Code version). The same <code>settings.json</code> also allows the test command, so Claude does not stop to ask before running it. Open <strong>.claude\hooks\run_tests.py</strong>: it reads the JSON that Claude Code sends on stdin, and runs the tests. To catch up, run <code>xcopy ..\..\PART_07_hook\reference . /E /Y /I</code>.</p>
+<p><strong>Note</strong>: Expect Claude to edit <code>cli.py</code> and the tests. After each edit, the tests run by themselves. Hook output may show only in the transcript view (press Ctrl+O to open it, and verify on your Claude Code version). To catch up with a fuller version of the same hook (a small script that prints one line), run <code>xcopy ..\..\PART_07_hook\reference . /E /Y /I</code>.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 29-33, part 8, MCP</strong>: Exit Claude Code. Copy the server in, and register it:</p>
+<p><strong>Minutes 34-38, part 8, MCP</strong>: Exit Claude Code. Copy the server in, and register it:</p>
 <div class="cb"><pre><code>xcopy ..\..\PART_08_mcp\add . /E /Y /I
 claude mcp add --transport stdio --scope project supplier -- python mcp_server/supplier_server.py
 claude
 </code></pre></div>
 <p>Say yes if Claude Code asks you to approve the project server. Type <code>/mcp</code>, and point at <code>supplier</code>. Then paste the part 8 prompt, and approve the tool call when asked.</p>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;The assistant needs the supplier's numbers, and the supplier is not in the project. MCP is the phone line: one standard plug that connects Claude to outside tools and data. This server is 25 lines. It wraps two plain functions, the same shape as the Day 2 kitchen server. <code>claude mcp add</code> registered it, and the scope decides who gets it: <code>local</code> is you in this project, <code>project</code> is everyone who clones it, saved in <code>.mcp.json</code>, and <code>user</code> is you in every project.&quot;</p>
+<p><strong>Say</strong>: &quot;The assistant needs the supplier's numbers, and the supplier is not in the project. MCP is the phone line: one standard plug that connects Claude to outside tools and data. This server is 25 lines. It wraps two plain functions. <code>claude mcp add</code> registered it, and the scope decides who gets it: <code>local</code> is you in this project, <code>project</code> is everyone who clones it, saved in <code>.mcp.json</code>, and <code>user</code> is you in every project.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect <code>supplier</code> to show as connected in <code>/mcp</code>, and Claude to call <code>supplier_stock</code> for each low-stock book, then answer with a short list. Small Gardens has 0 at the supplier and ships in 21 days, so a sensible answer reorders the others first. Open <strong>.mcp.json</strong>: the command you typed wrote it. If it is missing, run <code>xcopy ..\..\PART_08_mcp\catch_up . /E /Y /I</code>. Demo 4C goes deeper on MCP in Claude Code.</p>
+<p><strong>Note</strong>: Expect <code>supplier</code> to show as connected in <code>/mcp</code>, and Claude to call <code>supplier_stock</code> for each low-stock book, then answer with a short list. Small Gardens has 0 at the supplier and ships in 21 days, so a sensible answer reorders the others first. Open <strong>.mcp.json</strong>: the command you typed wrote it. If it is missing, run <code>xcopy ..\..\PART_08_mcp\catch_up . /E /Y /I</code>.</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 33-36, part 9, headless</strong>: Exit Claude Code, and run the three headless commands from the prompts list in the shell.</p>
+<p><strong>Minutes 38-41, part 9, headless</strong>: Exit Claude Code, and run the three headless commands from the prompts list in the shell.</p>
 <blockquote class="say">
 <p><strong>Say</strong>: &quot;So far I have been in a conversation. <code>claude -p</code> is the same assistant with no conversation: one prompt in, one answer out, and the program ends. That makes it a command like any other, so a script, a scheduler or a pipeline can call it. I can pipe a file in, and I can ask for JSON so another program can read the answer.&quot;</p>
 </blockquote>
 <blockquote class="">
-<p><strong>Note</strong>: Expect a one-sentence answer, a three-line email, and a JSON object. In the JSON, find the <code>result</code> field, which holds the answer, and the cost and session fields (names can differ by version, verify on your Claude Code version). Say: &quot;This is how Claude runs inside a CI job. Demo 4D uses exactly this.&quot;</p>
+<p><strong>Note</strong>: Expect a one-sentence answer, a three-line email, and a JSON object. In the JSON, find the <code>result</code> field, which holds the answer, and the cost and session fields (names can differ by version, verify on your Claude Code version). Say: &quot;This is how Claude runs inside a build pipeline: a script calls it, and reads the JSON.&quot;</p>
 </blockquote>
 </li>
 <li>
-<p><strong>Minutes 36-38, part 10, wrap-up</strong>: Show the table below on a slide or in the README, and read it down once.</p>
+<p><strong>Minutes 41-43, part 10, wrap-up</strong>: Show the table below on a slide or in the README, and read it down once.</p>
 <table>
 <thead>
 <tr>
 <th>Building block</th>
 <th>Use it when</th>
-<th>Goes deeper in</th>
+<th>Practise later (optional)</th>
 </tr>
 </thead>
 <tbody>
@@ -354,7 +505,7 @@ claude
 </tbody>
 </table>
 <blockquote class="say">
-<p><strong>Say</strong>: &quot;Six building blocks, and one question for each. Should it always be loaded? CLAUDE.md. Is it a prompt I type? A slash command. Should it load only when needed? A skill. Does it need its own desk? A subagent. Must it happen every time? A hook. Does it live outside the project? MCP. Demo 4A starts with the lever from part 1, plan mode.&quot;</p>
+<p><strong>Say</strong>: &quot;Six building blocks, and one question for each. Should it always be loaded? CLAUDE.md. Is it a prompt I type? A slash command. Should it load only when needed? A skill. Does it need its own desk? A subagent. Must it happen every time? A hook. Does it live outside the project? MCP..&quot;</p>
 </blockquote>
 </li>
 </ol>
@@ -389,7 +540,7 @@ claude
 </ul>
 <h2>More information</h2>
 <ul>
-<li>The next demo is Demo 4A, repository exploration and Plan Mode.</li>
+<li>Optional next step: Demo 4A, repository exploration and Plan Mode.</li>
 <li>For the parts table, the commands table and the files, see <strong>README.md</strong> in this folder.</li>
 </ul>
 </main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';

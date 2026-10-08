@@ -105,15 +105,15 @@ A **hook** is a script that the Claude Code harness runs at a fixed moment, for 
 
 ## Use the read-only subagent
 
-1. Open the agents view.
+1. Check that the subagent was found.
 
-    **Type in Claude Code:**
+    **Type in Claude Code (do not press Enter):**
     ```
-    /agents
+    @rule
     ```
-    **What it does:** Lists the subagents you can use.
-    **Why we do it here:** It shows that **rule-reviewer** was found in **.claude/agents**.
-    **You should see:** **rule-reviewer** under the project agents. Press Escape to leave the view.
+    **What it does:** Opens the list of files and subagents that match what you type.
+    **Why we do it here:** It shows that **rule-reviewer** was found in **.claude/agents**. (Older versions of Claude Code have an `/agents` command for this, and newer versions do not.)
+    **You should see:** **rule-reviewer** marked as an agent in the list. Press Escape to close the list.
 
 2. Ask Claude to use it.
 

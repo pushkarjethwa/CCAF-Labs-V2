@@ -143,5 +143,20 @@ mine = {p.relative_to(HERE / "FINAL"): p.read_bytes() for p in (HERE / "FINAL").
 want = {p.relative_to(final_repo): p.read_bytes() for p in final_repo.rglob("*") if p.is_file() and "__pycache__" not in p.parts}
 expect(mine == want, "FINAL equals START_STATE plus all parts in order (%d files)" % len(want))
 
+# 7. the short files typed live are valid
+print("7. LIVE_TYPED files (typed live in parts 4 to 7)")
+live = HERE / "LIVE_TYPED"
+cmd_fm = front_matter(live / "add-feature.md")
+expect(bool(cmd_fm) and "description" in cmd_fm and "$ARGUMENTS" in (live / "add-feature.md").read_text(encoding="utf-8"), "add-feature.md has a description and uses $ARGUMENTS")
+skill_fm = front_matter(live / "report-style_SKILL.md")
+expect(bool(skill_fm) and skill_fm.get("name") == "report-style" and skill_fm.get("description"), "report-style_SKILL.md has a name and a description")
+agent_fm = front_matter(live / "reviewer.md")
+expect(bool(agent_fm) and agent_fm.get("name") == "reviewer" and "Edit" not in str(agent_fm.get("tools")) and "Write" not in str(agent_fm.get("tools")), "reviewer.md is read-only (no Edit or Write tool)")
+cfg = json.loads((live / "settings.json").read_text(encoding="utf-8"))
+hook = cfg["hooks"]["PostToolUse"][0]
+expect(hook["matcher"] == "Edit|Write" and hook["hooks"][0]["command"] == "python -m unittest discover -s tests", "settings.json hook runs the tests after Edit or Write")
+run = subprocess.run([sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"], cwd=str(final_repo), capture_output=True, text=True, env=ENV)
+expect(run.returncode == 0, "the hook's command passes in the finished project")
+
 print("ALL OK" if not problems else "PROBLEMS: %d" % len(problems))
 sys.exit(1 if problems else 0)

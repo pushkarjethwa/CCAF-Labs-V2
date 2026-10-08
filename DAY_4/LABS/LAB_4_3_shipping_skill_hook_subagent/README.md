@@ -224,7 +224,7 @@ A subagent is its own session with its own system prompt and only the tools you 
     - `maxTurns` limits how long the subagent can work.
     - The prompt asks for at most 15 lines with a file and line for every claim, so the answer stays small.
 
-8. In Claude Code, enter `/exit`, start `claude` again, run `/agents` to see the new subagent, and then enter this prompt:
+8. In Claude Code, enter `/exit`, start `claude` again, type `@contract` and look for `contract-reviewer` in the list (do not press Enter, and press Esc to close it), and then enter this prompt:
 
     ```
     Use the contract-reviewer subagent: does get_quote in quote.py still match docs/API_CONTRACT.json, and is the new rush parameter tested?

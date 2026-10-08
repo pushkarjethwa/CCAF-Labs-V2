@@ -29,27 +29,95 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 .meta{color:var(--mut);font-size:14px}
 @media print{header{display:none}pre{white-space:pre-wrap}}
 </style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code in the Development Workflow</header><main><h1>Demo 4.0: Intro to Claude Code</h1>
-<p>A bookshop owner hires a new assistant. On day one the assistant needs a handbook on the desk (CLAUDE.md), a sticky note for a task the owner asks for every week (a slash command), a style binder to open when writing a report (a skill), a colleague in the back room who checks the work (a subagent), a door chime that rings every time someone walks in (a hook), and a phone line to the supplier (MCP). In this demo you meet each of these in Claude Code, one at a time, on one small use case: <strong>add a low-stock report to a tiny bookshop app</strong>. The demo takes about 38 minutes, runs live in Claude Code, and comes before Demo 4A. Students who have never used Claude Code leave knowing what each building block is and when to reach for it. Every part is short and everything works the first time: this is a tour, not a test.</p>
+<p>A bookshop owner hires a new assistant. On day one the assistant needs a handbook on the desk (CLAUDE.md), a sticky note for a task the owner asks for every week (a slash command), a style binder to open when writing a report (a skill), a colleague in the back room who checks the work (a subagent), a door chime that rings every time someone walks in (a hook), and a phone line to the supplier (MCP). In this demo you meet each of these in Claude Code, one at a time, on one small use case: <strong>add a low-stock report to a tiny bookshop app</strong>. The full run takes about 43 minutes, the core path for a short session takes about 30 minutes. It runs live in Claude Code and stands alone: it needs no other demo, and every term is explained when it first appears. In parts 4 to 7, students write the small files live. Students who have never used Claude Code leave knowing what each building block is and when to reach for it. Every part is short and everything works the first time: this is a tour, not a test.</p>
+<h2>Core path for a short session</h2>
+<p><strong>The pitch</strong>: A new assistant gets the tour: handbook, sticky note, style binder, back-room colleague and door chime.</p>
+<p>For a short session of about 30 minutes, run the parts in the table. The full run of about 43 minutes is still the default when you have the time.</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Minutes</th>
+<th>What students see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Start and look around</td>
+<td>5</td>
+<td><code>claude</code>, a project question, <code>@file</code>, <code>!tests</code>, <code>/permissions</code>, Shift+Tab modes and a quick plan-mode question</td>
+</tr>
+<tr>
+<td>2. Memory</td>
+<td>3</td>
+<td><code>/init</code> writes CLAUDE.md, and you add one rule by hand</td>
+</tr>
+<tr>
+<td>4. Custom slash command</td>
+<td>5</td>
+<td>You write <code>/add-feature</code> as one markdown file, then use it to build the low-stock report</td>
+</tr>
+<tr>
+<td>5. Skill</td>
+<td>4</td>
+<td>You write the <code>report-style</code> skill, and the report follows the shop's format</td>
+</tr>
+<tr>
+<td>6. Subagent</td>
+<td>4</td>
+<td>You write a read-only reviewer, and it sends back six lines</td>
+</tr>
+<tr>
+<td>7. Hook</td>
+<td>4</td>
+<td>You write a hook in <code>settings.json</code>, and the tests run by themselves after every edit</td>
+</tr>
+<tr>
+<td>8. MCP (mention only)</td>
+<td>1</td>
+<td>One sentence and a look at <code>.mcp.json</code>, with no live run</td>
+</tr>
+<tr>
+<td>9. Headless</td>
+<td>3</td>
+<td><code>claude -p</code>, a pipe and JSON output: Claude as a plain command for scripts and CI</td>
+</tr>
+<tr>
+<td>10. Wrap-up</td>
+<td>1</td>
+<td>The cheat table</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Optional for a short session</strong>:</p>
+<ul>
+<li><strong>Part 3, context</strong> (4 minutes): <code>/context</code>, <code>/compact</code> and <code>claude -c</code>. Skip it, or say in one sentence that the context window is the fuel gauge and <code>/compact</code> empties it.</li>
+<li><strong>Part 8, MCP, full run</strong> (4 minutes): Registering the supplier server with <code>claude mcp add</code> and asking for the supplier's numbers. In a short session, open <code>.mcp.json</code> and say: &quot;MCP is the phone line to outside data and tools.&quot;</li>
+</ul>
+<blockquote class="">
+<p><strong>Note</strong>: The parts build on each other, but none of them needs part 3 or the MCP run. Use <code>python reset.py --to 4</code> to start at the right project state, and <code>claude -c</code> where the run sheet says it, which works with or without part 3. The run sheet keeps the full-run timings per part.</p>
+</blockquote>
 <h2>What the demo shows</h2>
 <ol>
-<li><strong>Start and look around</strong> (6 minutes): Start <code>claude</code>, ask about the project, mention a file with <code>@</code>, run a shell command with <code>!</code>, and switch permission modes with Shift+Tab.</li>
+<li><strong>Start and look around</strong> (7 minutes): Start <code>claude</code>, ask about the project, mention a file with <code>@</code>, run a shell command with <code>!</code>, switch permission modes with Shift+Tab, and ask for a plan in plan mode, where nothing changes.</li>
 <li><strong>Memory</strong> (4 minutes): <code>/init</code> writes CLAUDE.md. You add one rule by hand, and see why a file beats a chat message.</li>
 <li><strong>Context</strong> (4 minutes): See what fills the conversation with <code>/context</code>, shrink it with <code>/compact</code>, and pick it up again with <code>claude -c</code>.</li>
-<li><strong>A custom slash command</strong> (4 minutes): One markdown file becomes <code>/add-feature</code>. You run it to build the low-stock report.</li>
-<li><strong>A skill</strong> (4 minutes): The shop's report format sits in a skill. Claude loads it when the work calls for it.</li>
-<li><strong>A subagent</strong> (3 minutes): A read-only reviewer works in its own context and reports back in six lines.</li>
-<li><strong>A hook</strong> (4 minutes): The tests run after every edit, without anyone asking.</li>
+<li><strong>A custom slash command</strong> (5 minutes): You write one markdown file live, and it becomes <code>/add-feature</code>. You run it to build the low-stock report.</li>
+<li><strong>A skill</strong> (5 minutes): You write the shop's report format as a skill. Claude loads it when the work calls for it.</li>
+<li><strong>A subagent</strong> (4 minutes): You write a read-only reviewer. It works in its own context and reports back in six lines.</li>
+<li><strong>A hook</strong> (5 minutes): You write the hook in <code>settings.json</code>. The tests run after every edit, without anyone asking.</li>
 <li><strong>MCP</strong> (4 minutes): A small local server gives Claude the supplier's stock numbers.</li>
-<li><strong>Headless</strong> (3 minutes): <code>claude -p</code> runs one prompt with no chat. This is the bridge to Demo 4D.</li>
-<li><strong>Wrap-up</strong> (2 minutes): One table: feature, when to use it, and which Day 4 demo goes deeper.</li>
+<li><strong>Headless</strong> (3 minutes): <code>claude -p</code> runs one prompt with no chat, so a script or a CI job can call Claude.</li>
+<li><strong>Wrap-up</strong> (2 minutes): One table: building block, when to use it, and where to practise later (optional).</li>
 </ol>
 <h2>Files in this folder</h2>
 <ul>
 <li><strong>START_STATE/</strong>: The sample project, <code>bookshop</code>: four small Python files, a JSON data file, six passing tests, and a README.</li>
-<li><strong>PART_02_memory/</strong> to <strong>PART_08_mcp/</strong>: One folder for each part that adds files. The <strong>add</strong> folder holds the files you copy in. The <strong>reference</strong> folder holds the code Claude is expected to write, so you can compare or catch up. The <strong>catch_up</strong> folder holds what a command creates (the <code>.mcp.json</code> file).</li>
+<li><strong>LIVE_TYPED/</strong>: The four small files that students write live in parts 4 to 7: <code>add-feature.md</code>, <code>report-style_SKILL.md</code>, <code>reviewer.md</code> and <code>settings.json</code>. Use them as a safety net if typing goes wrong.</li>
+<li><strong>PART_02_memory/</strong> to <strong>PART_08_mcp/</strong>: One folder for each part that adds files. The <strong>add</strong> folder holds the files you copy in (parts 2 and 8). In parts 4 to 7, students type the files live, and these folders are the catch-up copies. The <strong>reference</strong> folder holds the code Claude is expected to write, so you can compare or catch up. The <strong>catch_up</strong> folder holds what a command creates (the <code>.mcp.json</code> file).</li>
 <li><strong>FINAL/</strong>: The finished project after part 10.</li>
 <li><strong>reset.py</strong>: Rebuilds the working copy in <strong>workspace/bookshop</strong> at the start of any part: <code>python reset.py --to 5</code>, or <code>python reset.py --final</code>.</li>
-<li><strong>check_offline.py</strong>: A key-free self-check. It does not need Claude Code. It runs the sample project's tests at every point, parses every file, and runs the hook script on sample input.</li>
+<li><strong>check_offline.py</strong>: A key-free self-check. It does not need Claude Code. It runs the sample project's tests at every point, parses every file (the <strong>LIVE_TYPED</strong> files too), and runs the hook script on sample input.</li>
 <li><strong>requirements.txt</strong>: <code>mcp</code>, needed for part 8 only.</li>
 <li><strong>RUN_SHEET.md</strong>: The instructor's script, with every prompt and command to type.</li>
 </ul>
@@ -74,10 +142,10 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <tbody>
 <tr>
 <td>1</td>
-<td>6</td>
-<td>Start, <code>@</code>, <code>!</code>, modes, permissions</td>
+<td>7</td>
+<td>Start, <code>@</code>, <code>!</code>, modes, plan mode, permissions</td>
 <td><code>claude</code>, <code>/help</code>, <code>@file</code>, <code>!cmd</code>, Shift+Tab, <code>/permissions</code></td>
-<td>Claude explains the project, runs the tests, and shows who may do what</td>
+<td>Claude explains the project, runs the tests, plans without editing, and shows who may do what</td>
 </tr>
 <tr>
 <td>2</td>
@@ -95,30 +163,30 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </tr>
 <tr>
 <td>4</td>
-<td>4</td>
+<td>5</td>
 <td>Custom slash command</td>
-<td><code>/add-feature ...</code></td>
-<td>The low-stock report and its tests are written</td>
+<td>Write <code>add-feature.md</code>, then <code>/add-feature ...</code></td>
+<td>You write the command, and it builds the low-stock report and its tests</td>
 </tr>
 <tr>
 <td>5</td>
-<td>4</td>
+<td>5</td>
 <td>Skill</td>
-<td>&quot;Make the report follow our style&quot;, <code>/report-style</code></td>
-<td>The report follows the shop's format</td>
+<td>Write <code>SKILL.md</code>, then &quot;Make the report follow our style&quot;, <code>/report-style</code></td>
+<td>You write the skill, and the report follows the shop's format</td>
 </tr>
 <tr>
 <td>6</td>
-<td>3</td>
+<td>4</td>
 <td>Subagent</td>
-<td><code>/agents</code>, &quot;Use the reviewer ...&quot;</td>
+<td>Write <code>reviewer.md</code>, then <code>@rev</code> to see it listed, &quot;Use the reviewer ...&quot;</td>
 <td>A six-line review comes back from a separate worker</td>
 </tr>
 <tr>
 <td>7</td>
-<td>4</td>
+<td>5</td>
 <td>Hook</td>
-<td><code>/hooks</code>, an edit request</td>
+<td>Write <code>settings.json</code>, then <code>/hooks</code>, an edit request</td>
 <td>Tests run by themselves after every edit</td>
 </tr>
 <tr>
@@ -205,7 +273,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <tbody>
 <tr>
 <td><code>claude</code></td>
-<td>Starts an interactive session in the current folder</td>
+<td>Starts an interactive session in the current folder (<code>claude --version</code> first shows that it is installed)</td>
 <td>Every part happens inside a session, and the folder tells Claude which project it is working on</td>
 <td>1</td>
 </tr>
@@ -230,7 +298,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <tr>
 <td>Shift+Tab</td>
 <td>Cycles the permission mode: default, accept edits, plan</td>
-<td>It sets how much freedom Claude has before it edits files</td>
+<td>It sets how much freedom Claude has before it edits files. In plan mode Claude reads and plans, and nothing changes</td>
 <td>1</td>
 </tr>
 <tr>
@@ -295,7 +363,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </tr>
 <tr>
 <td><code>/add-feature ...</code></td>
-<td>Your own slash command, from <code>.claude/commands/add-feature.md</code></td>
+<td>Your own slash command, which you write in <code>.claude/commands/add-feature.md</code></td>
 <td>A prompt written once and reused, so every feature gets built, tested and reported the same way</td>
 <td>4</td>
 </tr>
@@ -306,9 +374,9 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <td>5</td>
 </tr>
 <tr>
-<td><code>/agents</code></td>
-<td>Lists and manages subagents</td>
-<td>It shows the separate workers and the tools each may use</td>
+<td><code>@rev</code> (then Esc)</td>
+<td>Opens the list of files and subagents, matching what you type</td>
+<td>It shows that Claude Code found your <code>reviewer</code> subagent (older versions have <code>/agents</code>)</td>
 <td>6</td>
 </tr>
 <tr>
@@ -363,7 +431,7 @@ claude
 <p>Follow <strong>RUN_SHEET.md</strong>. It gives the prompts to type, what each one does and why we run it, what to expect on screen, and what to say.</p>
 </li>
 <li>
-<p>To rebuild the project as it is at the start of a part (for example part 5), run <code>python reset.py --to 5</code> from this folder. This is the catch-up route if a live run drifts: it puts the project back where the part expects it.</p>
+<p>In parts 4 to 7, you type each small file live. If typing goes wrong, copy the same file from <strong>LIVE_TYPED</strong>. To rebuild the project as it is at the start of a part (for example part 5), run <code>python reset.py --to 5</code> from this folder. This is the catch-up route if a live run drifts: it puts the project back where the part expects it.</p>
 </li>
 </ol>
 <blockquote class="">
@@ -382,13 +450,13 @@ claude
 <ul>
 <li><strong>Each part adds one building block and one small piece of the same feature.</strong> The use case never changes, so students see what each block adds.</li>
 <li><strong>The skill is where the shop's format lives.</strong> CLAUDE.md says how to work. The skill says what a finished report looks like, and it loads only when a report is being written.</li>
-<li><strong>The hook is plain Python.</strong> <code>.claude/hooks/run_tests.py</code> is about 20 lines, so students can read the whole rule.</li>
-<li><strong>The MCP server wraps plain functions.</strong> <code>supplier.py</code> holds the logic, and <code>supplier_server.py</code> only puts it behind MCP, in the same style as the Day 2 intro server.</li>
+<li><strong>The hook is one line.</strong> Students type the hook live as an inline command, <code>python -m unittest discover -s tests</code>, so they can read the whole rule. <strong>PART_07_hook</strong> also holds a fuller version, a small script <code>run_tests.py</code> that prints one line, as a catch-up.</li>
+<li><strong>The MCP server wraps plain functions.</strong> <code>supplier.py</code> holds the logic, and <code>supplier_server.py</code> only puts it behind MCP.</li>
 </ul>
 <h2>More information</h2>
 <ul>
-<li>This demo has no matching lab. Students run it before the Day 4 labs.</li>
-<li>The demos that go deeper: 4A (plan mode, exploring), 4B (CLAUDE.md and rules), 4C (skill, hook, subagent and MCP), 4D (headless CI).</li>
+<li>This demo stands alone and has no matching lab. You can run it before any other Day 4 material.</li>
+<li>Practise later (optional, not needed for this demo): the Day 4 demos and labs go deeper on plan mode, CLAUDE.md and rules, skills, hooks, subagents, MCP and headless use.</li>
 </ul>
 </main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
 b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

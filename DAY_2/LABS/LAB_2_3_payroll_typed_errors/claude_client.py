@@ -37,7 +37,7 @@ def get_client():
 
 
 # Model names. Override without editing code, for example:  set CLAUDE_MODEL_FAST=claude-sonnet-5-5
-MODEL_FAST = os.getenv("CLAUDE_MODEL_FAST", "claude-haiku-4-5")  # cheap and quick
+MODEL_FAST = os.getenv("CLAUDE_MODEL_FAST", "claude-haiku-5-5")  # cheap and quick
 MODEL_BALANCED = os.getenv("CLAUDE_MODEL_BALANCED", "claude-sonnet-5-5")  # the default choice
 MODEL_PREMIUM = os.getenv("CLAUDE_MODEL_PREMIUM", "claude-opus-5-5")  # hardest problems only
 
@@ -83,7 +83,7 @@ def print_usage(response):
 
 # Price in US dollars per 1 million tokens: (input, output). Check the pricing page before relying on these.
 PRICE_PER_MTOK = {
-    "claude-haiku-4-5": (1.00, 5.00),
+    "claude-haiku-5-5": (0.10, 0.50),
     "claude-sonnet-5-5": (2.00, 10.00),
     "claude-opus-5-5": (4.00, 20.00),
 }
@@ -91,7 +91,7 @@ PRICE_PER_MTOK = {
 
 def cost_usd(response):
     """Estimate what one call cost. Cached input is cheaper to read (0.1x) and dearer to write (1.25x)."""
-    price_in, price_out = next((p for name, p in PRICE_PER_MTOK.items() if response.model.startswith(name)), (0.0, 0.0))  # the API reports dated names such as claude-haiku-4-5-20251001
+    price_in, price_out = next((p for name, p in PRICE_PER_MTOK.items() if response.model.startswith(name)), (0.0, 0.0))  # the API reports dated names such as claude-haiku-5-5-<date>
     usage = response.usage
     cache_write = getattr(usage, "cache_creation_input_tokens", 0) or 0
     cache_read = getattr(usage, "cache_read_input_tokens", 0) or 0

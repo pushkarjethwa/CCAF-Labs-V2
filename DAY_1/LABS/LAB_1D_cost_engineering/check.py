@@ -105,9 +105,9 @@ check(len(invoices) == 30 and len(core.lab_invoices(invoices)) == 10, "30 invoic
 policy = core.load_policy("full")
 check(len(policy) > 20000 and len(core.load_policy("lite")) < 12000, "the full policy is about 25,000 characters; the lite policy is short")
 usage = type("U", (), {"input_tokens": 100, "cache_creation_input_tokens": 1000, "cache_read_input_tokens": 1000, "output_tokens": 50})()
-cost = core.request_cost("claude-haiku-4-5", usage)
+cost = core.request_cost("claude-haiku-5-5", usage)
 check(abs(cost - (100 * 1.0 + 1000 * 1.0 * 1.25 + 1000 * 1.0 * 0.1 + 50 * 5.0) / 1e6) < 1e-12, "the cost formula: cache write 1.25x, cache read 0.1x, output at the output price")
-check(abs(core.request_cost("claude-haiku-4-5", usage, batch=True) - cost / 2) < 1e-12, "the batch discount is exactly 50%")
+check(abs(core.request_cost("claude-haiku-5-5", usage, batch=True) - cost / 2) < 1e-12, "the batch discount is exactly 50%")
 check(abs(core.breakeven_hit_rate("5m") - 0.25 / 1.15) < 1e-9 and abs(core.breakeven_hit_rate("1h") - 1.0 / 1.9) < 1e-9, "break-even hit rate: 22% for a 5-minute write, 53% for a 1-hour write")
 a = {"system": [{"type": "text", "text": core.stamp() + "policy", "cache_control": {"type": "ephemeral"}}]}
 b = {"system": [{"type": "text", "text": core.stamp() + "policy", "cache_control": {"type": "ephemeral"}}]}

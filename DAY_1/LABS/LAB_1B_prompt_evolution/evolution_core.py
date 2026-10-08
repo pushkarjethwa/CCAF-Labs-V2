@@ -14,7 +14,7 @@ from vault import GateConfig, Vault, evaluate_gate
 
 HERE = pathlib.Path(__file__).parent
 EVIDENCE = HERE / "evidence"
-CACHE_FLOOR = {"haiku": 4096}  # tokens: below this a prefix is silently NOT cached (Sonnet-class default is 512)
+CACHE_FLOOR = {}  # tokens: below the floor a prefix is silently NOT cached. 512 for Sonnet 5.5 and Haiku 5.5 (the default below); Haiku 4.5 needed 4096
 CALLS = []
 LAB_DOCS = ["D01", "D02", "D05", "D08", "D10", "D11"]  # 6 of the demo's 12 invoices: clean, German, credit note, two template twins, an embedded instruction
 HOOKS = {}  # filled by lab.py: ask_claude, gate_checks

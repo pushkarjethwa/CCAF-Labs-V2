@@ -58,7 +58,7 @@ return cached_system() + [{"type": "text", "text": f"The current time is {now}."
 
 Same order as `BREAK_IT.md`. Results from live models vary: if yours differs, note it and explain why; that is the exercise.
 
-1. Haiku floor: with a prefix below 4096 tokens `cache_write` stays 0 and no error is raised. A saving you planned on silently does not exist, so always check the usage numbers.
+1. Minimum prefix: with a prefix below 512 tokens `cache_write` stays 0 and no error is raised. A saving you planned on silently does not exist, so always check the usage numbers.
 2. One changing character at the START of the prefix changes everything after it: reads drop to 0 and you pay write prices.
 3. `cache_control` on the small second block: the cached prefix is everything up to and including that block, which here includes the changing time, so it never matches again: no reads. It would work only if that block were stable.
 4. After about 5 minutes without a hit the cache entry expires: the next call writes again (`cache_write > 0`, `cache_read == 0`).

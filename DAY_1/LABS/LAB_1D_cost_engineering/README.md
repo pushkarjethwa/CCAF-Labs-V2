@@ -14,7 +14,7 @@ This lab continues Demo 1D, so you will recognize the following:
 
 - The Group Accounts Payable policy checker: a verdict for each invoice (compliant or not, with the clauses it violates), checked against ground truth.
 - The 30 invoices and the 25,000-character procurement policy. The lab uses 10 of the 30 invoices so that it runs quickly and cheaply.
-- The fast model (a Haiku-class model, which needs a prefix of at least 4,096 tokens before it caches anything) and the balanced model.
+- The fast model (Claude Haiku 5.5, which needs a prefix of at least 512 tokens before it caches anything) and the balanced model.
 - The projection to 100,000 invoices a month, and the cost table that compares normal, cached, batch, and batch plus cache.
 
 ## Set up the lab folder
@@ -222,7 +222,7 @@ In this section, you write two small functions for the Message Batches API. A ba
 - **IndentationError**: A pasted line lost its indent. Code inside a function is indented four spaces.
 - **`NotImplementedError` when you run a stage**: TODO 1 or TODO 2 is not done yet.
 - **`count_tokens() got an unexpected keyword argument 'max_tokens'`**: Remove `max_tokens` from the counting call.
-- **The cache reads are 0 in stage 3 A**: TODO 3 still holds the starter line, or the fast model's prefix is under 4,096 tokens. Check that you did not use the short policy.
+- **The cache reads are 0 in stage 3 A**: TODO 3 still holds the starter line, or the fast model's prefix is under 512 tokens. Check that you did not use the short policy.
 - **A connection error on one call**: Run the stage again.
 - **Your cost numbers differ from a classmate's**: This is normal. Token counts and prices depend on the model version, and a batch's cache hits are best-effort.
 

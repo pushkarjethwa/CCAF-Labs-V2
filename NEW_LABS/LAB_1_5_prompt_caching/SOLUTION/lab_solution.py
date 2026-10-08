@@ -9,7 +9,7 @@ Without caching you pay for the whole policy on every call. With caching you pay
 Cache rules to remember:
   * you mark a block with cache_control {"type": "ephemeral"}; everything BEFORE and INCLUDING that block is the cached prefix
   * the prefix must match EXACTLY, from the first character. Change anything early and the cache misses
-  * there is a minimum prefix size (512 tokens on Sonnet, 4096 on Haiku); smaller prefixes are silently not cached
+  * there is a minimum prefix size (512 tokens on Sonnet 5.5 and Haiku 5.5; some older models need more, such as 4096 on Haiku 4.5); smaller prefixes are silently not cached
   * a cache WRITE costs 1.25x the input price, a cache READ costs 0.1x
 """
 import json
