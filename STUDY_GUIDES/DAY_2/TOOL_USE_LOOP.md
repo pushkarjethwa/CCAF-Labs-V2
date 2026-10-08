@@ -283,8 +283,7 @@ Learn the manual loop first, so you know what the Tool Runner hides. Even with t
 
 ## 10. Guide to demo to lab map
 
-Each idea above appears in class and in a lab. These pairings were checked against the current `TRAINER_V2` and `STUDENT_V2` files.
-
+Each idea above appears in class and in a lab.
 | Idea | Section | Class demo | Lab | What you do in the lab |
 |---|---|---|---|---|
 | Good tool descriptions | 4, 5 | **Demo 2A**: Bad Tool Architecture to Good | **Lab 2.1**: Fix the Tool Boundaries of the Facilities Assistant | Rewrite descriptions, merge tools, scope tools per desk, and measure which tool Claude picks on 16 prompts |

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m unittest:*)",
+      "Bash(python -m bookshop:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {"type": "command", "command": "python .claude/hooks/run_tests.py"}
+        ]
+      }
+    ]
+  }
+}

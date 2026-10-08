@@ -1,0 +1,367 @@
+<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Demo 4.0: Intro to Claude Code</title><style>
+:root{--blue:#0f6cbd;--ink:#242424;--mut:#616161;--line:#e0e0e0;--bg:#fafafa}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font:16px/1.65 'Segoe UI',system-ui,-apple-system,Helvetica,Arial,sans-serif}
+header{border-bottom:1px solid var(--line);background:var(--bg);padding:10px 32px;font-size:14px;color:var(--mut)}
+header b{color:var(--ink)}
+main{max-width:860px;margin:0 auto;padding:32px 24px 80px}
+h1{font-size:2rem;font-weight:600;margin:.2em 0 .6em;line-height:1.25}
+h2{font-size:1.5rem;font-weight:600;margin:2.2em 0 .6em;padding-bottom:.25em;border-bottom:1px solid var(--line)}
+h3{font-size:1.2rem;margin:1.6em 0 .4em}
+p,li{margin:.5em 0}
+ol>li,ul>li{margin:.9em 0}
+ul>li{margin:.45em 0}
+a{color:var(--blue)}
+code{font:.9em Consolas,'Cascadia Mono',Menlo,monospace;background:#f0f0f0;padding:.1em .35em;border-radius:3px}
+.cb{position:relative;margin:1em 0}
+pre{background:#1e1e1e;color:#e6e6e6;padding:16px 18px;border-radius:6px;overflow-x:auto;line-height:1.5;margin:0}
+pre code{background:none;padding:0;color:inherit;font-size:.88em}
+.cb button{position:absolute;top:8px;right:8px;background:#3a3a3a;color:#ddd;border:0;border-radius:4px;padding:3px 10px;font-size:12px;cursor:pointer;opacity:.0;transition:.15s}
+.cb:hover button{opacity:1}
+blockquote{margin:1em 0;padding:.6em 1em;border-left:4px solid var(--blue);background:#eef5fc;border-radius:0 4px 4px 0}
+blockquote p{margin:.3em 0}
+blockquote.say{border-color:#107c10;background:#eef7ee}
+blockquote.important{border-color:#c50f1f;background:#fdf0f1}
+table{border-collapse:collapse;margin:1em 0;width:100%}
+th,td{border:1px solid var(--line);padding:8px 12px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+hr{border:0;border-top:1px solid var(--line);margin:2em 0}
+.meta{color:var(--mut);font-size:14px}
+@media print{header{display:none}pre{white-space:pre-wrap}}
+</style></head><body><header><b>CCA-F Training</b> &nbsp;|&nbsp; Day 4 - Claude Code in the Development Workflow</header><main><h1>Demo 4.0: Intro to Claude Code</h1>
+<p>A bookshop owner hires a new assistant. On day one the assistant needs a handbook on the desk (CLAUDE.md), a sticky note for a task the owner asks for every week (a slash command), a style binder to open when writing a report (a skill), a colleague in the back room who checks the work (a subagent), a door chime that rings every time someone walks in (a hook), and a phone line to the supplier (MCP). In this demo you meet each of these in Claude Code, one at a time, on one small use case: <strong>add a low-stock report to a tiny bookshop app</strong>. The demo takes about 38 minutes, runs live in Claude Code, and comes before Demo 4A. Students who have never used Claude Code leave knowing what each building block is and when to reach for it. Every part is short and everything works the first time: this is a tour, not a test.</p>
+<h2>What the demo shows</h2>
+<ol>
+<li><strong>Start and look around</strong> (6 minutes): Start <code>claude</code>, ask about the project, mention a file with <code>@</code>, run a shell command with <code>!</code>, and switch permission modes with Shift+Tab.</li>
+<li><strong>Memory</strong> (4 minutes): <code>/init</code> writes CLAUDE.md. You add one rule by hand, and see why a file beats a chat message.</li>
+<li><strong>Context</strong> (4 minutes): See what fills the conversation with <code>/context</code>, shrink it with <code>/compact</code>, and pick it up again with <code>claude -c</code>.</li>
+<li><strong>A custom slash command</strong> (4 minutes): One markdown file becomes <code>/add-feature</code>. You run it to build the low-stock report.</li>
+<li><strong>A skill</strong> (4 minutes): The shop's report format sits in a skill. Claude loads it when the work calls for it.</li>
+<li><strong>A subagent</strong> (3 minutes): A read-only reviewer works in its own context and reports back in six lines.</li>
+<li><strong>A hook</strong> (4 minutes): The tests run after every edit, without anyone asking.</li>
+<li><strong>MCP</strong> (4 minutes): A small local server gives Claude the supplier's stock numbers.</li>
+<li><strong>Headless</strong> (3 minutes): <code>claude -p</code> runs one prompt with no chat. This is the bridge to Demo 4D.</li>
+<li><strong>Wrap-up</strong> (2 minutes): One table: feature, when to use it, and which Day 4 demo goes deeper.</li>
+</ol>
+<h2>Files in this folder</h2>
+<ul>
+<li><strong>START_STATE/</strong>: The sample project, <code>bookshop</code>: four small Python files, a JSON data file, six passing tests, and a README.</li>
+<li><strong>PART_02_memory/</strong> to <strong>PART_08_mcp/</strong>: One folder for each part that adds files. The <strong>add</strong> folder holds the files you copy in. The <strong>reference</strong> folder holds the code Claude is expected to write, so you can compare or catch up. The <strong>catch_up</strong> folder holds what a command creates (the <code>.mcp.json</code> file).</li>
+<li><strong>FINAL/</strong>: The finished project after part 10.</li>
+<li><strong>reset.py</strong>: Rebuilds the working copy in <strong>workspace/bookshop</strong> at the start of any part: <code>python reset.py --to 5</code>, or <code>python reset.py --final</code>.</li>
+<li><strong>check_offline.py</strong>: A key-free self-check. It does not need Claude Code. It runs the sample project's tests at every point, parses every file, and runs the hook script on sample input.</li>
+<li><strong>requirements.txt</strong>: <code>mcp</code>, needed for part 8 only.</li>
+<li><strong>RUN_SHEET.md</strong>: The instructor's script, with every prompt and command to type.</li>
+</ul>
+<h2>Prerequisites</h2>
+<ul>
+<li>Claude Code is installed. Run <code>claude --version</code> to check.</li>
+<li>You are signed in to Claude Code, or <code>ANTHROPIC_API_KEY</code> is set.</li>
+<li>Python 3.10 or later: <code>python --version</code>.</li>
+<li>For part 8 only, the <code>mcp</code> package: <code>pip install -r requirements.txt</code>.</li>
+</ul>
+<h2>Parts table</h2>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Minutes</th>
+<th>Feature</th>
+<th>You type</th>
+<th>Plain result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>6</td>
+<td>Start, <code>@</code>, <code>!</code>, modes, permissions</td>
+<td><code>claude</code>, <code>/help</code>, <code>@file</code>, <code>!cmd</code>, Shift+Tab, <code>/permissions</code></td>
+<td>Claude explains the project, runs the tests, and shows who may do what</td>
+</tr>
+<tr>
+<td>2</td>
+<td>4</td>
+<td>Memory</td>
+<td><code>/init</code>, <code>/memory</code></td>
+<td>A CLAUDE.md file exists and is loaded in every session</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4</td>
+<td>Context</td>
+<td><code>/context</code>, <code>/compact</code>, <code>/clear</code>, <code>claude -c</code>, <code>/model</code>, <code>/cost</code></td>
+<td>You see the conversation size, shrink it, and resume it</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4</td>
+<td>Custom slash command</td>
+<td><code>/add-feature ...</code></td>
+<td>The low-stock report and its tests are written</td>
+</tr>
+<tr>
+<td>5</td>
+<td>4</td>
+<td>Skill</td>
+<td>&quot;Make the report follow our style&quot;, <code>/report-style</code></td>
+<td>The report follows the shop's format</td>
+</tr>
+<tr>
+<td>6</td>
+<td>3</td>
+<td>Subagent</td>
+<td><code>/agents</code>, &quot;Use the reviewer ...&quot;</td>
+<td>A six-line review comes back from a separate worker</td>
+</tr>
+<tr>
+<td>7</td>
+<td>4</td>
+<td>Hook</td>
+<td><code>/hooks</code>, an edit request</td>
+<td>Tests run by themselves after every edit</td>
+</tr>
+<tr>
+<td>8</td>
+<td>4</td>
+<td>MCP</td>
+<td><code>claude mcp add ...</code>, <code>/mcp</code></td>
+<td>Claude reads the supplier's numbers through a tool</td>
+</tr>
+<tr>
+<td>9</td>
+<td>3</td>
+<td>Headless</td>
+<td><code>claude -p &quot;...&quot;</code></td>
+<td>An answer on the terminal, no chat</td>
+</tr>
+<tr>
+<td>10</td>
+<td>2</td>
+<td>Wrap-up</td>
+<td>none</td>
+<td>The cheat table</td>
+</tr>
+</tbody>
+</table>
+<h2>Which building block for which job</h2>
+<table>
+<thead>
+<tr>
+<th>You want</th>
+<th>Use</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Advice Claude should always know: layout, commands, rules</td>
+<td><strong>CLAUDE.md</strong></td>
+<td>Loaded at the start of every session, so you never repeat yourself</td>
+</tr>
+<tr>
+<td>A prompt you type again and again</td>
+<td><strong>Slash command</strong></td>
+<td>One file in <code>.claude/commands/</code>; you type <code>/name args</code>, and it runs when you say so</td>
+</tr>
+<tr>
+<td>Know-how Claude should pick up only when the work needs it</td>
+<td><strong>Skill</strong></td>
+<td>A folder in <code>.claude/skills/</code>; the description lets Claude load it when relevant, and you can also type <code>/name</code></td>
+</tr>
+<tr>
+<td>A second worker with its own desk, tools and context</td>
+<td><strong>Subagent</strong></td>
+<td>A file in <code>.claude/agents/</code>; the long reading stays out of your main conversation</td>
+</tr>
+<tr>
+<td>A rule that must happen every time, with no asking</td>
+<td><strong>Hook</strong></td>
+<td>Run by the program, not by the model, so it cannot be forgotten</td>
+</tr>
+<tr>
+<td>Data or actions that live outside the project</td>
+<td><strong>MCP server</strong></td>
+<td>One standard plug to a database, an API or a service</td>
+</tr>
+<tr>
+<td>One answer inside a script or a pipeline</td>
+<td><strong>Headless <code>claude -p</code></strong></td>
+<td>No chat: a prompt in, an answer out</td>
+</tr>
+</tbody>
+</table>
+<h2>Commands you will meet</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+<th>Part</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>claude</code></td>
+<td>Starts an interactive session in the current folder</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>/help</code></td>
+<td>Lists the commands, including your own</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>@path</code></td>
+<td>Mentions a file so Claude reads it</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>!command</code></td>
+<td>Runs a shell command and puts the output in the conversation</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Shift+Tab</td>
+<td>Cycles the permission mode: default, accept edits, plan</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>/permissions</code></td>
+<td>Shows and edits the allow, ask and deny rules</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>/init</code></td>
+<td>Writes a CLAUDE.md for the project</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>/memory</code></td>
+<td>Shows the memory files that are loaded, and opens them</td>
+<td>2</td>
+</tr>
+<tr>
+<td><code>/context</code></td>
+<td>Shows what fills the context window</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>Replaces the conversation with a summary</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>Starts a fresh conversation</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>claude -c</code></td>
+<td>Continues the most recent conversation in this folder</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>claude --resume</code></td>
+<td>Opens a list of past conversations to pick from</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>Shows or changes the model</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>/cost</code></td>
+<td>Shows what the session has used (newer versions also have <code>/usage</code>; verify on your Claude Code version)</td>
+<td>3</td>
+</tr>
+<tr>
+<td><code>/add-feature ...</code></td>
+<td>Your own slash command, from <code>.claude/commands/add-feature.md</code></td>
+<td>4</td>
+</tr>
+<tr>
+<td><code>/report-style</code></td>
+<td>Your own skill, run by name</td>
+<td>5</td>
+</tr>
+<tr>
+<td><code>/agents</code></td>
+<td>Lists and manages subagents</td>
+<td>6</td>
+</tr>
+<tr>
+<td><code>/hooks</code></td>
+<td>Shows the hooks that are set up</td>
+<td>7</td>
+</tr>
+<tr>
+<td><code>claude mcp add</code></td>
+<td>Registers an MCP server</td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>/mcp</code></td>
+<td>Shows MCP servers and their status</td>
+<td>8</td>
+</tr>
+<tr>
+<td><code>claude -p &quot;...&quot;</code></td>
+<td>Runs one prompt and exits</td>
+<td>9</td>
+</tr>
+<tr>
+<td><code>--output-format json</code></td>
+<td>Prints a JSON object with the answer and run details</td>
+<td>9</td>
+</tr>
+</tbody>
+</table>
+<h2>Run the demo</h2>
+<ol>
+<li>
+<p>Run the key-free self-check from this folder, and confirm that it ends with <code>ALL OK</code>:</p>
+<div class="cb"><pre><code>python check_offline.py
+</code></pre></div>
+</li>
+<li>
+<p>Build the working copy, and open Claude Code in it:</p>
+<div class="cb"><pre><code>python reset.py
+cd workspace\bookshop
+claude
+</code></pre></div>
+</li>
+<li>
+<p>Follow <strong>RUN_SHEET.md</strong>. It gives the prompts to type, what to expect on screen, and what to say.</p>
+</li>
+<li>
+<p>To rebuild the project as it is at the start of a part (for example part 5), run <code>python reset.py --to 5</code> from this folder.</p>
+</li>
+</ol>
+<blockquote class="">
+<p><strong>Note</strong>: The run sheet uses Windows <code>xcopy</code>. On macOS or Linux, use <code>cp -r ../../PART_04_slash_command/add/. .</code> instead.</p>
+</blockquote>
+<h2>What to expect</h2>
+<p>Claude Code's wording differs on every run, so say what you observe. These patterns are what the demo is built around:</p>
+<ul>
+<li><code>/init</code> writes a CLAUDE.md that names the layout and the test command. Yours will differ from <strong>PART_02_memory/add/CLAUDE.md</strong>, which is the catch-up copy.</li>
+<li>The low-stock report, written by <code>/add-feature</code>, lists four books: Small Gardens (0), The Quiet Engine (2), Night Ferry (3) and Harbour Lights (4).</li>
+<li>After part 5 the report starts with <code>=== LOW STOCK (BELOW 5) ===</code> and ends with <code>Total: 4 titles</code>.</li>
+<li>The supplier server answers from a fixed table, so the numbers in part 8 are always the same.</li>
+</ul>
+<p>What is verified offline: the sample project's tests (6 at the start, 11 at the end), every part's files, the hook script on sample input, and the supplier functions. What needs a pre-flight run: Claude Code's own behaviour, wording, approval screens, and the commands marked &quot;verify on your Claude Code version&quot; in the run sheet.</p>
+<h2>Design notes</h2>
+<ul>
+<li><strong>Each part adds one building block and one small piece of the same feature.</strong> The use case never changes, so students see what each block adds.</li>
+<li><strong>The skill is where the shop's format lives.</strong> CLAUDE.md says how to work. The skill says what a finished report looks like, and it loads only when a report is being written.</li>
+<li><strong>The hook is plain Python.</strong> <code>.claude/hooks/run_tests.py</code> is about 20 lines, so students can read the whole rule.</li>
+<li><strong>The MCP server wraps plain functions.</strong> <code>supplier.py</code> holds the logic, and <code>supplier_server.py</code> only puts it behind MCP, in the same style as the Day 2 intro server.</li>
+</ul>
+<h2>More information</h2>
+<ul>
+<li>This demo has no matching lab. Students run it before the Day 4 labs.</li>
+<li>The demos that go deeper: 4A (plan mode, exploring), 4B (CLAUDE.md and rules), 4C (skill, hook, subagent and MCP), 4D (headless CI).</li>
+</ul>
+</main><script>document.querySelectorAll('.cb').forEach(d=>{const b=document.createElement('button');b.textContent='Copy';
+b.onclick=()=>{navigator.clipboard.writeText(d.querySelector('code').innerText);b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1200)};d.appendChild(b)});</script></body></html>

@@ -12,7 +12,7 @@ New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) fi
 | `DAY_1/LABS` | Labs 1A to 1D, each one replays a trainer demo |
 | `DAY_2/LABS` | Two MCP demos you can run before the labs, and Labs 2.1 to 2.6 |
 | `DAY_3/LABS` | Labs 3.1 to 3.7 |
-| `DAY_4/LABS` | Labs 4.1 to 4.4, done in Claude Code |
+| `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first), and Labs 4.1 to 4.4, done in Claude Code |
 | `STUDY_GUIDE/` | Reading: MCP best practices and MCP security architecture |
 | `LAB_Test/` | The runner that tests every lab and packs the results to submit |
 
@@ -26,9 +26,10 @@ Most labs are a replay of what the trainer showed, so the demo and the lab match
 | Day 1, Demo 1D: Cost engineering | [Lab 1D](DAY_1/LABS/LAB_1D_cost_engineering) | `python lab.py --stage 1` ... `4` |
 | Day 2, Demos 2A to 2D | [Labs 2.1 to 2.4](DAY_2/LABS/README.md) | `python lab.py --stage 1` ... |
 | Day 3, Demos 3A to 3G | [Labs 3.1 to 3.7](DAY_3/LABS/README.md) | `python lab.py`, then `python check.py` |
+| Day 4, Intro to Claude Code (demo 4.0, no lab) | [DEMO_4_0_intro_to_claude](DAY_4/LABS/DEMO_4_0_intro_to_claude/README.md) | `python check_offline.py`, then Claude Code in `workspace\bookshop` |
 | Day 4, Demos 4A to 4D | [Labs 4.1 to 4.4](DAY_4/LABS/README.md) | Claude Code in the lab's `STARTER` folder |
 
-The Day 2 MCP demos `DEMO_2_0_intro_to_mcp` and `DEMO_2_0_mcp_separate_server_and_client` are in `DAY_2/LABS`. Run them before Lab 2.4. The Day 3 and Day 4 demos are the trainer's, in `TRAINER_V2/DAY_3/DEMOS` and `TRAINER_V2/DAY_4/DEMOS`. If your trainer shares those folders you can re-run any of them: see [Day 3 demos](#day-3-demos-what-the-trainer-shows) and [Day 4](#day-4-claude-code-configuration-and-workflows-d3) below.
+The Day 4 intro demo `DEMO_4_0_intro_to_claude` is in `DAY_4/LABS`. Run it before Lab 4.1. The Day 2 MCP demos `DEMO_2_0_intro_to_mcp` and `DEMO_2_0_mcp_separate_server_and_client` are in `DAY_2/LABS`. Run them before Lab 2.4. The Day 3 and Day 4 demos are the trainer's, in `TRAINER_V2/DAY_3/DEMOS` and `TRAINER_V2/DAY_4/DEMOS`. If your trainer shares those folders you can re-run any of them: see [Day 3 demos](#day-3-demos-what-the-trainer-shows) and [Day 4](#day-4-claude-code-configuration-and-workflows-d3) below.
 
 ## About the course
 
@@ -133,10 +134,11 @@ Demos 3E to 3G use the `claude-agent-sdk` package and the Claude Code CLI; 3A to
 
 ### Day 4: Claude Code configuration and workflows (D3)
 
-The four Day 4 trainer demos are rebuilt as self-contained, live Claude Code demos on small sample repos, in `TRAINER_V2/DAY_4/DEMOS` (read its README for the list and the trainer transcript). They need the Claude Code CLI (`claude --version`).
+The Day 4 intro demo (4.0) and the four Day 4 trainer demos (4A to 4D) are rebuilt as self-contained, live Claude Code demos on small sample repos, in `TRAINER_V2/DAY_4/DEMOS` (read its README for the list and the trainer transcript). They need the Claude Code CLI (`claude --version`).
 
 | Demo | The idea in one line | Pairs with |
 |---|---|---|
+| 4.0 Intro to Claude Code | A 38-minute tour of Claude Code's building blocks on a tiny bookshop app. Run it first | none, run before Lab 4.1 |
 | 4A Repository exploration and Plan Mode | Explore a repo, then plan a cross-file change before editing | Lab 4.1 |
 | 4B CLAUDE.md and rules | Layer CLAUDE.md files and path-scoped rules so Claude follows the right guidance | Lab 4.2 |
 | 4C Skill, hook and subagent | One reusable review capability built from a skill, a hook and a subagent | Lab 4.3 |

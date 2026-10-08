@@ -1,0 +1,10 @@
+[
+  {"isbn": "9780000000011", "title": "The Salt Road", "author": "Mira Voss", "price": 14.50, "stock": 12},
+  {"isbn": "9780000000028", "title": "Night Ferry", "author": "Tomas Reid", "price": 11.00, "stock": 3},
+  {"isbn": "9780000000035", "title": "Small Gardens", "author": "Ana Lund", "price": 18.25, "stock": 0},
+  {"isbn": "9780000000042", "title": "Paper Moons", "author": "Mira Voss", "price": 9.99, "stock": 8},
+  {"isbn": "9780000000059", "title": "The Quiet Engine", "author": "Tomas Reid", "price": 22.00, "stock": 2},
+  {"isbn": "9780000000066", "title": "Bread and Salt", "author": "Ana Lund", "price": 16.00, "stock": 15},
+  {"isbn": "9780000000073", "title": "Harbour Lights", "author": "Joel Park", "price": 13.75, "stock": 4},
+  {"isbn": "9780000000080", "title": "Winter Atlas", "author": "Joel Park", "price": 27.50, "stock": 6}
+]
