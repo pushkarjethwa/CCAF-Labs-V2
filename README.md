@@ -13,6 +13,7 @@ New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) fi
 | `DAY_2/LABS` | Two MCP demos you can run before the labs, and Labs 2.1 to 2.6 |
 | `DAY_3/LABS` | Labs 3.1 to 3.7 |
 | `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first), and Labs 4.1 to 4.4, done in Claude Code |
+| `DAY_4/BUILD_IT_ASSEMBLY` | Optional ready-to-run Day 4 project: rules, skill, hook, MCP and a GitHub review gate |
 | `STUDY_GUIDE/` | Reading: MCP best practices and MCP security architecture |
 | `LAB_Test/` | The runner that tests every lab and packs the results to submit |
 
@@ -43,7 +44,7 @@ A five-day course that prepares you for the CCA-F exam by building and measuring
 | 4 | Claude Code configuration and workflows | D3 | 20% |
 | 5 | Context management and reliability, plus capstone | D5 | 15% |
 
-How the days run: the trainer shows a short demo, you do a lab, and at the end of the day there is a review. The full timetable is in the course schedule (`02_MASTER_5_DAY_SCHEDULE.md` in the course folder).
+How the days run: the trainer shows a short demo, you do a lab, and at the end of the day there is a review. Your trainer shares the timetable.
 
 ## How every lab works
 
@@ -152,6 +153,8 @@ Each Day 4 lab repeats its demo's method on a new repo (`shipcalc`, a shipping-p
 | [4.2 Layer CLAUDE.md, rules and hooks](DAY_4/LABS/LAB_4_2_shipping_config_layers/README.md) | Demo 4B on `shipcalc`: layered CLAUDE.md, path-scoped rules, a hook and a project MCP file | 30 min |
 | [4.3 Skill, hook and subagent](DAY_4/LABS/LAB_4_3_shipping_skill_hook_subagent/README.md) | Demo 4C on `shipcalc`: an API-contract review skill, an audit hook and a read-only subagent | 40 min |
 | [4.4 CI review gate](DAY_4/LABS/LAB_4_4_shipping_ci_review_gate/README.md) | Demo 4D on `shipcalc`: findings schema, review runner, gate script and workflow | 40 min |
+
+**Optional finale: Build-It Assembly.** [DAY_4/BUILD_IT_ASSEMBLY](DAY_4/BUILD_IT_ASSEMBLY/README.md) is a ready-to-run project (a cafe rewards service) that assembles everything from Day 4: layered rules, a command, skills, a subagent, hooks, an MCP server and a GitHub review gate that blocks a flawed pull request. Nothing to write; every command explains what it does and why. About 100 minutes. You need `git`, the `gh` CLI, a GitHub account and a personal access token (the guide shows how).
 
 ### Day 5: Context management and reliability (D5)
 

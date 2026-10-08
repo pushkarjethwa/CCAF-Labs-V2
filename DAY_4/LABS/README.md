@@ -21,3 +21,7 @@ Before Lab 4.1, run the intro demo, **DEMO_4_0_intro_to_claude**. It is a 38-min
 | Put Claude Code in CI as a Review Gate | Demo 4D | [LAB_4_4_shipping_ci_review_gate](LAB_4_4_shipping_ci_review_gate/README.md) |
 
 In every lab, work inside the `STARTER` folder, then run `python check.py` (no key needed) to see your progress.
+
+## Optional: Build-It Assembly
+
+When you finish the four labs, you can run the **Build-It Assembly**, one optional, ready-to-run project that brings the whole day together: [BUILD_IT_ASSEMBLY](../BUILD_IT_ASSEMBLY/README.md). It follows a cafe rewards service, "Brew & Bean Rewards", through rules, a skill, a hook, an MCP server and a CI review gate on GitHub. There is nothing to write. You run the commands, each one explains what it does and why, and you watch Claude Code work. It takes about 100 minutes.

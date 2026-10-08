@@ -1,0 +1,23 @@
+{
+  "recorded_sample": true,
+  "note": "RECORDED SAMPLE written by the course authors in the shape of a headless claude -p envelope. It is not a live model result.",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "",
+  "structured_output": {
+    "summary": "The birthday bonus is a whole number of points for members only, the log line carries ids and counts only, and tests cover the bonus, the non-member case and bad dates.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "NITPICK",
+        "category": "style",
+        "file": "src/rewards/api.py",
+        "line": 19,
+        "title": "Long line could be split",
+        "evidence": "The bonus call is long and reads better on two lines.",
+        "fix": "Assign request.get(\"birthday\") to a local name first."
+      }
+    ]
+  }
+}

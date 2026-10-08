@@ -1,0 +1,35 @@
+diff --git a/src/rewards/api.py b/src/rewards/api.py
+--- a/src/rewards/api.py
++++ b/src/rewards/api.py
+@@ -1,4 +1,6 @@
+ """Request handling for the rewards service."""
++import logging
++
+ from . import ledger
+ from .logging_utils import log_event
+ from .points import earn_points
+@@ -16,3 +18,13 @@ def handle_purchase(request: dict) -> dict:
+     new_balance = ledger.add(customer_id, points)
+     log_event("purchase", customer_id, points=points)
+     return {"ok": True, "customer_id": customer_id, "points_earned": points, "balance": new_balance}
++
++
++def quick_redeem(request: dict) -> dict:
++    """Spend points on drinks. Request keys: customer_id, email, drinks."""
++    customer_id = request["customer_id"]
++    email = request["email"]
++    logging.info("quick redeem for %s", email)
++    points_needed = request["drinks"] * 100 * 0.9
++    new_balance = ledger.add(customer_id, -points_needed)
++    return {"ok": True, "customer_id": customer_id, "points_spent": points_needed, "balance": new_balance}
+diff --git a/src/rewards/config.py b/src/rewards/config.py
+--- a/src/rewards/config.py
++++ b/src/rewards/config.py
+@@ -5,3 +5,7 @@ import os
+ def get_api_key():
+     """Return the rewards API key from the environment, or None when it is not set."""
+     return os.environ.get("REWARDS_API_KEY")
++
++
++# FAKE example key for the training patch only. It is not a real credential.
++REDEEM_API_KEY = "bb_live_EXAMPLE0000000000000000"

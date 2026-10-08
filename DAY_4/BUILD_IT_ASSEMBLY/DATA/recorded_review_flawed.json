@@ -1,0 +1,53 @@
+{
+  "recorded_sample": true,
+  "note": "RECORDED SAMPLE written by the course authors in the shape of a headless claude -p envelope. It is not a live model result.",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "",
+  "structured_output": {
+    "summary": "The quick-redeem change hard-codes a live-looking key, logs the customer email, computes points with a float and adds no test.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "BLOCKER",
+        "category": "secrets",
+        "file": "src/rewards/config.py",
+        "line": 11,
+        "title": "Hard-coded API key in source",
+        "evidence": "REDEEM_API_KEY is assigned a bb_live_ literal in config.py.",
+        "fix": "Read the key from an environment variable with os.environ.get and rotate the exposed value."
+      },
+      {
+        "id": "F2",
+        "severity": "BLOCKER",
+        "category": "privacy",
+        "file": "src/rewards/api.py",
+        "line": 22,
+        "title": "Customer email written to the log",
+        "evidence": "logging.info prints the email address of the customer.",
+        "fix": "Log the customer id only, for example log_event(\"redeem\", customer_id, points=cost)."
+      },
+      {
+        "id": "F3",
+        "severity": "BLOCKER",
+        "category": "money",
+        "file": "src/rewards/api.py",
+        "line": 23,
+        "title": "Points computed with a float",
+        "evidence": "drinks * 100 * 0.9 produces a float and the ledger would store fractional points.",
+        "fix": "Use integer math, for example cost = drinks * 100 and apply any discount with integer division."
+      },
+      {
+        "id": "F4",
+        "severity": "SHOULD_FIX",
+        "category": "tests",
+        "file": "src/rewards/api.py",
+        "line": 18,
+        "title": "New function has no test",
+        "evidence": "quick_redeem is added and nothing under tests/ changes.",
+        "fix": "Add tests for the cost, the balance check and a bad request."
+      }
+    ]
+  }
+}

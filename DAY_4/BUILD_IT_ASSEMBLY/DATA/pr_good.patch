@@ -1,0 +1,131 @@
+diff --git a/src/rewards/api.py b/src/rewards/api.py
+--- a/src/rewards/api.py
++++ b/src/rewards/api.py
+@@ -1,18 +1,23 @@
+ """Request handling for the rewards service."""
++from datetime import date
++
+ from . import ledger
+ from .logging_utils import log_event
+-from .points import earn_points
++from .points import birthday_bonus, earn_points
+ 
+ 
+-def handle_purchase(request: dict) -> dict:
+-    """Record a purchase. Request keys: customer_id, amount_cents, is_member (optional)."""
++def handle_purchase(request: dict, today: date = None) -> dict:
++    """Record a purchase. Request keys: customer_id, amount_cents, is_member and birthday (both optional)."""
+     customer_id = request.get("customer_id")
+     amount_cents = request.get("amount_cents")
+     if not customer_id or not isinstance(amount_cents, int) or isinstance(amount_cents, bool):
+         return {"ok": False, "error": "customer_id and integer amount_cents are required"}
+     if amount_cents < 0:
+         return {"ok": False, "error": "amount_cents must not be negative"}
+-    points = earn_points(amount_cents, bool(request.get("is_member", False)))
++    is_member = bool(request.get("is_member", False))
++    points = earn_points(amount_cents, is_member)
++    bonus = birthday_bonus(is_member, request.get("birthday"), today or date.today())
++    points += bonus
+     new_balance = ledger.add(customer_id, points)
+-    log_event("purchase", customer_id, points=points)
++    log_event("purchase", customer_id, points=points, bonus=bonus)
+     return {"ok": True, "customer_id": customer_id, "points_earned": points, "balance": new_balance}
+diff --git a/src/rewards/points.py b/src/rewards/points.py
+--- a/src/rewards/points.py
++++ b/src/rewards/points.py
+@@ -1,7 +1,9 @@
+ """Points rules. All math is integer math."""
++from datetime import date
+ 
+ CENTS_PER_POINT = 100  # 1 point per whole currency unit spent
+ MEMBER_PERCENT = 150  # members earn 150 percent of the base points
++BIRTHDAY_BONUS_POINTS = 50  # extra whole points for a member on their birthday
+ 
+ 
+ def earn_points(amount_cents: int, is_member: bool) -> int:
+@@ -12,3 +14,16 @@ def earn_points(amount_cents: int, is_member: bool) -> int:
+     if is_member:
+         return base * MEMBER_PERCENT // 100
+     return base
++
++
++def birthday_bonus(is_member: bool, birthday, today: date) -> int:
++    """Return the extra whole points for a member whose birthday (YYYY-MM-DD text) is today."""
++    if not is_member or not birthday:
++        return 0
++    try:
++        born = date.fromisoformat(birthday)
++    except (TypeError, ValueError):
++        return 0
++    if (born.month, born.day) == (today.month, today.day):
++        return BIRTHDAY_BONUS_POINTS
++    return 0
+diff --git a/tests/test_api.py b/tests/test_api.py
+--- a/tests/test_api.py
++++ b/tests/test_api.py
+@@ -1,6 +1,7 @@
+ import os
+ import sys
+ import unittest
++from datetime import date
+ 
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ 
+@@ -21,6 +22,16 @@ class ApiTests(unittest.TestCase):
+         result = handle_purchase({"customer_id": "c2", "amount_cents": 1000, "is_member": True})
+         self.assertEqual(result["points_earned"], 15)
+ 
++    def test_member_birthday_adds_50_points(self):
++        request = {"customer_id": "c3", "amount_cents": 1000, "is_member": True, "birthday": "1990-05-17"}
++        result = handle_purchase(request, today=date(2026, 5, 17))
++        self.assertEqual(result["points_earned"], 65)
++        self.assertEqual(result["balance"], 65)
++
++    def test_birthday_ignored_for_non_member(self):
++        request = {"customer_id": "c4", "amount_cents": 1000, "birthday": "1990-05-17"}
++        self.assertEqual(handle_purchase(request, today=date(2026, 5, 17))["points_earned"], 10)
++
+     def test_bad_request(self):
+         self.assertFalse(handle_purchase({"customer_id": "c1"})["ok"])
+         self.assertFalse(handle_purchase({"customer_id": "c1", "amount_cents": -5})["ok"])
+diff --git a/tests/test_points.py b/tests/test_points.py
+--- a/tests/test_points.py
++++ b/tests/test_points.py
+@@ -1,10 +1,11 @@
+ import os
+ import sys
+ import unittest
++from datetime import date
+ 
+ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+ 
+-from rewards.points import earn_points
++from rewards.points import birthday_bonus, earn_points
+ 
+ 
+ class EarnPointsTests(unittest.TestCase):
+@@ -21,5 +22,24 @@ class EarnPointsTests(unittest.TestCase):
+             earn_points(-1, False)
+ 
+ 
++class BirthdayBonusTests(unittest.TestCase):
++    TODAY = date(2026, 5, 17)
++
++    def test_member_on_birthday_gets_50_whole_points(self):
++        bonus = birthday_bonus(True, "1990-05-17", self.TODAY)
++        self.assertEqual(bonus, 50)
++        self.assertIsInstance(bonus, int)
++
++    def test_not_on_birthday_gets_nothing(self):
++        self.assertEqual(birthday_bonus(True, "1990-05-18", self.TODAY), 0)
++
++    def test_non_member_gets_nothing(self):
++        self.assertEqual(birthday_bonus(False, "1990-05-17", self.TODAY), 0)
++
++    def test_missing_or_bad_birthday_gets_nothing(self):
++        self.assertEqual(birthday_bonus(True, None, self.TODAY), 0)
++        self.assertEqual(birthday_bonus(True, "not-a-date", self.TODAY), 0)
++
++
+ if __name__ == "__main__":
+     unittest.main()

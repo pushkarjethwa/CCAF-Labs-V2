@@ -67,31 +67,33 @@ A bookshop owner hires a new assistant. On day one the assistant needs a handboo
 
 ## Commands you will meet
 
-| Command | What it does | Part |
-|---|---|---|
-| `claude` | Starts an interactive session in the current folder | 1 |
-| `/help` | Lists the commands, including your own | 1 |
-| `@path` | Mentions a file so Claude reads it | 1 |
-| `!command` | Runs a shell command and puts the output in the conversation | 1 |
-| Shift+Tab | Cycles the permission mode: default, accept edits, plan | 1 |
-| `/permissions` | Shows and edits the allow, ask and deny rules | 1 |
-| `/init` | Writes a CLAUDE.md for the project | 2 |
-| `/memory` | Shows the memory files that are loaded, and opens them | 2 |
-| `/context` | Shows what fills the context window | 3 |
-| `/compact` | Replaces the conversation with a summary | 3 |
-| `/clear` | Starts a fresh conversation | 3 |
-| `claude -c` | Continues the most recent conversation in this folder | 3 |
-| `claude --resume` | Opens a list of past conversations to pick from | 3 |
-| `/model` | Shows or changes the model | 3 |
-| `/cost` | Shows what the session has used (newer versions also have `/usage`; verify on your Claude Code version) | 3 |
-| `/add-feature ...` | Your own slash command, from `.claude/commands/add-feature.md` | 4 |
-| `/report-style` | Your own skill, run by name | 5 |
-| `/agents` | Lists and manages subagents | 6 |
-| `/hooks` | Shows the hooks that are set up | 7 |
-| `claude mcp add` | Registers an MCP server | 8 |
-| `/mcp` | Shows MCP servers and their status | 8 |
-| `claude -p "..."` | Runs one prompt and exits | 9 |
-| `--output-format json` | Prints a JSON object with the answer and run details | 9 |
+Every command has two reasons: what it does, and why we run it here. The run sheet repeats both under each command.
+
+| Command | What it does | Why we run it here | Part |
+|---|---|---|---|
+| `claude` | Starts an interactive session in the current folder | Every part happens inside a session, and the folder tells Claude which project it is working on | 1 |
+| `/help` | Lists the commands, including your own | It is the map of what you can type, and your own commands appear in it | 1 |
+| `@path` | Mentions a file so Claude reads it | Claude reads the real file instead of guessing from a description | 1 |
+| `!command` | Runs a shell command and puts the output in the conversation | You check things, such as the tests, without leaving Claude | 1 |
+| Shift+Tab | Cycles the permission mode: default, accept edits, plan | It sets how much freedom Claude has before it edits files | 1 |
+| `/permissions` | Shows and edits the allow, ask and deny rules | It makes the safety rules visible and changeable | 1 |
+| `/init` | Writes a CLAUDE.md for the project | The handbook is created for you, and every session reads it | 2 |
+| `/memory` | Shows the memory files that are loaded, and opens them | It proves what Claude remembers, and where | 2 |
+| `/context` | Shows what fills the context window | Claude knows only what is in the window, so this shows why long sessions need care | 3 |
+| `/compact` | Replaces the conversation with a summary | It frees window space and keeps the facts you name | 3 |
+| `/clear` | Starts a fresh conversation | A clean desk, with CLAUDE.md read again | 3 |
+| `claude -c` | Continues the most recent conversation in this folder | You come back to the work after a restart, without retelling it | 3 |
+| `claude --resume` | Opens a list of past conversations to pick from | You pick an older conversation, not only the last one | 3 |
+| `/model` | Shows or changes the model | The model is a choice with cost and quality trade-offs | 3 |
+| `/cost` | Shows what the session has used (newer versions also have `/usage`; verify on your Claude Code version) | Cost is part of the design, so you should know where to look | 3 |
+| `/add-feature ...` | Your own slash command, from `.claude/commands/add-feature.md` | A prompt written once and reused, so every feature gets built, tested and reported the same way | 4 |
+| `/report-style` | Your own skill, run by name | It shows that a skill can start by hand as well as on its own | 5 |
+| `/agents` | Lists and manages subagents | It shows the separate workers and the tools each may use | 6 |
+| `/hooks` | Shows the hooks that are set up | It makes the rules that run by themselves visible | 7 |
+| `claude mcp add` | Registers an MCP server | It connects Claude to data and tools outside the project | 8 |
+| `/mcp` | Shows MCP servers and their status | It proves the connection works before you rely on it | 8 |
+| `claude -p "..."` | Runs one prompt and exits | It makes Claude a plain command that scripts and CI jobs can call | 9 |
+| `--output-format json` | Prints a JSON object with the answer and run details | Another program can read it, which a CI gate needs | 9 |
 
 ## Run the demo
 
@@ -101,6 +103,8 @@ A bookshop owner hires a new assistant. On day one the assistant needs a handboo
     python check_offline.py
     ```
 
+    **What it does:** Runs the sample project's tests at every part, parses every file, and runs the hook script on sample input. **Why we run it:** It tells you the files are correct before you go live, so any surprise during the demo comes from Claude Code and not from the files.
+
 2. Build the working copy, and open Claude Code in it:
 
     ```
@@ -109,9 +113,11 @@ A bookshop owner hires a new assistant. On day one the assistant needs a handboo
     claude
     ```
 
-3. Follow **RUN_SHEET.md**. It gives the prompts to type, what to expect on screen, and what to say.
+    **What it does:** `reset.py` builds a clean working copy of the bookshop project. `cd` moves into it, and `claude` starts a session there. **Why we run it:** You work in a copy, so the original files stay clean and you can rebuild the start state any time.
 
-4. To rebuild the project as it is at the start of a part (for example part 5), run `python reset.py --to 5` from this folder.
+3. Follow **RUN_SHEET.md**. It gives the prompts to type, what each one does and why we run it, what to expect on screen, and what to say.
+
+4. To rebuild the project as it is at the start of a part (for example part 5), run `python reset.py --to 5` from this folder. This is the catch-up route if a live run drifts: it puts the project back where the part expects it.
 
 > **Note**: The run sheet uses Windows `xcopy`. On macOS or Linux, use `cp -r ../../PART_04_slash_command/add/. .` instead.
 

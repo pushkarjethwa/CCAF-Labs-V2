@@ -1,0 +1,78 @@
+name: claude-review-gate
+
+# pull_request, NOT pull_request_target: the job runs the PR code with no extra trust.
+# Fork PRs get no secrets under pull_request, so they are skipped below.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+# Least privilege: read the code, write PR comments, nothing else.
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the pull request with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Verify on your Claude Code version: package name and install command.
+      - name: Install the Claude Code CLI
+        run: npm i -g @anthropic-ai/claude-code
+
+      # The PR diff is untrusted data. It is only ever written to a file and read as text.
+      - name: Build the diff against the base branch
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git diff "origin/${BASE_REF}...HEAD" > pr.diff
+
+      # The key is passed only to this step, as an environment variable, and is never printed.
+      - name: Headless Claude review
+        continue-on-error: true
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python .ci/run_review.py --diff pr.diff --out review.json
+
+      # Plain code decides. Record the exit code, so the comment step can still run.
+      - name: Gate
+        id: gate
+        run: |
+          set +e
+          python .ci/gate.py --review review.json --diff pr.diff --summary "$GITHUB_STEP_SUMMARY" --markdown-out gate.md
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      # Verify on your GitHub CLI version: gh pr comment --body-file. Each push adds a new comment.
+      - name: Post the summary on the pull request
+        if: always() && hashFiles('gate.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr comment "$PR_NUMBER" --body-file gate.md
+
+      - name: Fail the job when the gate did not pass
+        if: steps.gate.outputs.code != '0'
+        env:
+          GATE_CODE: ${{ steps.gate.outputs.code }}
+        run: |
+          echo "Gate exit code $GATE_CODE (1 BLOCK, 2 INVALID, 3 INCONCLUSIVE)"
+          exit "$GATE_CODE"

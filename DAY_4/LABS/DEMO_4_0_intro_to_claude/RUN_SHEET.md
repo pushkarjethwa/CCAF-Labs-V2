@@ -24,7 +24,7 @@ This run sheet covers Demo 4.0, which takes about 38 minutes and runs live in Cl
 
 ## Prompts and commands
 
-Type these in this order. Each one is also used in the steps below.
+Type these in this order. Each one is also used in the steps below. Every command has two lines under it: what it does, and why we run it here. Read both out loud for the first few commands, so students learn to ask "why am I running this?".
 
 **Part 1, start and look around**
 
@@ -32,21 +32,36 @@ Type these in this order. Each one is also used in the steps below.
 claude
 ```
 
+**What it does:** Starts an interactive Claude Code session in the current folder.
+**Why we run it here:** Everything in this demo happens inside a session. Starting it inside the project folder lets Claude see the project.
+
 ```
 What does this project do? Answer in four lines.
 ```
+
+**What it does:** Asks Claude to read the project and explain it.
+**Why we run it here:** It shows the first thing a new assistant does: look around before touching anything.
 
 ```
 Explain @bookshop/reports.py in two sentences.
 ```
 
+**What it does:** Mentions one file with `@` so Claude reads exactly that file.
+**Why we run it here:** Pointing at a file is faster and more accurate than describing it, and it keeps Claude from guessing.
+
 ```
 !python -m unittest discover -s tests
 ```
 
+**What it does:** Runs a shell command from inside the session and puts the output in the conversation.
+**Why we run it here:** It proves the project's tests pass before we change anything, without leaving Claude.
+
 ```
 /permissions
 ```
+
+**What it does:** Shows the rules for what Claude may always do, must ask about, or may never do.
+**Why we run it here:** It makes the safety controls visible: students see that Claude does not have unlimited freedom.
 
 **Part 2, memory**
 
@@ -54,9 +69,15 @@ Explain @bookshop/reports.py in two sentences.
 /init
 ```
 
+**What it does:** Looks at the project and writes a first CLAUDE.md.
+**Why we run it here:** CLAUDE.md is the handbook Claude reads at the start of every session, so we never repeat the project basics.
+
 ```
 /memory
 ```
+
+**What it does:** Lists the memory files that are loaded and offers to open them.
+**Why we run it here:** It proves the new CLAUDE.md is really loaded, and shows where memory lives.
 
 **Part 3, context**
 
@@ -64,17 +85,29 @@ Explain @bookshop/reports.py in two sentences.
 /context
 ```
 
+**What it does:** Shows what fills the context window: system prompt, tools, memory and the conversation.
+**Why we run it here:** Claude only knows what is in this window. The fuel gauge explains why long sessions get worse and why we compact.
+
 ```
 /compact Keep the project layout and the goal: add a low-stock report.
 ```
+
+**What it does:** Replaces the long conversation with a short summary, keeping what you name.
+**Why we run it here:** It frees space in the window while keeping the facts we still need. The instruction tells it what matters.
 
 ```
 /model
 ```
 
+**What it does:** Shows which model is working for you, and lets you change it.
+**Why we run it here:** The model is a choice with cost and quality trade-offs, and it is good to know where to set it.
+
 ```
 /cost
 ```
+
+**What it does:** Shows what the session has used so far.
+**Why we run it here:** Cost is part of the design. Students should know where to look.
 
 **Part 4, custom slash command**
 
@@ -82,15 +115,24 @@ Explain @bookshop/reports.py in two sentences.
 /add-feature a low-stock report: list the books with fewer than 5 copies left, fewest first
 ```
 
+**What it does:** Runs your own slash command, with the text after it filled into `$ARGUMENTS`.
+**Why we run it here:** A command is a prompt you wrote once and reuse. It builds the low-stock report with the same steps every time: build, test, report.
+
 **Part 5, skill**
 
 ```
 Make the low-stock report follow our shop's report style.
 ```
 
+**What it does:** Asks for a change that matches the skill's description.
+**Why we run it here:** Claude should load the `report-style` skill by itself, because the work matches the description. This shows a skill starting on its own.
+
 ```
 /report-style
 ```
+
+**What it does:** Runs the same skill by name.
+**Why we run it here:** It shows that a skill can also be started by hand, which is the difference from CLAUDE.md, which is always loaded.
 
 **Part 6, subagent**
 
@@ -98,9 +140,15 @@ Make the low-stock report follow our shop's report style.
 /agents
 ```
 
+**What it does:** Lists the subagents Claude can hand work to.
+**Why we run it here:** It shows the `reviewer` worker exists, and that its tools are limited.
+
 ```
 Use the reviewer subagent to review low_stock_report and its tests.
 ```
+
+**What it does:** Hands a task to the subagent.
+**Why we run it here:** The reviewer reads in its own context and sends back a short answer, so our main conversation stays small.
 
 **Part 7, hook**
 
@@ -108,9 +156,15 @@ Use the reviewer subagent to review low_stock_report and its tests.
 /hooks
 ```
 
+**What it does:** Shows the hooks that are set up.
+**Why we run it here:** It makes the door chime visible: students see the rule that runs after every edit.
+
 ```
 Add a low-stock command to bookshop/cli.py, so that python -m bookshop low-stock prints the report. Add a test for it.
 ```
+
+**What it does:** Asks for a real change that edits and writes files.
+**Why we run it here:** Each edit triggers the hook, so students watch the tests run on their own, with nobody asking.
 
 **Part 8, MCP**
 
@@ -118,13 +172,22 @@ Add a low-stock command to bookshop/cli.py, so that python -m bookshop low-stock
 claude mcp add --transport stdio --scope project supplier -- python mcp_server/supplier_server.py
 ```
 
+**What it does:** Registers the supplier server with this project. `--scope project` saves it in `.mcp.json` so everyone who clones the project gets it.
+**Why we run it here:** Claude cannot reach the supplier's numbers on its own. MCP is the standard plug that connects it.
+
 ```
 /mcp
 ```
 
+**What it does:** Shows the MCP servers and whether they are connected.
+**Why we run it here:** It proves the connection works before we rely on it.
+
 ```
 For each book in the low-stock report, ask the supplier how many copies they have, and tell me which to reorder first.
 ```
+
+**What it does:** Asks Claude to use the supplier tool for real data.
+**Why we run it here:** It ties every part together: the report we built, plus outside data, gives a useful business answer.
 
 **Part 9, headless**
 
@@ -132,13 +195,22 @@ For each book in the low-stock report, ask the supplier how many copies they hav
 claude -p "In one sentence, what is a hook in Claude Code?"
 ```
 
+**What it does:** Runs one prompt and exits, with no chat.
+**Why we run it here:** It shows Claude as a plain command, which is what a script or a CI job needs.
+
 ```
 python -m bookshop low-stock | claude -p "Write a three-line reorder email from this report."
 ```
 
+**What it does:** Pipes the report into Claude as input.
+**Why we run it here:** Claude can work on the output of other programs, which is how it will review a pull request in Demo 4D.
+
 ```
 python -m bookshop low-stock | claude -p "Count the titles in this report." --output-format json
 ```
+
+**What it does:** Asks for a JSON answer with the result and run details.
+**Why we run it here:** Another program can read JSON, which a CI gate needs. It also shows the cost and session fields.
 
 ## Run the demo
 
@@ -178,6 +250,8 @@ Run every shell command from **workspace\bookshop** unless the step says otherwi
 
     Then run `/clear`.
 
+    > **What it does and why**: `/exit` leaves the session on purpose, so `claude -c` can show that the last conversation comes back. `/clear` then shows the opposite: a clean start with CLAUDE.md read again.
+
     > **Say**: "Claude does not remember by magic. Everything it knows in a session sits in a window of fixed size, called the context. `/context` is the fuel gauge. It shows the parts: the system prompt, the tools, my CLAUDE.md, and our conversation. When the gauge gets full, `/compact` replaces the long conversation with a short summary, and I can tell it what to keep."
 
     > **Say**: "`claude -c` walks back into the shop and continues the last conversation in this folder. `claude --resume` shows a list when I want an older one. `/clear` is the opposite: a clean desk. CLAUDE.md is read again, and the old chat is gone. `/model` picks which model works for me, and `/cost` shows what this session has used."
@@ -191,6 +265,8 @@ Run every shell command from **workspace\bookshop** unless the step says otherwi
     claude
     ```
 
+    > **What it does and why**: `xcopy` copies this part's ready-made files into the working project, so nobody has to type them. `claude` (or `claude -c`) starts Claude Code again so that it picks up the new files, and `-c` keeps the earlier conversation.
+
     Type `/help`, and point at `/add-feature` in the list. Open **.claude\commands\add-feature.md** in the editor. Then paste the `/add-feature` prompt. Press Shift+Tab to accept edits when the first edit appears, or approve the edits one by one.
 
     > **Say**: "The owner asks the assistant for the same kind of job every week: add a feature, test it, report back. I wrote it once on a sticky note. A slash command is just a markdown file in `.claude/commands`. The file name is the command name. `$ARGUMENTS` is the blank to fill in: whatever I type after the command lands there."
@@ -203,6 +279,8 @@ Run every shell command from **workspace\bookshop** unless the step says otherwi
     xcopy ..\..\PART_05_skill\add . /E /Y /I
     claude -c
     ```
+
+    > **What it does and why**: `xcopy` copies this part's ready-made files into the working project, so nobody has to type them. `claude` (or `claude -c`) starts Claude Code again so that it picks up the new files, and `-c` keeps the earlier conversation.
 
     Paste the part 5 prompt. When Claude finishes, type `/report-style`.
 
@@ -219,6 +297,8 @@ Run every shell command from **workspace\bookshop** unless the step says otherwi
     claude -c
     ```
 
+    > **What it does and why**: `xcopy` copies this part's ready-made files into the working project, so nobody has to type them. `claude` (or `claude -c`) starts Claude Code again so that it picks up the new files, and `-c` keeps the earlier conversation.
+
     Type `/agents`, and point at `reviewer`. Press Esc. Then paste the part 6 prompt.
 
     > **Say**: "Sometimes the assistant needs a colleague. A subagent is a second worker with its own desk: its own instructions, its own tools and its own context. This reviewer can only read, search and list files, so it cannot change anything. It does the reading in the back room and sends me six lines. My own conversation stays small."
@@ -231,6 +311,8 @@ Run every shell command from **workspace\bookshop** unless the step says otherwi
     xcopy ..\..\PART_07_hook\add . /E /Y /I
     claude -c
     ```
+
+    > **What it does and why**: `xcopy` copies this part's ready-made files into the working project, so nobody has to type them. `claude` (or `claude -c`) starts Claude Code again so that it reads the new `settings.json`, and `-c` keeps the earlier conversation.
 
     Type `/hooks`, and point at the `PostToolUse` entry. Press Esc. Then paste the part 7 prompt.
 

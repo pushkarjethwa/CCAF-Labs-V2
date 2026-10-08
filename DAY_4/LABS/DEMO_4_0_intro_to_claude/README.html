@@ -192,11 +192,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 </tbody>
 </table>
 <h2>Commands you will meet</h2>
+<p>Every command has two reasons: what it does, and why we run it here. The run sheet repeats both under each command.</p>
 <table>
 <thead>
 <tr>
 <th>Command</th>
 <th>What it does</th>
+<th>Why we run it here</th>
 <th>Part</th>
 </tr>
 </thead>
@@ -204,116 +206,139 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <tr>
 <td><code>claude</code></td>
 <td>Starts an interactive session in the current folder</td>
+<td>Every part happens inside a session, and the folder tells Claude which project it is working on</td>
 <td>1</td>
 </tr>
 <tr>
 <td><code>/help</code></td>
 <td>Lists the commands, including your own</td>
+<td>It is the map of what you can type, and your own commands appear in it</td>
 <td>1</td>
 </tr>
 <tr>
 <td><code>@path</code></td>
 <td>Mentions a file so Claude reads it</td>
+<td>Claude reads the real file instead of guessing from a description</td>
 <td>1</td>
 </tr>
 <tr>
 <td><code>!command</code></td>
 <td>Runs a shell command and puts the output in the conversation</td>
+<td>You check things, such as the tests, without leaving Claude</td>
 <td>1</td>
 </tr>
 <tr>
 <td>Shift+Tab</td>
 <td>Cycles the permission mode: default, accept edits, plan</td>
+<td>It sets how much freedom Claude has before it edits files</td>
 <td>1</td>
 </tr>
 <tr>
 <td><code>/permissions</code></td>
 <td>Shows and edits the allow, ask and deny rules</td>
+<td>It makes the safety rules visible and changeable</td>
 <td>1</td>
 </tr>
 <tr>
 <td><code>/init</code></td>
 <td>Writes a CLAUDE.md for the project</td>
+<td>The handbook is created for you, and every session reads it</td>
 <td>2</td>
 </tr>
 <tr>
 <td><code>/memory</code></td>
 <td>Shows the memory files that are loaded, and opens them</td>
+<td>It proves what Claude remembers, and where</td>
 <td>2</td>
 </tr>
 <tr>
 <td><code>/context</code></td>
 <td>Shows what fills the context window</td>
+<td>Claude knows only what is in the window, so this shows why long sessions need care</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>/compact</code></td>
 <td>Replaces the conversation with a summary</td>
+<td>It frees window space and keeps the facts you name</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>/clear</code></td>
 <td>Starts a fresh conversation</td>
+<td>A clean desk, with CLAUDE.md read again</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>claude -c</code></td>
 <td>Continues the most recent conversation in this folder</td>
+<td>You come back to the work after a restart, without retelling it</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>claude --resume</code></td>
 <td>Opens a list of past conversations to pick from</td>
+<td>You pick an older conversation, not only the last one</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>/model</code></td>
 <td>Shows or changes the model</td>
+<td>The model is a choice with cost and quality trade-offs</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>/cost</code></td>
 <td>Shows what the session has used (newer versions also have <code>/usage</code>; verify on your Claude Code version)</td>
+<td>Cost is part of the design, so you should know where to look</td>
 <td>3</td>
 </tr>
 <tr>
 <td><code>/add-feature ...</code></td>
 <td>Your own slash command, from <code>.claude/commands/add-feature.md</code></td>
+<td>A prompt written once and reused, so every feature gets built, tested and reported the same way</td>
 <td>4</td>
 </tr>
 <tr>
 <td><code>/report-style</code></td>
 <td>Your own skill, run by name</td>
+<td>It shows that a skill can start by hand as well as on its own</td>
 <td>5</td>
 </tr>
 <tr>
 <td><code>/agents</code></td>
 <td>Lists and manages subagents</td>
+<td>It shows the separate workers and the tools each may use</td>
 <td>6</td>
 </tr>
 <tr>
 <td><code>/hooks</code></td>
 <td>Shows the hooks that are set up</td>
+<td>It makes the rules that run by themselves visible</td>
 <td>7</td>
 </tr>
 <tr>
 <td><code>claude mcp add</code></td>
 <td>Registers an MCP server</td>
+<td>It connects Claude to data and tools outside the project</td>
 <td>8</td>
 </tr>
 <tr>
 <td><code>/mcp</code></td>
 <td>Shows MCP servers and their status</td>
+<td>It proves the connection works before you rely on it</td>
 <td>8</td>
 </tr>
 <tr>
 <td><code>claude -p &quot;...&quot;</code></td>
 <td>Runs one prompt and exits</td>
+<td>It makes Claude a plain command that scripts and CI jobs can call</td>
 <td>9</td>
 </tr>
 <tr>
 <td><code>--output-format json</code></td>
 <td>Prints a JSON object with the answer and run details</td>
+<td>Another program can read it, which a CI gate needs</td>
 <td>9</td>
 </tr>
 </tbody>
@@ -324,6 +349,7 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 <p>Run the key-free self-check from this folder, and confirm that it ends with <code>ALL OK</code>:</p>
 <div class="cb"><pre><code>python check_offline.py
 </code></pre></div>
+<p><strong>What it does:</strong> Runs the sample project's tests at every part, parses every file, and runs the hook script on sample input. <strong>Why we run it:</strong> It tells you the files are correct before you go live, so any surprise during the demo comes from Claude Code and not from the files.</p>
 </li>
 <li>
 <p>Build the working copy, and open Claude Code in it:</p>
@@ -331,12 +357,13 @@ hr{border:0;border-top:1px solid var(--line);margin:2em 0}
 cd workspace\bookshop
 claude
 </code></pre></div>
+<p><strong>What it does:</strong> <code>reset.py</code> builds a clean working copy of the bookshop project. <code>cd</code> moves into it, and <code>claude</code> starts a session there. <strong>Why we run it:</strong> You work in a copy, so the original files stay clean and you can rebuild the start state any time.</p>
 </li>
 <li>
-<p>Follow <strong>RUN_SHEET.md</strong>. It gives the prompts to type, what to expect on screen, and what to say.</p>
+<p>Follow <strong>RUN_SHEET.md</strong>. It gives the prompts to type, what each one does and why we run it, what to expect on screen, and what to say.</p>
 </li>
 <li>
-<p>To rebuild the project as it is at the start of a part (for example part 5), run <code>python reset.py --to 5</code> from this folder.</p>
+<p>To rebuild the project as it is at the start of a part (for example part 5), run <code>python reset.py --to 5</code> from this folder. This is the catch-up route if a live run drifts: it puts the project back where the part expects it.</p>
 </li>
 </ol>
 <blockquote class="">

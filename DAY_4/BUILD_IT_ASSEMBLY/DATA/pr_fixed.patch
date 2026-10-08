@@ -1,0 +1,114 @@
+diff --git a/src/rewards/api.py b/src/rewards/api.py
+--- a/src/rewards/api.py
++++ b/src/rewards/api.py
+@@ -1,7 +1,7 @@
+ """Request handling for the rewards service."""
+ from . import ledger
+ from .logging_utils import log_event
+-from .points import earn_points
++from .points import earn_points, redeem_cost
+ 
+ 
+ def handle_purchase(request: dict) -> dict:
+@@ -16,3 +16,17 @@ def handle_purchase(request: dict) -> dict:
+     new_balance = ledger.add(customer_id, points)
+     log_event("purchase", customer_id, points=points)
+     return {"ok": True, "customer_id": customer_id, "points_earned": points, "balance": new_balance}
++
++
++def quick_redeem(request: dict) -> dict:
++    """Spend points on drinks. Request keys: customer_id, drinks (a whole number)."""
++    customer_id = request.get("customer_id")
++    drinks = request.get("drinks")
++    if not customer_id or not isinstance(drinks, int) or isinstance(drinks, bool) or drinks < 1:
++        return {"ok": False, "error": "customer_id and a whole number of drinks are required"}
++    cost = redeem_cost(drinks)
++    if ledger.balance(customer_id) < cost:
++        return {"ok": False, "error": "not enough points"}
++    new_balance = ledger.add(customer_id, -cost)
++    log_event("redeem", customer_id, points=cost)
++    return {"ok": True, "customer_id": customer_id, "points_spent": cost, "balance": new_balance}
+diff --git a/src/rewards/config.py b/src/rewards/config.py
+--- a/src/rewards/config.py
++++ b/src/rewards/config.py
+@@ -5,3 +5,8 @@ import os
+ def get_api_key():
+     """Return the rewards API key from the environment, or None when it is not set."""
+     return os.environ.get("REWARDS_API_KEY")
++
++
++def get_redeem_key():
++    """Return the redeem API key from the environment, or None when it is not set."""
++    return os.environ.get("REDEEM_API_KEY")
+diff --git a/src/rewards/points.py b/src/rewards/points.py
+--- a/src/rewards/points.py
++++ b/src/rewards/points.py
+@@ -2,6 +2,7 @@
+ 
+ CENTS_PER_POINT = 100  # 1 point per whole currency unit spent
+ MEMBER_PERCENT = 150  # members earn 150 percent of the base points
++POINTS_PER_DRINK = 100  # whole points a free drink costs
+ 
+ 
+ def earn_points(amount_cents: int, is_member: bool) -> int:
+@@ -12,3 +13,10 @@ def earn_points(amount_cents: int, is_member: bool) -> int:
+     if is_member:
+         return base * MEMBER_PERCENT // 100
+     return base
++
++
++def redeem_cost(drinks: int) -> int:
++    """Return the whole points needed for a number of drinks."""
++    if drinks < 1:
++        raise ValueError("drinks must be at least 1")
++    return drinks * POINTS_PER_DRINK
+diff --git a/tests/test_redeem.py b/tests/test_redeem.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_redeem.py
+@@ -0,0 +1,45 @@
++import os
++import sys
++import unittest
++
++sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
++
++from rewards import ledger
++from rewards.api import quick_redeem
++from rewards.config import get_redeem_key
++from rewards.points import redeem_cost
++
++
++class RedeemTests(unittest.TestCase):
++    def setUp(self):
++        ledger.reset()
++
++    def test_cost_is_whole_points(self):
++        self.assertEqual(redeem_cost(2), 200)
++        with self.assertRaises(ValueError):
++            redeem_cost(0)
++
++    def test_redeem_spends_points(self):
++        ledger.add("c1", 250)
++        result = quick_redeem({"customer_id": "c1", "drinks": 2})
++        self.assertEqual(result, {"ok": True, "customer_id": "c1", "points_spent": 200, "balance": 50})
++
++    def test_not_enough_points(self):
++        ledger.add("c2", 50)
++        self.assertFalse(quick_redeem({"customer_id": "c2", "drinks": 1})["ok"])
++        self.assertEqual(ledger.balance("c2"), 50)
++
++    def test_bad_request(self):
++        self.assertFalse(quick_redeem({"customer_id": "c1", "drinks": 1.5})["ok"])
++        self.assertFalse(quick_redeem({"drinks": 1})["ok"])
++
++    def test_key_comes_from_environment(self):
++        os.environ["REDEEM_API_KEY"] = "from-the-environment"
++        try:
++            self.assertEqual(get_redeem_key(), "from-the-environment")
++        finally:
++            del os.environ["REDEEM_API_KEY"]
++
++
++if __name__ == "__main__":
++    unittest.main()

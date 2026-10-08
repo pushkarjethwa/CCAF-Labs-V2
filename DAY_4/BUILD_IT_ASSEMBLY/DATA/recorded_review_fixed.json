@@ -1,0 +1,23 @@
+{
+  "recorded_sample": true,
+  "note": "RECORDED SAMPLE written by the course authors in the shape of a headless claude -p envelope. It is not a live model result.",
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "result": "",
+  "structured_output": {
+    "summary": "Quick redeem uses whole points, reads its key from the environment, logs the customer id only, and ships with tests for the cost, the balance check and bad requests.",
+    "findings": [
+      {
+        "id": "F1",
+        "severity": "NITPICK",
+        "category": "style",
+        "file": "src/rewards/api.py",
+        "line": 28,
+        "title": "Balance check could share a helper",
+        "evidence": "The not-enough-points check may be reused by later features.",
+        "fix": "Consider a small helper in ledger.py when a second caller appears."
+      }
+    ]
+  }
+}
