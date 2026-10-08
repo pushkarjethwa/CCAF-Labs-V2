@@ -1,0 +1,11 @@
+{
+  "shop": "Brew & Bean",
+  "points_per_dollar": 2,
+  "max_redeem_per_visit": 100,
+  "rewards": {"coffee": 50, "pastry": 80, "lunch combo": 100},
+  "hours": {
+    "Monday to Friday": "7am to 6pm",
+    "Saturday": "8am to 4pm",
+    "Sunday": "9am to 1pm"
+  }
+}

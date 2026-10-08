@@ -13,6 +13,7 @@ New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) fi
 | `DAY_2/LABS` | Two MCP demos you can run before the labs, and Labs 2.1 to 2.6 |
 | `DAY_3/LABS` | Labs 3.1 to 3.7 |
 | `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first), and Labs 4.1 to 4.4, done in Claude Code |
+| `DAY_5/LABS` | The optional intro demo `DEMO_5_0_intro_to_memory_safeguards_evals` (run it before Lab 5.1 if you are new to these ideas), and Labs 5.1 to 5.3, each one follows a Day 5 morning demo |
 | `DAY_4/BUILD_IT_ASSEMBLY` | Optional ready-to-run Day 4 project: rules, skill, hook, MCP and a GitHub review gate |
 | `STUDY_GUIDE/` | Reading: MCP best practices and MCP security architecture |
 | `LAB_Test/` | The runner that tests every lab and packs the results to submit |
@@ -29,6 +30,8 @@ Most labs are a replay of what the trainer showed, so the demo and the lab match
 | Day 3, Demos 3A to 3G | [Labs 3.1 to 3.7](DAY_3/LABS/README.md) | `python lab.py`, then `python check.py` |
 | Day 4, Intro to Claude Code (demo 4.0, no lab) | [DEMO_4_0_intro_to_claude](DAY_4/LABS/DEMO_4_0_intro_to_claude/README.md) | `python check_offline.py`, then Claude Code in `workspace\bookshop` |
 | Day 4, Demos 4A to 4D | [Labs 4.1 to 4.4](DAY_4/LABS/README.md) | Claude Code in the lab's `STARTER` folder |
+| Day 5, Intro to memory, safeguards and evals (demo 5.0, no lab, optional) | [DEMO_5_0_intro_to_memory_safeguards_evals](DAY_5/LABS/DEMO_5_0_intro_to_memory_safeguards_evals/README.md) | `python check_offline.py`, then `python intro_5_0.py --part 1` ... `5` |
+| Day 5, Demos 5A to 5C | [Labs 5.1 to 5.3](DAY_5/LABS/README.md) | `python lab.py`, then `python check.py` |
 
 The Day 4 intro demo `DEMO_4_0_intro_to_claude` is in `DAY_4/LABS`. Run it before Lab 4.1. The Day 2 MCP demos `DEMO_2_0_intro_to_mcp` and `DEMO_2_0_mcp_separate_server_and_client` are in `DAY_2/LABS`. Run them before Lab 2.4. The Day 3 and Day 4 demos are the trainer's, in `TRAINER_V2/DAY_3/DEMOS` and `TRAINER_V2/DAY_4/DEMOS`. If your trainer shares those folders you can re-run any of them: see [Day 3 demos](#day-3-demos-what-the-trainer-shows) and [Day 4](#day-4-claude-code-configuration-and-workflows-d3) below.
 
@@ -158,11 +161,20 @@ Each Day 4 lab repeats its demo's method on a new repo (`shipcalc`, a shipping-p
 
 ### Day 5: Context management and reliability (D5)
 
-| Lab | What it is about | Time |
-|---|---|---|
-| [5.4 Context management (new)](NEW_LABS/LAB_5_4_context_management) | Shrink old turns in a long run without losing the facts you need later | 40 min |
+New to memory, safeguards and evals? Run the optional intro demo first: [DEMO_5_0_intro_to_memory_safeguards_evals](DAY_5/LABS/DEMO_5_0_intro_to_memory_safeguards_evals/README.md). It is a 40-minute tour of a coffee-shop loyalty assistant, with one script (`python intro_5_0.py --part 1` ... `5`). It has no lab, and you can run it before Lab 5.1.
 
-The other Day 5 labs are not rebuilt in this self-contained format yet. Until then, use the original labs in the course folder's `STUDENT/DAY_5`.
+Three labs, built like the Day 3 labs. In each one you write four small pieces of `lab.py` (15 to 23 lines in all), and the lab guide gives you every line. A real Claude model runs inside each lab. Each lab follows a morning demo, and the demos are the trainer's, in `TRAINER_V2/DAY_5/DEMOS`.
+
+| Lab | Follows | What it is about | Time |
+|---|---|---|---|
+| [5.1 Memory layer for a hotel agent](DAY_5/LABS/LAB_5_1_support_memory/README.md) | Demo 5A, Memory that survives | Save facts after each session, load only what a request needs, compact the history with the hard rule pinned, and check that it survived. Run `python lab.py history`, `save`, `load`, `compact` | 40 min |
+| [5.2 Guardrails for a refund agent](DAY_5/LABS/LAB_5_2_refund_guardrails/README.md) | Demo 5B, Safeguards around an agent | A fallback lookup, quoted customer text, an approval limit in code and a human queue. Run `python lab.py` | 30 min |
+| [5.3 Grade, trace and gate an invoice checker](DAY_5/LABS/LAB_5_3_invoice_evals/README.md) | Demo 5C, Evals and provenance | A grader, a source check, a release gate and a review queue. Run `python lab.py --stage 1` ... `4` | 45 min |
+| [5.4 Context management (new, optional)](NEW_LABS/LAB_5_4_context_management) | Extra, continues 5.1 | Shrink old turns in a long run without losing the facts you need later | 40 min |
+
+To start a Day 5 lab: open its folder, run `pip install -r requirements.txt`, set `ANTHROPIC_API_KEY` (or put it in a `.env` file in the lab folder), run `python claude_client.py` to test the key, then follow the lab's `README.md` and run `python check.py` as you go. The index with the full setup is [DAY_5/LABS/README.md](DAY_5/LABS/README.md).
+
+The Day 5 capstone pack is planned separately and is not part of these labs.
 
 ## Study guide
 

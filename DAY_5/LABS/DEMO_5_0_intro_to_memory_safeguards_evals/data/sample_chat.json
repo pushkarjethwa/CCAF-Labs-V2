@@ -1,0 +1,14 @@
+[
+  {"role": "user", "content": "Hi, I'm Maya. I'm new to the loyalty card. How do I earn points?"},
+  {"role": "assistant", "content": "Hi Maya. You earn 2 points for every $1 you spend. Show your card at the till and the points are added."},
+  {"role": "user", "content": "Nice. What can I get with the points?"},
+  {"role": "assistant", "content": "A coffee costs 50 points, a pastry costs 80 points and a lunch combo costs 100 points."},
+  {"role": "user", "content": "I spent $12 yesterday. How many points is that?"},
+  {"role": "assistant", "content": "$12 at 2 points per dollar is 24 points, so you are on your way to a free coffee."},
+  {"role": "user", "content": "Do the points expire?"},
+  {"role": "assistant", "content": "Your points stay on the card while you keep using it. The shop staff can tell you more at the till."},
+  {"role": "user", "content": "OK. What time do you open on Saturday?"},
+  {"role": "assistant", "content": "On Saturday we are open from 8am to 4pm."},
+  {"role": "user", "content": "And on Sunday?"},
+  {"role": "assistant", "content": "On Sunday we are open from 9am to 1pm."}
+]

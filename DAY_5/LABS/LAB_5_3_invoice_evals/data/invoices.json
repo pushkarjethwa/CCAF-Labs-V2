@@ -1,0 +1,194 @@
+[
+  {
+    "id": "I01",
+    "supplier": "Harbor Office Supply",
+    "title": "Office chairs",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Office chairs, 20 units at USD 420 each: USD 8,400."
+      },
+      {
+        "id": "PO",
+        "text": "Approved up to USD 8,400 for 20 units."
+      },
+      {
+        "id": "GR",
+        "text": "20 units received."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I02",
+    "supplier": "Pinewood Stationers",
+    "title": "Office supplies",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Printer paper, 50 boxes at USD 45 each: USD 2,250."
+      },
+      {
+        "id": "L2",
+        "text": "Toner cartridges, 10 units at USD 300 each: USD 3,000."
+      },
+      {
+        "id": "PO",
+        "text": "Approved up to USD 5,250 for the office supplies order."
+      },
+      {
+        "id": "GR",
+        "text": "All items received."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I03",
+    "supplier": "Brightway Computers",
+    "title": "Laptop stands",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Laptop stands, 30 units at USD 320 each: USD 9,600."
+      },
+      {
+        "id": "PO",
+        "text": "Approved for 30 units at USD 320 each, up to USD 9,600."
+      },
+      {
+        "id": "GR",
+        "text": "24 units received. 6 units are on back order."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I04",
+    "supplier": "Greenfield Catering",
+    "title": "Annual meeting catering",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Catering for the annual meeting: USD 12,000."
+      },
+      {
+        "id": "L2",
+        "text": "Late delivery and setup fee: USD 1,320."
+      },
+      {
+        "id": "PO",
+        "text": "Approved up to USD 12,000. Extra fees need a new approval."
+      },
+      {
+        "id": "GR",
+        "text": "Service delivered on the day."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I05",
+    "supplier": "Alder and Finch Advisory",
+    "title": "Consulting days",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Consulting, 3 days at USD 2,600 per day: USD 7,800."
+      },
+      {
+        "id": "PO",
+        "text": "No purchase order exists for this invoice."
+      },
+      {
+        "id": "GR",
+        "text": "The requester reports that the work was done."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I06",
+    "supplier": "Clearview Pest Control",
+    "title": "Monthly pest control",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Monthly pest control service for March: USD 3,150."
+      },
+      {
+        "id": "PO",
+        "text": "Approved: USD 3,150 per month."
+      },
+      {
+        "id": "GR",
+        "text": "The service visit for March is confirmed."
+      },
+      {
+        "id": "AP",
+        "text": "Invoice INV-5531 for the same March service was already paid on 2 April."
+      }
+    ]
+  },
+  {
+    "id": "I07",
+    "supplier": "Summit Packaging Systems",
+    "title": "Packaging machines",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Packaging machines, 4 units at USD 46,000 each: USD 184,000."
+      },
+      {
+        "id": "PO",
+        "text": "Approved up to USD 184,000 for 4 units."
+      },
+      {
+        "id": "GR",
+        "text": "4 units received and installed."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  },
+  {
+    "id": "I08",
+    "supplier": "Northlake Software",
+    "title": "Annual software licence",
+    "lines": [
+      {
+        "id": "L1",
+        "text": "Annual software licence, billed in advance for 12 months: USD 27,600."
+      },
+      {
+        "id": "PO",
+        "text": "Approved for monthly billing of USD 2,300. Billing a year in advance is not approved."
+      },
+      {
+        "id": "GR",
+        "text": "The licence key was delivered and works."
+      },
+      {
+        "id": "AP",
+        "text": "No earlier payment was found for this invoice number."
+      }
+    ]
+  }
+]

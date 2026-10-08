@@ -1,0 +1,17 @@
+{
+  "_note": "AUTHOR-WRITTEN replies, used only by check_offline.py to test the grader and the gate. They are not measured model output and must never be shown as results.",
+  "v1": {
+    "E1": "A free coffee costs 50 points.",
+    "E2": "We close in the late afternoon on Saturday.",
+    "E3": "That depends on the shop, so please ask at the till.",
+    "E4": "You earn 8 points on a $4 coffee.",
+    "E5": "The pastry is the reward at that price."
+  },
+  "v2": {
+    "E1": "A free coffee costs 50 points.",
+    "E2": "On Saturday we close at 4pm.",
+    "E3": "No. You can redeem at most 100 points in one visit.",
+    "E4": "You earn 8 points: 2 points for every $1.",
+    "E5": "The pastry costs 80 points."
+  }
+}

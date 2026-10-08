@@ -1,0 +1,7 @@
+[
+  {"id": "E1", "question": "How many points do I need for a free coffee?", "expect": "50"},
+  {"id": "E2", "question": "What time do you close on Saturday?", "expect": "4pm"},
+  {"id": "E3", "question": "Can I redeem 120 points in one visit?", "expect": "100"},
+  {"id": "E4", "question": "How many points do I earn on a $4 coffee?", "expect": "8"},
+  {"id": "E5", "question": "Which reward costs 80 points?", "expect": "pastry"}
+]

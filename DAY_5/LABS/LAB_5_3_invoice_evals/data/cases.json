@@ -1,0 +1,90 @@
+[
+  {
+    "id": "I01",
+    "expected_decision": "pay",
+    "required_items": [
+      "L1",
+      "GR"
+    ],
+    "expected_total": 8400,
+    "expected_escalate": false,
+    "note": "Everything matches"
+  },
+  {
+    "id": "I02",
+    "expected_decision": "pay",
+    "required_items": [
+      "L1",
+      "L2"
+    ],
+    "expected_total": 5250,
+    "expected_escalate": false,
+    "note": "Two item lines, all matched"
+  },
+  {
+    "id": "I03",
+    "expected_decision": "hold",
+    "required_items": [
+      "L1",
+      "GR"
+    ],
+    "expected_total": 9600,
+    "expected_escalate": false,
+    "note": "Only 24 of 30 units received"
+  },
+  {
+    "id": "I04",
+    "expected_decision": "hold",
+    "required_items": [
+      "L2",
+      "PO"
+    ],
+    "expected_total": 13320,
+    "expected_escalate": false,
+    "note": "A fee the purchase order does not cover"
+  },
+  {
+    "id": "I05",
+    "expected_decision": "reject",
+    "required_items": [
+      "L1",
+      "PO"
+    ],
+    "expected_total": 7800,
+    "expected_escalate": false,
+    "note": "No purchase order"
+  },
+  {
+    "id": "I06",
+    "expected_decision": "reject",
+    "required_items": [
+      "L1",
+      "AP"
+    ],
+    "expected_total": 3150,
+    "expected_escalate": false,
+    "note": "Already paid"
+  },
+  {
+    "id": "I07",
+    "expected_decision": "escalate",
+    "required_items": [
+      "L1",
+      "PO"
+    ],
+    "expected_total": 184000,
+    "expected_escalate": true,
+    "note": "Total of USD 100,000 or more"
+  },
+  {
+    "id": "I08",
+    "expected_decision": "escalate",
+    "required_items": [
+      "L1",
+      "PO"
+    ],
+    "expected_total": 27600,
+    "expected_escalate": true,
+    "note": "The invoice and the purchase order contradict each other"
+  }
+]

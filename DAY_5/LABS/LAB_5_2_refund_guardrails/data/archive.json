@@ -1,0 +1,5 @@
+[
+  {"order_id": "O-2874", "customer_id": "C-4010", "customer_age_days": 640, "item": "Steel kettle", "total": 45.00, "status": "delivered", "archived_on": "2026-08-30"},
+  {"order_id": "O-2880", "customer_id": "C-4011", "customer_age_days": 702, "item": "Bath towel set", "total": 52.00, "status": "delivered", "archived_on": "2026-08-30"},
+  {"order_id": "O-3002", "customer_id": "C-4002", "customer_age_days": 515, "item": "Reading lamp", "total": 85.00, "status": "delivered", "archived_on": "2026-08-30"}
+]

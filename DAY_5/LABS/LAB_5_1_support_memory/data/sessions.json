@@ -1,0 +1,40 @@
+{
+  "customer": {"company": "Northfield Consulting", "user": "Dana", "tenant": "northfield", "user_id": "u-dana"},
+  "sessions": [
+    {"id": 1, "date": "2026-06-03", "topic": "First booking", "turns": [
+      ["Dana", "Hi, I'm Dana from Northfield Consulting. I want to book three nights at Harbor Lane Lisbon from 9 June."],
+      ["Agent", "Welcome, Dana. I can book that. Which room type would you like?"],
+      ["Dana", "A double room, please. And one rule: never send me marketing email. Booking confirmations and receipts are fine, but no offers and no newsletters."],
+      ["Agent", "Understood. I will send booking confirmations and receipts only, and no marketing email."],
+      ["Dana", "Thank you. Please also note that I am a Silver member, number HL-55820."],
+      ["Agent", "Noted: Silver member HL-55820. Your Lisbon booking is confirmed."],
+      ["Dana", "Great, that is all for today."]
+    ]},
+    {"id": 2, "date": "2026-06-24", "topic": "Receipt question", "turns": [
+      ["Dana", "The receipt for Lisbon shows my personal card ending 4417. Our company pays with the card ending 9082."],
+      ["Agent", "I can change the payment card on the booking to the one ending 9082."],
+      ["Dana", "Yes, please. And send receipts to accounts@northfield.example, not to me."],
+      ["Agent", "Done. Receipts go to accounts@northfield.example, charged to the card ending 9082."],
+      ["Dana", "Perfect, thanks."]
+    ]},
+    {"id": 3, "date": "2026-07-15", "topic": "Room needs", "turns": [
+      ["Dana", "For my next stay, I need a quiet room on a high floor."],
+      ["Agent", "I will add a quiet, high-floor request to your profile."],
+      ["Dana", "I am allergic to feather pillows, so please always give me synthetic bedding."],
+      ["Agent", "Noted: synthetic bedding only."],
+      ["Dana", "Also, my flights usually land late, so I check in after 22:00."],
+      ["Agent", "Noted: late check-in after 22:00. Our front desk stays open all night."]
+    ]},
+    {"id": 4, "date": "2026-08-11", "topic": "Team booking", "turns": [
+      ["Dana", "I need two rooms at Harbor Lane Porto for my team, from 12 to 14 October."],
+      ["Agent", "I can offer two double rooms. Would you like the flexible rate or the saver rate?"],
+      ["Dana", "Flexible only. We always book rates with free cancellation up to 48 hours before arrival."],
+      ["Agent", "Booked: two rooms in Porto, 12 to 14 October, flexible rate, free cancellation up to 48 hours before."],
+      ["Dana", "Thanks. Please add breakfast for both rooms."],
+      ["Agent", "Breakfast is added for both rooms."]
+    ]},
+    {"id": 5, "date": "2026-09-18", "topic": "Extend the stay", "turns": [
+      ["Dana", "I need two more nights in Porto, until 16 October. Also, please email me your autumn offers so I can compare prices."]
+    ]}
+  ]
+}

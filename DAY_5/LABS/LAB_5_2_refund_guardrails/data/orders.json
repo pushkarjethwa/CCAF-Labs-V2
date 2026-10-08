@@ -1,0 +1,6 @@
+[
+  {"order_id": "O-3001", "customer_id": "C-4001", "customer_age_days": 420, "item": "Ceramic mug set", "total": 38.00, "status": "delivered"},
+  {"order_id": "O-3003", "customer_id": "C-4003", "customer_age_days": 310, "item": "Linen cushion covers", "total": 60.00, "status": "delivered"},
+  {"order_id": "O-3004", "customer_id": "C-4004", "customer_age_days": 150, "item": "Standing desk", "total": 1200.00, "status": "shipped"},
+  {"order_id": "O-3005", "customer_id": "C-4005", "customer_age_days": 6, "item": "Wireless headphones", "total": 120.00, "status": "delivered"}
+]
