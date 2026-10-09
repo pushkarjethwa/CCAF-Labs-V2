@@ -6,6 +6,21 @@ An AI agent forgets everything between calls, so you must decide what it remembe
 An agent can also fail or be fooled, so the rules that matter must live in code.
 And you cannot say a prompt is better until a fixed set of tests says so.
 
+## The day in plain English
+
+**The big picture:** An agent is like a shop assistant with a very short memory who also works unsupervised. You must decide what it remembers, protect it from mistakes and tricks, and prove with tests that any change you make is an improvement.
+
+- **Conversation.** The model remembers nothing, so you resend the chat each time. Like re-reading the whole notebook before every reply.
+- **Context window.** The model can only read so much at once. Past that, old turns must be trimmed or summarised, and facts can be lost. Like a desk that holds only so many papers.
+- **Memory.** Facts that must last, such as a customer's name or allergy, go in a file or database outside the window and are loaded when needed. Like a filing cabinet next to the desk.
+- **Guardrails.** Rules that must hold are written in code, not only in the prompt. A prompt asks, and code decides. Like a till that will not give a refund over a limit, whatever the clerk says.
+- **Least privilege and approval.** An agent gets only the tools its role needs, and risky actions wait for a person. Like a junior who can take orders but needs a manager to approve a big discount.
+- **Errors, retries and fallbacks.** When something breaks, retry what is safe to retry, use a backup source, say clearly that you did, and pass the case to a person if needed. Like using the paper menu when the screen is down, and telling the customer.
+- **Evals.** A fixed set of test cases with expected answers, graded by code. You run them before and after a change. Like a class test used to compare two teaching methods.
+- **Provenance and a release gate.** Record where each answer came from, and block a release when scores drop. Like footnotes in a report and a quality check before shipping.
+
+Remember this: memory is something you build, safety is something you enforce, and "better" is something you measure.
+
 ## Your day at a glance
 
 Brew & Bean is the small coffee shop used in the demos. Your trainer runs the demos while you watch. You do the labs yourself.

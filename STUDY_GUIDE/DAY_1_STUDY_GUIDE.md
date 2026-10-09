@@ -6,6 +6,19 @@ You learn how one call to Claude works, and how to choose a model by measuring.
 You learn to write prompts that hold up, and to check the data that comes back.
 You learn three ways to cut cost when you make many calls: count, cache and batch.
 
+## The day in plain English
+
+**The big picture:** Think of Claude as a very smart temp worker who walks into your office each morning with no memory of yesterday. You give clear written instructions, you check the work before it goes out, and you watch the bill.
+
+- **A call to Claude.** You send a message and get one reply. Claude keeps nothing, so each call must carry everything it needs. Like handing the temp the whole case folder every time.
+- **Choosing a model.** Models come in sizes, from fast and cheap to slow and strong. You test them on your own examples and take the cheapest one that is good enough. Like hiring a junior for routine work and saving the specialist for hard cases.
+- **A prompt.** The written instructions. A clear prompt says the role, the task, the rules and what the answer should look like. Like a good job ticket: vague tickets get vague work.
+- **Structured output.** Asking for the answer in a fixed shape, such as JSON, so your code can read it. Like a form with boxes instead of a free-text letter.
+- **Validation.** The shape can be right and the facts wrong. Your code checks the numbers and checks that quoted values really appear in the source. Like a clerk who re-adds the invoice total.
+- **Cost.** You pay for tokens, which are small pieces of text. You count them, cache the part that repeats, and batch work that can wait. Like buying in bulk, keeping the common parts on a shelf, and posting parcels instead of using a courier.
+
+Remember this: Claude is capable but forgetful and sometimes wrong in a confident way. Good instructions, checks and cost habits make it dependable.
+
 ## Your day at a glance
 
 You watch each demo run, then you do the matching lab yourself.

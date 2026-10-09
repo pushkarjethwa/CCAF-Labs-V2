@@ -10,6 +10,21 @@ The bookshop story from Demo 4.0 helps all day. A shop owner hires a new assista
 The handbook is CLAUDE.md. The sticky note is a slash command. The binder is a skill.
 The back-room colleague is a subagent. The door chime is a hook. The phone line is MCP.
 
+## The day in plain English
+
+**The big picture:** Claude Code is an AI helper that lives in your terminal and works on your project files. Think of hiring a new assistant for a shop. You show them around first, give them a handbook, teach them routines, introduce them to colleagues, and install a check at the door so mistakes are caught.
+
+- **Explore, then plan.** Ask Claude to look before it changes anything. Plan Mode lets it propose a plan that you approve first. Like a builder who walks the site and shows you drawings before knocking a wall.
+- **CLAUDE.md.** A file of standing rules that Claude reads at the start of every session. Like the staff handbook. Put project rules in it, and path rules in smaller rule files so they load only where they apply.
+- **Slash command.** A saved prompt you run by name. Like a sticky note with a routine on it.
+- **Skill.** A folder of instructions Claude loads when the task matches. Like a binder on the shelf that the assistant takes down when needed.
+- **Subagent.** A helper with its own context and its own limited tools, such as a read-only reviewer. Like a colleague in the back room who reports back with a summary.
+- **Hook.** A script that runs automatically at a set moment, such as before or after an edit. Like a door chime or a lock: it fires every time, whether or not Claude remembers the rule.
+- **MCP in Claude Code.** Connects Claude to outside tools and data, such as a ticket system. Like giving the assistant a phone line.
+- **CI review gate.** Claude reviews each pull request in your build pipeline, and a script decides pass or fail from its findings. Like a security guard who checks every delivery and follows a written rule.
+
+Remember this: put each need in the right place. A wish goes in CLAUDE.md. A rule that must never break goes in a hook or the CI gate.
+
 ## Your day at a glance
 
 You watch the demos run. You do the labs yourself. Each lab repeats the demo on a new repo, `shipcalc`.

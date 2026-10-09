@@ -5,6 +5,20 @@ Claude cannot run your code. It asks for a tool call, and your program does the 
 Today you learn to design good tools, run the loop safely, handle failures, and share tools through MCP.
 Use this page as a quick recap. The full guides (linked at the end) hold the detail.
 
+## The day in plain English
+
+**The big picture:** Claude is a manager who can only talk. It cannot press a button. It tells your program, "please look up this order", your program does it, and tells Claude the result. The day is about giving this manager good tools and safe habits.
+
+- **A tool.** A named action your code can do, such as `get_order`. You describe it to Claude with a name, a plain description and the inputs it takes. Like a labelled button on a control panel.
+- **The tool-use loop.** Claude asks for a tool, your code runs it, you send the result back, and Claude continues until it has the answer. Like a waiter who takes the order to the kitchen and returns with the dish.
+- **Good tool design.** Few, clearly named tools with clear descriptions. Claude picks tools by reading those descriptions. Like a drawer of well-labelled tools, not a heap.
+- **Errors and retries.** A tool will sometimes fail. Return a clear error type, retry only when a retry can help, and hand over to a person when it cannot. Like a shop assistant who tries again if the till is busy, but calls the manager if the card is stolen.
+- **Parallel calls and order.** Reads that do not depend on each other can run together. Writes that depend on each other must run in order. Like checking two shelves at once, but paying before packing.
+- **MCP.** A common plug standard so any app can offer tools to any Claude client. Like a USB port: build the tool once, and it plugs in anywhere.
+- **MCP security.** A plug can also carry risk. Give each server only the access it needs, check who is calling, and keep secrets out of logs. Like giving a visitor a badge for one floor, not the master key.
+
+Remember this: Claude decides, your code acts, and your code is where safety is enforced.
+
 ## Your day at a glance
 You watch the demos run. You do the labs yourself.
 

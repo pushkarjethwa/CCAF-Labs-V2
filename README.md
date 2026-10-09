@@ -8,15 +8,17 @@ New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) fi
 
 | Folder | What is in it |
 |---|---|
-| `NEW_LABS/` | Warm-up and extra labs: 0.1, 1.5, 2.0 and 5.4, and the optional Day 5 demos 5F, 5G and 5H |
+| `NEW_LABS/` | Warm-up and extra labs: 0.1, 1.5, 2.0 and 5.4, and the optional Day 5 demos 5F (workflow agent), 5G (autonomous agent) and 5H (multi-agent team) |
 | `DAY_1/LABS` | Labs 1A to 1D, each one replays a trainer demo |
 | `DAY_2/LABS` | Two MCP demos you can run before the labs, and Labs 2.1 to 2.6 |
 | `DAY_3/LABS` | Labs 3.1 to 3.7 |
-| `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first), and Labs 4.1 to 4.4, done in Claude Code |
+| `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first; you type a slash command, a skill, a subagent and a hook yourself), and Labs 4.1 to 4.4, done in Claude Code |
 | `DAY_5/LABS` | The optional intro demo `DEMO_5_0_intro_to_memory_safeguards_evals` (run it before Lab 5.1 if you are new to these ideas), the optional demo `DEMO_5D_guardrails_across_the_agent_stack` (no lab yet, with a reference card), the optional demo `DEMO_5E_pip_with_the_agent_sdk` (no matching lab), and Labs 5.1 to 5.3 (the optional demos 5F, 5G and 5H are in `NEW_LABS`), each one follows a Day 5 morning demo |
 | `DAY_4/BUILD_IT_ASSEMBLY` | Optional ready-to-run Day 4 project: rules, skill, hook, MCP and a GitHub review gate |
-| `STUDY_GUIDE/` | Reading: MCP best practices and MCP security architecture |
-| `LAB_Test/` | The runner that tests every lab and packs the results to submit |
+| `STUDY_GUIDE/` | Reading to share with the class: five short day-by-day quick guides (one per day), plus MCP best practices and MCP security architecture |
+| `STUDY_GUIDES/` | Longer reading for each day (Day 1 to Day 5), with an exam map. Open it when a quick guide leaves you wanting more |
+| `ClaudeFoundation/` | Optional warm-up notebooks on the Messages API, tools and agent loops |
+| `LAB_Test/` | The runner that tests the labs (Days 0 to 4 and Lab 5.4) and packs the results to submit |
 
 Most labs are a replay of what the trainer showed, so the demo and the lab match closely:
 
@@ -36,7 +38,7 @@ Most labs are a replay of what the trainer showed, so the demo and the lab match
 | Day 5, An autonomous agent with working memory and guardrails (demo 5G, no matching lab) | [DEMO_5G_stock_detective_agent](NEW_LABS/DEMO_5G_stock_detective_agent/README.md) | `python check_offline.py`, then `python stock_detective.py` |
 | Day 5, A multi-agent team with isolated context and a shared ledger (demo 5H, no matching lab) | [DEMO_5H_catering_team_multi_agent](NEW_LABS/DEMO_5H_catering_team_multi_agent/README.md) | `python check_offline.py`, then `python catering_team.py` |
 | Day 5, Guardrails across the agent stack (demo 5D, no lab yet) | [DEMO_5D_guardrails_across_the_agent_stack](DAY_5/LABS/DEMO_5D_guardrails_across_the_agent_stack/README.md) | `python check_offline.py`, then `python guardrails_stack.py --stage 1` ... `5`. Reference card: `GUARDRAILS_BY_LAYER.md` |
-| Day 5, Demos 5A to 5C | [Labs 5.1 to 5.3](DAY_5/LABS/README.md) | `python lab.py`, then `python check.py` |
+| Day 5, Demos 5A to 5C (trainer's morning demos) | [Labs 5.1 to 5.3](DAY_5/LABS/README.md) | `python lab.py`, then `python check.py` |
 
 The Day 4 intro demo `DEMO_4_0_intro_to_claude` is in `DAY_4/LABS`. Run it before Lab 4.1. The Day 2 MCP demos `DEMO_2_0_intro_to_mcp` and `DEMO_2_0_mcp_separate_server_and_client` are in `DAY_2/LABS`. Run them before Lab 2.4. The Day 3 and Day 4 demos are the trainer's, in `TRAINER_V2/DAY_3/DEMOS` and `TRAINER_V2/DAY_4/DEMOS`. If your trainer shares those folders you can re-run any of them: see [Day 3 demos](#day-3-demos-what-the-trainer-shows) and [Day 4](#day-4-claude-code-configuration-and-workflows-d3) below.
 
@@ -147,11 +149,13 @@ The Day 4 intro demo (4.0) and the four Day 4 trainer demos (4A to 4D) are rebui
 
 | Demo | The idea in one line | Pairs with |
 |---|---|---|
-| 4.0 Intro to Claude Code | A 43-minute tour of Claude Code's building blocks on a tiny bookshop app. Run it first | none, run before Lab 4.1 |
+| 4.0 Intro to Claude Code | A 43-minute tour (about 30 minutes for the core path) on a tiny bookshop app. You type a slash command, a skill, a subagent and a hook yourself and see each one work. Run it first | none, run before Lab 4.1 |
 | 4A Repository exploration and Plan Mode | Explore a repo, then plan a cross-file change before editing | Lab 4.1 |
 | 4B CLAUDE.md and rules | Layer CLAUDE.md files and path-scoped rules so Claude follows the right guidance | Lab 4.2 |
 | 4C Skill, hook and subagent | One reusable review capability built from a skill, a hook and a subagent | Lab 4.3 |
 | 4D CI review gate | Claude Code reviews a pull request in CI and a gate script decides pass or fail | Lab 4.4 |
+
+To check that Claude Code found your subagent, type `@` and a few letters of its name (for example `@rev`) and see whether it appears in the list. In newer versions there is no `/agents` command.
 
 Each Day 4 lab repeats its demo's method on a new repo (`shipcalc`, a shipping-price calculator). Open the lab folder's `README.md` and follow it. Each lab has a `STARTER/` folder to work in, a `check.py` that needs no key, and a `SOLUTION/` folder. You need the Claude Code command-line tool (`claude --version`) and a login or API key.
 
@@ -174,6 +178,8 @@ Want to see what the Claude Agent SDK handles for memory and context? Run the op
 
 Want to see three more shapes of agent? After 5E, three optional demos build the same coffee-shop ideas in different ways, and each runs in about 30 minutes. [DEMO_5F_catering_workflow_agent](NEW_LABS/DEMO_5F_catering_workflow_agent/README.md) is a workflow: a catering order moves through five fixed steps, with a small state passed along and a checkpoint saved after each step (`python catering_workflow.py --request R-1`). [DEMO_5G_stock_detective_agent](NEW_LABS/DEMO_5G_stock_detective_agent/README.md) is an autonomous agent that chooses its own steps, reads bounded views of a long log and keeps working notes (`python stock_detective.py`). [DEMO_5H_catering_team_multi_agent](NEW_LABS/DEMO_5H_catering_team_multi_agent/README.md) is a team of subagents with separate context and a shared ledger (`python catering_team.py`). They need the Agent SDK and a key, and there is no matching lab. Run `python check_offline.py` first in each folder.
 
+Lab order: demo 5.0 (optional), Labs 5.1 to 5.3, then the optional demos and Lab 5.4. If you want the demos in one sequence, use 5.0, 5D, 5E, 5F, 5G, 5H.
+
 Three labs, built like the Day 3 labs. In each one you write four small pieces of `lab.py` (15 to 23 lines in all), and the lab guide gives you every line. A real Claude model runs inside each lab. Each lab follows a morning demo, and the demos are the trainer's, in `TRAINER_V2/DAY_5/DEMOS`.
 
 | Lab | Follows | What it is about | Time |
@@ -185,18 +191,24 @@ Three labs, built like the Day 3 labs. In each one you write four small pieces o
 
 To start a Day 5 lab: open its folder, run `pip install -r requirements.txt`, set `ANTHROPIC_API_KEY` (or put it in a `.env` file in the lab folder), run `python claude_client.py` to test the key, then follow the lab's `README.md` and run `python check.py` as you go. The index with the full setup is [DAY_5/LABS/README.md](DAY_5/LABS/README.md).
 
-The Day 5 capstone pack is planned separately and is not part of these labs.
+The Day 5 capstone project (a small build of about 45 to 50 minutes) is shared separately by your trainer and is not part of these labs.
 
 ## Study guide
 
-Reading material that goes with the labs is in [STUDY_GUIDE](STUDY_GUIDE/README.md):
+Start with the five quick guides in [STUDY_GUIDE](STUDY_GUIDE/README.md). Each one is one day on a few pages. Every topic has the same four parts: in one line, an analogy, a tiny example and a recap. Each guide also ends with a day-at-a-glance, common mix-ups and a short self-check. Read a guide before the day, and again before the exam.
 
 | Guide | What it covers |
 |---|---|
+| [Day 1 quick guide](STUDY_GUIDE/DAY_1_STUDY_GUIDE.md) | Prompts, structured output, models and cost |
+| [Day 2 quick guide](STUDY_GUIDE/DAY_2_STUDY_GUIDE.md) | Tool use, the tool loop and MCP |
+| [Day 3 quick guide](STUDY_GUIDE/DAY_3_STUDY_GUIDE.md) | Agents, workflows, hand-offs, guards and the Agent SDK |
+| [Day 4 quick guide](STUDY_GUIDE/DAY_4_STUDY_GUIDE.md) | Claude Code: plan mode, CLAUDE.md, skills, hooks, subagents and CI |
+| [Day 5 quick guide](STUDY_GUIDE/DAY_5_STUDY_GUIDE.md) | Memory, context, guardrails, reliability and evals |
 | [MCP Best Practices](STUDY_GUIDE/MCP_BEST_PRACTICES.md) | Designing tools, results and servers that Claude uses well, transports, context cost, and choosing the Claude model and loop |
 | [MCP Security Architecture](STUDY_GUIDE/MCP_SECURITY_ARCHITECTURE.md) | Threats, a layered design, OAuth based authorization, securing the model and the server, and a review checklist |
 | [Anthropic SDK vs Claude Agent SDK](DAY_3/ANTHROPIC_SDK_VS_CLAUDE_AGENT_SDK.md) | A table-based comparison of the ways to build an agent |
-| [Day 2 study guides](STUDY_GUIDES/DAY_2) | The tool-use loop, explained step by step |
+
+For more depth, the longer guides are in `STUDY_GUIDES/DAY_1` to `DAY_5` (for example the tool-use loop in `STUDY_GUIDES/DAY_2`, and context and memory in `STUDY_GUIDES/DAY_5`), with `STUDY_GUIDES/EXAM_MAP.md` to link each topic to an exam domain.
 
 ## Test your labs and submit the results
 
@@ -209,7 +221,7 @@ python LAB_Test\run_all_labs.py --day 3                       # Day 3 labs with 
 python LAB_Test\run_all_labs.py --day 4 --mode live           # Day 4 labs, run live through Claude Code
 ```
 
-Open `LAB_Test\results\<timestamp>\SUMMARY.md` first. Every run also writes `SUBMISSION_<timestamp>.zip` in that folder (logs only, your key is never included). Send that zip to the trainer. Details are in [LAB_Test/README.md](LAB_Test/README.md).
+Open `LAB_Test\results\<timestamp>\SUMMARY.md` first. Every run also writes `SUBMISSION_<timestamp>.zip` in that folder (logs only, your key is never included). Send that zip to the trainer. The runner covers Day 0 to Day 4 and Lab 5.4. The Day 5 demos and Labs 5.1 to 5.3 are checked with each lab's own `python check.py` (and each demo's `python check_offline.py`). Details are in [LAB_Test/README.md](LAB_Test/README.md).
 
 ## Quick start
 
@@ -229,9 +241,10 @@ Every lab folder has a `SOLUTION/` folder with the complete reference solution. 
 
 ## Cost and safety
 
-Your class key is capped at about USD 50 for the whole course, and each lab README states its cost (most are a few cents, Lab 2.1 under $1; a live Day 4 run costs a few dollars per lab). Never put the key in code, chat, screenshots or a git repo. If it leaks, tell the trainer at once.
+Your class key is capped at about USD 50 for the whole course, and each lab README states its cost (most are a few cents, Lab 2.1 under $1; a live Day 4 run costs a few dollars per lab). Never put the key in code, chat, screenshots or a git repo, and never share a `.env` file. Set it as an environment variable (see `DAY_0_SETUP_GUIDE.md`), because `set` or `export` in one terminal only lasts for that terminal. If a key ever appears in a chat or a screenshot, treat it as leaked: tell the trainer and create a new one.
 
 ## Notes
 
+- The fast model is `claude-haiku-5-5` (US$0.10 in and US$0.50 out per million tokens). Its prompt-cache minimum is 512 tokens, so Lab 1.5 and Lab 1D use a prefix above that. The balanced model is `claude-sonnet-5-5`.
 - Models are named `MODEL_FAST`, `MODEL_BALANCED`, `MODEL_PREMIUM` in `claude_client.py`. Override with the environment variables `CLAUDE_MODEL_FAST`, `CLAUDE_MODEL_BALANCED`, `CLAUDE_MODEL_PREMIUM` if a model name is retired.
 - Not every lab has been run against the live API and Claude Code yet. If one behaves unexpectedly, tell the trainer which lab and paste the output (never the key).

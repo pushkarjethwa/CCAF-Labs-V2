@@ -6,6 +6,20 @@
 - You learn how to split work across specialists, keep agents safe, and build them with the SDKs.
 - Use this page as a short recap. The full guides (linked at the end) hold the detail.
 
+## The day in plain English
+
+**The big picture:** There are three ways to get work done with Claude. You can chat with it, you can run it through a fixed set of steps, or you can give it a goal and let it choose the steps. The skill is picking the simplest one that works, and making it safe.
+
+- **Conversation, workflow, agent.** A conversation is asking a colleague a question. A workflow is a checklist where your code decides each step and Claude does some of them. An agent is a colleague with a goal who decides the steps. More freedom means more power and more risk, so start with the simplest.
+- **An agent loop.** The agent thinks, uses a tool, looks at the result, and repeats until done. Like a detective following clues, deciding the next step after each one.
+- **Multi-agent.** Split a large job among specialists, each with a narrow task and only the information it needs. A coordinator hands out work and joins the results. Like a newsroom: researchers, a writer and an editor.
+- **Hand-offs.** What one agent passes to the next. Make it a clear, checked package, not a vague note. Like a shift handover sheet.
+- **Planning and decomposition.** Break a big task into small steps that can be checked. Like a recipe instead of "make dinner".
+- **Safety and failure handling.** Put limits in code: a turn limit, a budget, and approval from a person for risky actions such as large payments. Like a company card with a spending cap.
+- **The SDKs.** The Anthropic SDK gives you the raw pieces, and you write the loop. The Claude Agent SDK gives you a ready loop with tools, subagents and hooks. Like cooking from ingredients versus using a meal kit.
+
+Remember this: give an agent only as much freedom as the task needs, and enforce the limits in code.
+
 ## Your day at a glance
 
 Your trainer runs the demos while you watch. You do the labs yourself.
