@@ -1,0 +1,5 @@
+{
+  "C-1042": {"name": "Maya", "tier": "gold", "balance": 120},
+  "C-2001": {"name": "Ben", "tier": "member", "balance": 40},
+  "C-3003": {"name": "Sam", "tier": "guest", "balance": 0}
+}

@@ -6,28 +6,7 @@ lab:
 
 # Demo 5.0: Intro to memory, safeguards and evals
 
-A small coffee shop, Brew & Bean, has a loyalty card. Customers ask a chat assistant called Pip about their points, the rewards and the opening hours. In this demo you build Pip up in five short parts, and each part adds one idea: the model remembers nothing between calls, so you resend the conversation (conversation). The window it reads has a fixed size (context). Facts that must last go in a file outside the window (memory). A rule that must hold goes in code, not in a prompt (safeguard). A change to the prompt is only an improvement when a set of test cases says so (eval). The full run takes about 40 minutes, and the core path for a short session takes about 25 minutes. Every part runs live with one small script, `python intro_5_0.py --part N`. The demo stands alone: it needs no other Day 5 demo, and every term is explained when it first appears. Everything works the first time, so this is a tour, not a test. Students who have never met these ideas leave knowing what each one is and where it lives in code.
-
-## Core path for a short session
-
-**The pitch**: Pip forgets, so we resend, save and test. A rule belongs in code. A change needs a score.
-
-For a short session of about 25 minutes, run the parts in the table. The full run of about 40 minutes is still the default when you have the time.
-
-| Part | Core minutes | Full minutes | What students see |
-|---|---|---|---|
-| 1. Conversation | 5 | 6 | Pip forgets the customer's name when you send no history, and knows it when you resend the messages. Input tokens grow on every call |
-| 2. Context (shortened) | 1 | 6 | Say one sentence: the window is a fixed-size desk, and a trim loses facts. Run the part only if time allows |
-| 3. Memory | 6 | 7 | Three facts go into a JSON file, a new process loads them, and Pip answers correctly |
-| 4. Safeguards | 5 | 7 | One loyalty rule, first as a prompt sentence and then as four lines of code that run before the redeem tool. Skip step D |
-| 5. Evals | 6 | 8 | Five test cases graded by plain code, prompt v1 against v2, and a `GATE` line |
-| 6. Wrap-up | 2 | 2 | The cheat table |
-| **Total** | **25** | **36, about 40 with questions** | |
-
-**Optional for a short session**:
-
-- **Part 2, context, full run** (6 minutes): the desk bar, the trim and the two new words. Skip it, or say in one sentence that the window is a desk of fixed size and that compacting means replacing old messages with a short summary.
-- **Part 4, step D, odd requests go to a person** (2 minutes): skip it and mention the human handoff in one sentence. It is already left out of the 5 minutes in the table.
+A small coffee shop, Brew & Bean, has a loyalty card. Customers ask a chat assistant called Pip about their points, the rewards and the opening hours. In this demo you build Pip up in five short parts, and each part adds one idea: the model remembers nothing between calls, so you resend the conversation (conversation). The window it reads has a fixed size (context). Facts that must last go in a file outside the window (memory). A rule that must hold goes in code, not in a prompt (safeguard). A change to the prompt is only an improvement when a set of test cases says so (eval). The whole demo takes about 40 minutes. Every part runs with one small script, `python intro_5_0.py --part N`. The demo stands alone: it needs no other Day 5 demo, and every term is explained when it first appears. Everything works the first time, so this is a tour, not a test. If you have never met these ideas, you leave knowing what each one is and where it lives in code.
 
 ## What the demo shows
 
@@ -49,7 +28,6 @@ For a short session of about 25 minutes, run the parts in the table. The full ru
 - **prompts/pip_v1.txt** and **prompts/pip_v2.txt**: The two system prompts for part 5. Version 2 adds three rules.
 - **results/**: Files the script writes (the memory file, the handoff queue and the eval runs). It starts empty, with only a `.gitkeep`.
 - **check_offline.py**: A key-free self-check that runs every part against a scripted fake model.
-- **RUN_SHEET.md**: The instructor's script, with every command to type.
 
 ## Prerequisites
 
@@ -80,11 +58,11 @@ For a short session of about 25 minutes, run the parts in the table. The full ru
 
 ## Commands you will meet
 
-Every command has two reasons: what it does, and why we run it here. The run sheet repeats both under each command.
+Every command has two reasons: what it does, and why we run it here.
 
 | Command | What it does | Why we run it here | Part |
 |---|---|---|---|
-| `python check_offline.py` | Runs every part against a scripted fake model and prints PASS or FAIL lines | It shows the files and the code are intact before you go live, with no key | before class |
+| `python check_offline.py` | Runs every part against a scripted fake model and prints PASS or FAIL lines | It shows the files and the code are intact before you go live, with no key | first |
 | `python intro_5_0.py --part 1` | Makes four model calls and prints the replies and the input tokens | It shows that the model remembers nothing and that history is something you send | 1 |
 | `python intro_5_0.py --part 2` | Prints the desk bar, trims the sample chat and shows what was lost. It makes no model call | It shows that the window has a fixed size, and that trimming loses facts | 2 |
 | `python intro_5_0.py --part 2 --count` | The same, plus one call to the API's token-counting endpoint | It compares our estimate (characters divided by 4) with the real count | 2 |
@@ -92,7 +70,7 @@ Every command has two reasons: what it does, and why we run it here. The run she
 | `python intro_5_0.py --part 3 --step save`, then `--step ask` | The same two steps as two separate commands | It lets you stop between the steps and open the memory file | 3 |
 | `python intro_5_0.py --part 4` | Shows the rule as a prompt sentence, as code, in a tool run and in a handoff table | It shows where a rule lives, and that code is enforced while a prompt is advice | 4 |
 | `python intro_5_0.py --part 5` | Runs five cases on prompt v1 and v2, grades them and prints the gate | It shows how to know that a change helped | 5 |
-| `python intro_5_0.py --all` | Runs parts 1 to 5 and then prints the cheat table | One command for a full pre-flight run | all |
+| `python intro_5_0.py --all` | Runs parts 1 to 5 and then prints the cheat table | One command for the whole demo | all |
 | `--model balanced` (add to any command) | Runs Pip on `claude-sonnet-5-5` instead of `claude-haiku-5-5` | The fast model is cheap and enough for Pip. The main model shows that the lessons do not depend on the model | all |
 
 ## Run the demo
@@ -103,28 +81,28 @@ Every command has two reasons: what it does, and why we run it here. The run she
     python check_offline.py
     ```
 
-    **What it does:** Tests the rule, the grader, the gate and the memory file, and runs all five parts against a scripted fake model. **Why we run it:** It tells you the files are correct before you go live, so any surprise during the demo comes from the real model and not from the files.
+    **What it does:** Tests the rule, the grader, the gate and the memory file, and runs all five parts against a scripted fake model. **Why we run it:** It tells you the files are correct before you go live, so any surprise comes from the real model and not from the files.
 
-2. Run a part:
+2. Run a part, then the next ones in order:
 
     ```
     python intro_5_0.py --part 1
     ```
 
-    **What it does:** Runs part 1 with the real model. **Why we run it:** Each part is a short, separate run, so you can stop and talk between parts.
+    **What it does:** Runs part 1 with the real model. **Why we run it:** Each part is a short, separate run, so you can stop and read between parts.
 
-3. Follow **RUN_SHEET.md**. It gives the commands to type, what each one does and why we run it, what to expect on screen, and what to say.
+3. Run the parts one at a time, using the commands in the parts table above. Read the output of each part before you move to the next. The commands table above says what each command does and why.
 
 ## What to expect
 
-The model's wording differs on every run, so say what you observe. These patterns are what the demo is built around:
+The model's wording differs on every run, so describe what you see. These patterns are what the demo is built around:
 
 - In part 1, the call without history does not know the name, and the call with history does. The input tokens rise from call to call.
 - In part 3, Pip mentions the name, the nut allergy or the no-email choice, because the saved facts are in its system prompt.
 - In part 4, the check table is the same on every run, because it is plain code.
 - In part 5, the per-case comparison and the `GATE` line come from your live run. They can be PASS or BLOCKED, and either one is a real result.
 
-What is verified offline: the files and data, the rule and the argument checks, the router, the grader, the per-case comparison and the gate, the memory file and the new-process step, and all five parts against a scripted fake model. The fake model replays author-written replies from **data/author_fixtures.json**, so the offline pass rates (60 percent and 100 percent) test the code. They are not model results. Nothing in this demo has been run live yet: treat your own pre-flight run as the first live run. The token numbers in part 2 are estimates unless you add `--count`.
+What is verified offline: the files and data, the rule and the argument checks, the router, the grader, the per-case comparison and the gate, the memory file and the new-process step, and all five parts against a scripted fake model. The fake model replays author-written replies from **data/author_fixtures.json**, so the offline pass rates (60 percent and 100 percent) test the code. They are not model results. Nothing in this demo has been run live yet, so your first run is the first live run. The token numbers in part 2 are estimates unless you add `--count`.
 
 ## Design notes
 

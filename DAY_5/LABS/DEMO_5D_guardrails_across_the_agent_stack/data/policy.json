@@ -1,0 +1,48 @@
+{
+  "_note": "Author-written policy for the demo. The numbers live here and in code. They are never in a prompt.",
+  "today": "2026-10-09",
+  "allowed_countries": ["US", "CA", "GB"],
+  "customer_id_pattern": "C-\\d{4}",
+  "idempotency_key_pattern": "[A-Za-z0-9_-]{8,64}",
+  "refund_cap": 500.00,
+  "approval_limit": 100.00,
+  "token_ttl_seconds": 900,
+  "agent_limits": {"max_turns": 25, "max_budget_usd": 1.00},
+  "roles": {
+    "orchestrator": ["Agent", "Task"],
+    "account_reader": ["mcp__customers__read_customer"],
+    "refund_processor": ["mcp__customers__issue_refund"]
+  },
+  "tool_scopes": {
+    "mcp__customers__read_customer": "customers:read",
+    "mcp__customers__issue_refund": "refunds:write"
+  },
+  "instruction_patterns": [
+    "ignore (all |your |any )?(previous |prior )?(rules|instructions)",
+    "you are authori[sz]ed",
+    "system note",
+    "do not mention"
+  ],
+  "schemas": {
+    "triage": {
+      "ticket_id": {"type": "string", "pattern": "T-\\d{4}"},
+      "request_type": {"type": "string", "enum": ["refund", "status", "other"]},
+      "customer_id": {"type": "string", "pattern": "C-\\d{4}"},
+      "amount": {"type": "number", "min": 0},
+      "summary": {"type": "string"}
+    },
+    "handoff": {
+      "customer_id": {"type": "string", "pattern": "C-\\d{4}"},
+      "country": {"type": "string", "pattern": "[A-Z]{2}"},
+      "plan": {"type": "string"},
+      "order_id": {"type": "string", "pattern": "ORD-\\d{4}"},
+      "order_amount": {"type": "number", "min": 0}
+    },
+    "outcome": {
+      "ticket_id": {"type": "string", "pattern": "T-\\d{4}"},
+      "outcome": {"type": "string", "enum": ["refunded", "queued_for_approval", "no_action", "needs_human"]},
+      "amount": {"type": "number", "min": 0},
+      "summary": {"type": "string"}
+    }
+  }
+}

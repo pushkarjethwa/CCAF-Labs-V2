@@ -1,0 +1,9 @@
+{
+  "shop": "Brew & Bean",
+  "items": {"coffee": 3.50, "pastry": 4.00, "lunch combo": 9.00},
+  "hours": {
+    "Monday to Friday": "7am to 6pm",
+    "Saturday": "8am to 4pm",
+    "Sunday": "9am to 1pm"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "_note": "Author-written sample data. These are not real people. Only some fields ever leave the server.",
+  "customers": [
+    {"customer_id": "C-1001", "name": "Ada Lopez", "email": "ada.lopez@example.com", "phone": "+1-555-0101", "address": "12 Pine St, Austin", "country": "US", "plan": "Plus", "last_order_id": "ORD-5001", "last_order_amount": 45.00, "internal_note": "VIP since 2021"},
+    {"customer_id": "C-1002", "name": "Ben Carter", "email": "ben.carter@example.com", "phone": "+1-555-0102", "address": "88 Lake Rd, Toronto", "country": "CA", "plan": "Annual", "last_order_id": "ORD-5002", "last_order_amount": 299.00, "internal_note": "Renewed in March"},
+    {"customer_id": "C-1003", "name": "Chloe Evans", "email": "chloe.evans@example.com", "phone": "+44-20-5550-103", "address": "5 Mill Lane, Leeds", "country": "GB", "plan": "Basic", "last_order_id": "ORD-5003", "last_order_amount": 60.00, "internal_note": "None"},
+    {"customer_id": "C-1004", "name": "Dev Patel", "email": "dev.patel@example.com", "phone": "+1-555-0104", "address": "230 Oak Ave, Denver", "country": "US", "plan": "Plus", "last_order_id": "ORD-5004", "last_order_amount": 30.00, "internal_note": "None"},
+    {"customer_id": "C-1005", "name": "Eva Souza", "email": "eva.souza@example.com", "phone": "+55-11-5550-105", "address": "40 Rua Azul, Sao Paulo", "country": "BR", "plan": "Basic", "last_order_id": "ORD-5005", "last_order_amount": 120.00, "internal_note": "Regional team handles BR"}
+  ]
+}

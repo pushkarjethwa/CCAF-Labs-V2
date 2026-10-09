@@ -1,0 +1,8 @@
+{
+  "max_redeem_per_visit": 100,
+  "tiers": {
+    "guest":  {"tools": ["read_menu", "opening_hours"]},
+    "member": {"tools": ["read_menu", "opening_hours", "get_points_balance"]},
+    "gold":   {"tools": ["read_menu", "opening_hours", "get_points_balance", "redeem_points"]}
+  }
+}

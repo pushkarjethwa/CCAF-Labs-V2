@@ -1,0 +1,6 @@
+{"role": "user", "text": "Hi, I'm Maya. What pastries do you have?"}
+{"role": "assistant", "text": "Hi Maya. Today we have a pastry for $4.00."}
+{"role": "user", "text": "What are your Saturday hours?"}
+{"role": "assistant", "text": "On Saturday we are open 8am to 4pm."}
+{"role": "user", "text": "Please do not send me marketing email."}
+{"role": "assistant", "text": "Noted. We never send marketing email."}

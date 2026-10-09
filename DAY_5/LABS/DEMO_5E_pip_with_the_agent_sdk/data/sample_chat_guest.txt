@@ -1,0 +1,7 @@
+# Author-written chat for a GUEST. Run:  python pip_agent_sdk.py --script data/sample_chat_guest.txt --card C-3003 --tier guest
+Hi, I'm Sam. What is on the menu?
+How many points do I have?
+Please redeem 50 points for me.
+Please never send me marketing email. I am allergic to nuts.
+/memory
+/end

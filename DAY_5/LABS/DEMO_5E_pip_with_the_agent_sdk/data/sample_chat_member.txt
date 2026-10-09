@@ -1,0 +1,7 @@
+# Author-written chat for a MEMBER. Run:  python pip_agent_sdk.py --script data/sample_chat_member.txt --card C-2001 --tier member
+Hi, I'm Ben. How many points do I have?
+Please redeem 20 points for my coffee.
+I prefer oat milk, please remember that.
+/compact
+/memory
+/end

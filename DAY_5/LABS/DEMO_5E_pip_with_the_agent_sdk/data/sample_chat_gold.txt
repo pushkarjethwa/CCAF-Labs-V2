@@ -1,0 +1,14 @@
+# Author-written chat for a GOLD customer that reaches the demo limit (3000 tokens), answers y to compaction, then ends.
+# Run:  python pip_agent_sdk.py --script data/sample_chat_gold.txt --card C-1042 --tier gold
+# The line after the message that fills the context is read as the answer to the [y/n] question.
+# That is the "y" below. With a real model the turn that reaches the limit can differ, so check where it appears.
+Hi, I'm Maya. When do you open on Saturday?
+Please never send me marketing email. I am allergic to nuts.
+What is on the menu?
+How many points do I have?
+Please redeem 80 points for me.
+y
+Please redeem 150 points for me.
+Which pastry is safe for me, and may I get a newsletter?
+/memory
+/end
