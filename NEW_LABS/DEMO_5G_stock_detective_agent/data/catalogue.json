@@ -1,0 +1,6 @@
+{
+  "_note": "Author-written fixture for Demo 5G. Not real shop data.",
+  "oat milk": {"unit": "carton", "price_usd": 2.40, "supplier": "Northfield Dairy Alternatives"},
+  "whole milk": {"unit": "carton", "price_usd": 1.10, "supplier": "Valley Dairy"},
+  "coffee beans": {"unit": "kg", "price_usd": 14.00, "supplier": "Highland Roasters"}
+}

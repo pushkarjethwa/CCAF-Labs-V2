@@ -1,0 +1,38 @@
+{
+  "_note": "Author-written fixture. Kitchen calendar for the week. Only busy half-hour slots are listed; every other slot from 08:00 to 15:30 is free.",
+  "week_start": "2026-10-12",
+  "days": {
+    "2026-10-12": {
+      "busy": {
+        "08:00": "wholesale delivery",
+        "08:30": "wholesale delivery",
+        "12:00": "staff lunch"
+      }
+    },
+    "2026-10-13": {
+      "busy": {
+        "08:00": "bread baking",
+        "08:30": "bread baking",
+        "09:00": "bread baking"
+      }
+    },
+    "2026-10-14": {
+      "busy": {
+        "10:00": "catering for school",
+        "10:30": "catering for school",
+        "14:00": "oven cleaning"
+      }
+    },
+    "2026-10-15": {
+      "busy": {
+        "09:00": "machine service",
+        "09:30": "machine service"
+      }
+    },
+    "2026-10-16": {
+      "busy": {
+        "12:00": "staff lunch"
+      }
+    }
+  }
+}

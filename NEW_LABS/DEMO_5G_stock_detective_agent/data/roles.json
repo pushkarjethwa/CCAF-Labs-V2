@@ -1,0 +1,5 @@
+{
+  "_note": "Author-written fixture for Demo 5G. Which branches each role may read.",
+  "branch_manager": ["harbour", "central"],
+  "area_manager": ["harbour", "central", "uptown"]
+}

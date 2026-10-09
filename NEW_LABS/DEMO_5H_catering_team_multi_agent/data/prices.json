@@ -1,0 +1,11 @@
+{
+  "_note": "Author-written fixture. Prices in USD. A line of 50 units or more gets the bulk discount.",
+  "items": {
+    "drip_coffee": {"unit_price": 2.50},
+    "latte": {"unit_price": 3.50},
+    "muffin": {"unit_price": 3.00},
+    "croissant": {"unit_price": 3.20},
+    "cookie_box": {"unit_price": 12.00}
+  },
+  "bulk_discount": {"min_quantity": 50, "percent": 10}
+}

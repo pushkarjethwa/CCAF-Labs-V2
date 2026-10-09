@@ -1,0 +1,11 @@
+{
+  "_note": "Author-written fixture for Demo 5G. The default task of each case, and the facts a good set of notes must still hold at the end (any one keyword per fact is enough).",
+  "oat-milk-harbour": {
+    "task": "Oat milk keeps running out at the Harbour branch. Find out why and recommend what to do.",
+    "key_facts": {
+      "weekend sales spike": ["weekend", "saturday", "sunday"],
+      "delivery arrives on Tuesdays": ["tuesday"],
+      "supplier case size changed": ["case"]
+    }
+  }
+}

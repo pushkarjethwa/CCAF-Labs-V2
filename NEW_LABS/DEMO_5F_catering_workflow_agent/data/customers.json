@@ -1,0 +1,6 @@
+{
+  "_note": "Author-written fixture. Standing preferences, one list per customer, loaded by code into the confirm step.",
+  "Acme Corp": ["no peanuts"],
+  "Northside Dental": [],
+  "Harbor Books": ["deliver to the side door"]
+}

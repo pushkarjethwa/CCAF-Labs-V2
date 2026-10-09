@@ -1,0 +1,9 @@
+{
+  "_note": "Author-written fixture. Prices in US dollars, stock in units on the shelf today. The model never sees these numbers; the tools read them.",
+  "items": {
+    "coffee": {"price": 3.50, "stock": 400},
+    "muffin": {"price": 3.00, "stock": 200},
+    "bagel": {"price": 2.50, "stock": 120},
+    "cookie": {"price": 2.00, "stock": 150}
+  }
+}

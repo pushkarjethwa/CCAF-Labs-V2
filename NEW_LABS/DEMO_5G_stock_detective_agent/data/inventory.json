@@ -1,0 +1,53 @@
+{
+  "harbour": {
+    "oat milk": {
+      "on_hand": 51,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "whole milk": {
+      "on_hand": 340,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "coffee beans": {
+      "on_hand": 57,
+      "unit": "kg",
+      "as_of": "2026-10-07"
+    }
+  },
+  "central": {
+    "oat milk": {
+      "on_hand": 351,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "whole milk": {
+      "on_hand": 300,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "coffee beans": {
+      "on_hand": 148,
+      "unit": "kg",
+      "as_of": "2026-10-07"
+    }
+  },
+  "uptown": {
+    "oat milk": {
+      "on_hand": 193,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "whole milk": {
+      "on_hand": 204,
+      "unit": "cartons",
+      "as_of": "2026-10-07"
+    },
+    "coffee beans": {
+      "on_hand": 62,
+      "unit": "kg",
+      "as_of": "2026-10-07"
+    }
+  }
+}

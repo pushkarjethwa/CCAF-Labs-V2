@@ -1,0 +1,14 @@
+{
+  "_note": "Author-written fixture. Three catering requests for the week of Monday 12 October 2026.",
+  "requests": [
+    {"request_id": "R-1", "customer": "Maple Street Office", "date": "2026-10-13", "preferred_time": "09:00",
+     "items": [{"item": "drip_coffee", "quantity": 40}, {"item": "croissant", "quantity": 20}],
+     "notes": "Staff breakfast. Deliver to reception."},
+    {"request_id": "R-2", "customer": "Riverside Book Club", "date": "2026-10-14", "preferred_time": "14:00",
+     "items": [{"item": "latte", "quantity": 25}, {"item": "muffin", "quantity": 25}],
+     "notes": "Monthly meeting. One person is allergic to nuts."},
+    {"request_id": "R-3", "customer": "Harbor Tech Summit", "date": "2026-10-16", "preferred_time": "08:00",
+     "items": [{"item": "drip_coffee", "quantity": 150}, {"item": "croissant", "quantity": 80}],
+     "notes": "Morning keynote for 150 guests. Pick-up at the side door."}
+  ]
+}

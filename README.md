@@ -8,12 +8,12 @@ New to the Anthropic SDK? Read [HOW_THE_CODE_WORKS.md](HOW_THE_CODE_WORKS.md) fi
 
 | Folder | What is in it |
 |---|---|
-| `NEW_LABS/` | Warm-up and extra labs: 0.1, 1.5, 2.0 and 5.4 |
+| `NEW_LABS/` | Warm-up and extra labs: 0.1, 1.5, 2.0 and 5.4, and the optional Day 5 demos 5F, 5G and 5H |
 | `DAY_1/LABS` | Labs 1A to 1D, each one replays a trainer demo |
 | `DAY_2/LABS` | Two MCP demos you can run before the labs, and Labs 2.1 to 2.6 |
 | `DAY_3/LABS` | Labs 3.1 to 3.7 |
 | `DAY_4/LABS` | The intro demo `DEMO_4_0_intro_to_claude` (run it first), and Labs 4.1 to 4.4, done in Claude Code |
-| `DAY_5/LABS` | The optional intro demo `DEMO_5_0_intro_to_memory_safeguards_evals` (run it before Lab 5.1 if you are new to these ideas), the optional demo `DEMO_5D_guardrails_across_the_agent_stack` (no lab yet, with a reference card), the optional demo `DEMO_5E_pip_with_the_agent_sdk` (no matching lab), and Labs 5.1 to 5.3, each one follows a Day 5 morning demo |
+| `DAY_5/LABS` | The optional intro demo `DEMO_5_0_intro_to_memory_safeguards_evals` (run it before Lab 5.1 if you are new to these ideas), the optional demo `DEMO_5D_guardrails_across_the_agent_stack` (no lab yet, with a reference card), the optional demo `DEMO_5E_pip_with_the_agent_sdk` (no matching lab), and Labs 5.1 to 5.3 (the optional demos 5F, 5G and 5H are in `NEW_LABS`), each one follows a Day 5 morning demo |
 | `DAY_4/BUILD_IT_ASSEMBLY` | Optional ready-to-run Day 4 project: rules, skill, hook, MCP and a GitHub review gate |
 | `STUDY_GUIDE/` | Reading: MCP best practices and MCP security architecture |
 | `LAB_Test/` | The runner that tests every lab and packs the results to submit |
@@ -32,6 +32,9 @@ Most labs are a replay of what the trainer showed, so the demo and the lab match
 | Day 4, Demos 4A to 4D | [Labs 4.1 to 4.4](DAY_4/LABS/README.md) | Claude Code in the lab's `STARTER` folder |
 | Day 5, Intro to memory, safeguards and evals (demo 5.0, no lab, optional) | [DEMO_5_0_intro_to_memory_safeguards_evals](DAY_5/LABS/DEMO_5_0_intro_to_memory_safeguards_evals/README.md) | `python check_offline.py`, then `python intro_5_0.py --part 1` ... `5` |
 | Day 5, Chat with Pip on the Claude Agent SDK (demo 5E, no matching lab) | [DEMO_5E_pip_with_the_agent_sdk](DAY_5/LABS/DEMO_5E_pip_with_the_agent_sdk/README.md) | `python check_offline.py`, then `python pip_agent_sdk.py` |
+| Day 5, A workflow agent with state, memory and guardrails (demo 5F, no matching lab) | [DEMO_5F_catering_workflow_agent](NEW_LABS/DEMO_5F_catering_workflow_agent/README.md) | `python check_offline.py`, then `python catering_workflow.py --request R-1` |
+| Day 5, An autonomous agent with working memory and guardrails (demo 5G, no matching lab) | [DEMO_5G_stock_detective_agent](NEW_LABS/DEMO_5G_stock_detective_agent/README.md) | `python check_offline.py`, then `python stock_detective.py` |
+| Day 5, A multi-agent team with isolated context and a shared ledger (demo 5H, no matching lab) | [DEMO_5H_catering_team_multi_agent](NEW_LABS/DEMO_5H_catering_team_multi_agent/README.md) | `python check_offline.py`, then `python catering_team.py` |
 | Day 5, Guardrails across the agent stack (demo 5D, no lab yet) | [DEMO_5D_guardrails_across_the_agent_stack](DAY_5/LABS/DEMO_5D_guardrails_across_the_agent_stack/README.md) | `python check_offline.py`, then `python guardrails_stack.py --stage 1` ... `5`. Reference card: `GUARDRAILS_BY_LAYER.md` |
 | Day 5, Demos 5A to 5C | [Labs 5.1 to 5.3](DAY_5/LABS/README.md) | `python lab.py`, then `python check.py` |
 
@@ -168,6 +171,8 @@ New to memory, safeguards and evals? Run the optional intro demo first: [DEMO_5_
 Want the whole map of guardrails? Run the optional demo [DEMO_5D_guardrails_across_the_agent_stack](DAY_5/LABS/DEMO_5D_guardrails_across_the_agent_stack/README.md) after 5.0. An orchestrator and two subagents handle support tickets, and each stage adds one layer: the prompt, the tools, the MCP server, the agent gate and the audit log (`python guardrails_stack.py --stage 1` ... `5`). It takes about 40 minutes. There is no matching lab yet. Keep its one-page reference card, [GUARDRAILS_BY_LAYER.md](DAY_5/LABS/DEMO_5D_guardrails_across_the_agent_stack/GUARDRAILS_BY_LAYER.md), next to you.
 
 Want to see what the Claude Agent SDK handles for memory and context? Run the optional demo [DEMO_5E_pip_with_the_agent_sdk](DAY_5/LABS/DEMO_5E_pip_with_the_agent_sdk/README.md) after 5D. You chat with the coffee-shop assistant from 5.0 by typing each message (`python pip_agent_sdk.py`). The SDK keeps the conversation and reads a `CLAUDE.md` of standing rules, while your code keeps one memory file for each customer card, asks before it compacts a long chat, and gives a guest, a member and a gold customer different tools. It takes about 20 minutes. There is no matching lab.
+
+Want to see three more shapes of agent? After 5E, three optional demos build the same coffee-shop ideas in different ways, and each runs in about 30 minutes. [DEMO_5F_catering_workflow_agent](NEW_LABS/DEMO_5F_catering_workflow_agent/README.md) is a workflow: a catering order moves through five fixed steps, with a small state passed along and a checkpoint saved after each step (`python catering_workflow.py --request R-1`). [DEMO_5G_stock_detective_agent](NEW_LABS/DEMO_5G_stock_detective_agent/README.md) is an autonomous agent that chooses its own steps, reads bounded views of a long log and keeps working notes (`python stock_detective.py`). [DEMO_5H_catering_team_multi_agent](NEW_LABS/DEMO_5H_catering_team_multi_agent/README.md) is a team of subagents with separate context and a shared ledger (`python catering_team.py`). They need the Agent SDK and a key, and there is no matching lab. Run `python check_offline.py` first in each folder.
 
 Three labs, built like the Day 3 labs. In each one you write four small pieces of `lab.py` (15 to 23 lines in all), and the lab guide gives you every line. A real Claude model runs inside each lab. Each lab follows a morning demo, and the demos are the trainer's, in `TRAINER_V2/DAY_5/DEMOS`.
 

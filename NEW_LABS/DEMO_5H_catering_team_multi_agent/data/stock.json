@@ -1,0 +1,45 @@
+{
+  "_note": "Author-written fixture. Units on the shelf on Monday morning.",
+  "items": {
+    "drip_coffee": {
+      "on_hand": 300,
+      "unit": "cup",
+      "restock": "Thursday",
+      "lot": "Lot 2026-41",
+      "supplier": "Hill Roasters",
+      "location": "cold store 2"
+    },
+    "latte": {
+      "on_hand": 100,
+      "unit": "cup",
+      "restock": "Thursday",
+      "lot": "Lot 2026-39",
+      "supplier": "Valley Dairy",
+      "location": "fridge 1"
+    },
+    "muffin": {
+      "on_hand": 60,
+      "unit": "piece",
+      "restock": "Wednesday",
+      "lot": "Lot 2026-42",
+      "supplier": "Corner Bakery",
+      "location": "shelf B"
+    },
+    "croissant": {
+      "on_hand": 120,
+      "unit": "piece",
+      "restock": "Tuesday",
+      "lot": "Lot 2026-42",
+      "supplier": "Corner Bakery",
+      "location": "shelf A"
+    },
+    "cookie_box": {
+      "on_hand": 40,
+      "unit": "box of 12",
+      "restock": "Friday",
+      "lot": "Lot 2026-40",
+      "supplier": "Corner Bakery",
+      "location": "shelf C"
+    }
+  }
+}

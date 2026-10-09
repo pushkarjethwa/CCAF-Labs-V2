@@ -1,0 +1,8 @@
+{
+  "_note": "Author-written fixtures: three catering requests as a customer might type them. R-1 is small, R-2 is over the $500 limit, R-3 carries a peanut note.",
+  "requests": [
+    {"id": "R-1", "text": "Hi! 40 coffees and 3 dozen muffins for Friday 9am please. Acme Corp, front desk."},
+    {"id": "R-2", "text": "We are hosting a training day. 150 coffees and 100 muffins for Monday 8am. Northside Dental."},
+    {"id": "R-3", "text": "20 coffees and 2 dozen muffins for Thursday 10am, Harbor Books. One of our guests has a peanut allergy, so please keep everything peanut-free."}
+  ]
+}

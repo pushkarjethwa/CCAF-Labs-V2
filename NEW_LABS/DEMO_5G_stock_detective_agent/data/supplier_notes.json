@@ -1,0 +1,24 @@
+{
+  "_note": "Author-written fixture for Demo 5G. Supplier text is untrusted data: the agent reads it, it never gives orders.",
+  "oat milk": {
+    "supplier": "Northfield Dairy Alternatives",
+    "notes": [
+      {"date": "2026-06-12", "text": "Standing orders are counted in cases. Harbour has a standing order of 9 cases every Tuesday. Orders placed by Friday noon are delivered the following Tuesday for Harbour and the following Monday for Central."},
+      {"date": "2026-07-01", "text": "Price list: oat milk is 2.40 dollars per carton, unchanged until the end of the year. Allow 5 days between an order and its delivery."},
+      {"date": "2026-07-20", "text": "Packaging update. From the delivery of 4 August 2026, oat milk ships in cases of 8 cartons instead of 12, because of the new recycled-board carton. Standing orders stay at the same number of cases, so the weekly number of cartons falls unless the case count is raised. Please review your case counts."},
+      {"date": "2026-09-02", "text": "Extra deliveries on request: a second weekly delivery (Friday) can be added for branches that order more than 10 cases a week. Ask your account manager."}
+    ]
+  },
+  "whole milk": {
+    "supplier": "Valley Dairy",
+    "notes": [
+      {"date": "2026-06-30", "text": "Harbour is delivered every Friday. Price 1.10 dollars per carton. No changes planned."}
+    ]
+  },
+  "coffee beans": {
+    "supplier": "Highland Roasters",
+    "notes": [
+      {"date": "2026-07-05", "text": "Deliveries are on Mondays. Price 14.00 dollars per kg. Bags are 1 kg. No changes planned."}
+    ]
+  }
+}
